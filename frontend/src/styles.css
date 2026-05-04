@@ -209,6 +209,27 @@ button:disabled {
   background: #f8fafc;
 }
 
+.collection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.collection-header p {
+  margin: 0;
+}
+
+.collection-toggle {
+  width: auto;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+
 .collection-grid {
   margin-top: 8px;
   display: grid;
@@ -343,6 +364,10 @@ button:disabled {
   button {
     padding: 12px;
     font-size: 13px;
+  }
+
+  .collection-box {
+    padding: 8px 10px;
   }
 
   .collection-grid {

@@ -16,6 +16,7 @@ export const GameBoard = () => {
   const [claimIncome, { isLoading: isClaimingIncome }] = useClaimIncomeMutation();
   const [upgradeBase, { isLoading: isUpgradingBase }] = useUpgradeBaseMutation();
   const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [isCollectionOpen, setIsCollectionOpen] = useState(false);
 
   const cells = useMemo(() => user?.grid.cells ?? [], [user]);
 
@@ -128,29 +129,41 @@ export const GameBoard = () => {
       </div>
 
       <div className="collection-box">
-        <p>Коллекция: {user.discoveredItems.length} / {user.itemCatalog.length}</p>
-        <div className="collection-grid">
-          {user.itemCatalog.map((item) => {
-            const discovered = user.discoveredItems.includes(item.level);
-
-            return (
-              <div key={item.level} className={`collection-card ${discovered ? "open" : "closed"}`}>
-                {discovered ? (
-                  <>
-                    <div className="collection-icon">{item.icon}</div>
-                    <div className="collection-name">{item.name}</div>
-                    <div className="collection-level">Ур. {item.level}</div>
-                  </>
-                ) : (
-                  <>
-                    <div className="collection-icon">❔</div>
-                    <div className="collection-name">Не открыто</div>
-                  </>
-                )}
-              </div>
-            );
-          })}
+        <div className="collection-header">
+          <p>📖 Коллекция: {user.discoveredItems.length} / {user.itemCatalog.length}</p>
+          <button
+            type="button"
+            className="collection-toggle"
+            onClick={() => setIsCollectionOpen((value) => !value)}
+          >
+            {isCollectionOpen ? "Скрыть" : "Показать"}
+          </button>
         </div>
+
+        {isCollectionOpen ? (
+          <div className="collection-grid">
+            {user.itemCatalog.map((item) => {
+              const discovered = user.discoveredItems.includes(item.level);
+
+              return (
+                <div key={item.level} className={`collection-card ${discovered ? "open" : "closed"}`}>
+                  {discovered ? (
+                    <>
+                      <div className="collection-icon">{item.icon}</div>
+                      <div className="collection-name">{item.name}</div>
+                      <div className="collection-level">Ур. {item.level}</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="collection-icon">❔</div>
+                      <div className="collection-name">Не открыто</div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
     </section>
   );

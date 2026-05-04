@@ -49,14 +49,22 @@ export const GameBoard = () => {
       </div>
 
       <div className="actions">
-        <button type="button" onClick={() => spawnItem()} disabled={isSpawning}>
-          Получить предмет
+        <button
+          type="button"
+          onClick={() => spawnItem()}
+          disabled={isSpawning || user.gold < user.spawnCost}
+        >
+          Получить предмет ({user.spawnCost})
         </button>
         <button type="button" onClick={() => claimIncome()} disabled={isClaimingIncome}>
           Собрать доход
         </button>
-        <button type="button" onClick={() => upgradeBase()} disabled={isUpgradingBase}>
-          Улучшить базу
+        <button
+          type="button"
+          onClick={() => upgradeBase()}
+          disabled={isUpgradingBase || user.gold < user.baseUpgradeCost}
+        >
+          Улучшить базу ({user.baseUpgradeCost})
         </button>
       </div>
 

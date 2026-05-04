@@ -3,6 +3,7 @@ import {
   BASE_UPGRADE_COST_STEP,
   GRID_SIZE,
   MAX_OFFLINE_INCOME_SECONDS,
+  SPAWN_COST,
   SPAWN_ITEM_LEVEL
 } from "./game.constants.js";
 import { calculateIncomeWithBase } from "./income.service.js";
@@ -20,6 +21,8 @@ export interface UserStateDto {
   grid: UserDocument["grid"];
   incomePerMinute: number;
   lastIncomeClaimAt: Date;
+  spawnCost: number;
+  baseUpgradeCost: number;
 }
 
 const ensureUser = async (): Promise<UserDocument> => {
@@ -32,6 +35,15 @@ const ensureUser = async (): Promise<UserDocument> => {
   return User.create({ lastIncomeClaimAt: new Date() });
 };
 
+const getBaseUpgradeCost = (baseLevel: number): number => {
+  return baseLevel * BASE_UPGRADE_COST_STEP;
+};
+
+const getSpawnCost = (user: UserDocument): number => {
+  const hasAnyItem = user.grid.cells.some((cell) => cell.itemLevel > 0);
+  return hasAnyItem ? SPAWN_COST : 0;
+};
+
 const toUserStateDto = (user: UserDocument): UserStateDto => {
   return {
     _id: user.id,
@@ -39,7 +51,9 @@ const toUserStateDto = (user: UserDocument): UserStateDto => {
     baseLevel: user.baseLevel,
     grid: user.grid,
     incomePerMinute: calculateIncomeWithBase(user.grid, user.baseLevel),
-    lastIncomeClaimAt: user.lastIncomeClaimAt
+    lastIncomeClaimAt: user.lastIncomeClaimAt,
+    spawnCost: getSpawnCost(user),
+    baseUpgradeCost: getBaseUpgradeCost(user.baseLevel)
   };
 };
 
@@ -87,7 +101,15 @@ export const spawnItem = async (): Promise<UserStateDto> => {
     throw new Error("No empty cells available");
   }
 
+  const spawnCost = getSpawnCost(user);
+
+  if (user.gold < spawnCost) {
+    throw new Error("Not enough gold to spawn item");
+  }
+
+  user.gold -= spawnCost;
   user.grid.cells[emptyIndex].itemLevel = SPAWN_ITEM_LEVEL;
+
   await user.save();
   return toUserStateDto(user);
 };
@@ -114,7 +136,7 @@ export const claimIncome = async (): Promise<UserStateDto> => {
 
 export const upgradeBase = async (): Promise<UserStateDto> => {
   const user = await ensureUser();
-  const upgradeCost = user.baseLevel * BASE_UPGRADE_COST_STEP;
+  const upgradeCost = getBaseUpgradeCost(user.baseLevel);
 
   if (user.gold < upgradeCost) {
     throw new Error("Not enough gold to upgrade base");

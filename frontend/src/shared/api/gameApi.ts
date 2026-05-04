@@ -10,6 +10,8 @@ export type UserState = {
   baseLevel: number;
   incomePerMinute: number;
   lastIncomeClaimAt: string;
+  spawnCost: number;
+  baseUpgradeCost: number;
   grid: {
     cells: GridCell[];
   };

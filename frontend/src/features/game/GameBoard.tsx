@@ -45,6 +45,7 @@ export const GameBoard = () => {
       <div className="top-bar">
         <p>Gold: {user.gold}</p>
         <p>Base level: {user.baseLevel}</p>
+        <p>Доход/мин: {user.incomePerMinute}</p>
       </div>
 
       <div className="actions">

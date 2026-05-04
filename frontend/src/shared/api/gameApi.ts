@@ -8,6 +8,8 @@ export type UserState = {
   _id: string;
   gold: number;
   baseLevel: number;
+  incomePerMinute: number;
+  lastIncomeClaimAt: string;
   grid: {
     cells: GridCell[];
   };

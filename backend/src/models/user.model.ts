@@ -6,6 +6,7 @@ export interface IUser {
   gold: number;
   baseLevel: number;
   grid: IGrid;
+  lastIncomeClaimAt: Date;
 }
 
 type UserModel = Model<IUser>;
@@ -30,6 +31,11 @@ const userSchema = new Schema<IUser, UserModel>(
       default: {
         cells: Array.from({ length: GRID_SIZE }, () => ({ itemLevel: 0 }))
       }
+    },
+    lastIncomeClaimAt: {
+      type: Date,
+      required: true,
+      default: Date.now
     }
   },
   {

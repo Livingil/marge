@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/app/store.ts","./src/features/game/gameboard.tsx","./src/shared/api/gameapi.ts"],"version":"6.0.3"}

@@ -1,0 +1,79 @@
+﻿:root {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.4;
+}
+
+body {
+  margin: 0;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+section {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.top-bar p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.top-bar button {
+  margin-left: auto;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.top-bar button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.grid {
+  display: grid;
+  gap: 8px;
+}
+
+.cell {
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid #9ca3af;
+  font-size: 24px;
+  font-weight: 700;
+  user-select: none;
+}
+
+.cell.empty {
+  background: #f9fafb;
+}
+
+.cell.filled {
+  background: #e0ecff;
+  cursor: grab;
+}

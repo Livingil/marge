@@ -14,16 +14,76 @@ export interface MergeCellsInput {
   cellB: number;
 }
 
+interface ItemDetails {
+  level: number;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+interface GoalDto {
+  title: string;
+  rewardGold: number;
+}
+
+interface UserGridCellDto {
+  itemLevel: number;
+  item: ItemDetails | null;
+}
+
+interface UserGridDto {
+  cells: UserGridCellDto[];
+}
+
 export interface UserStateDto {
   _id: string;
   gold: number;
   baseLevel: number;
-  grid: UserDocument["grid"];
+  grid: UserGridDto;
   incomePerMinute: number;
   lastIncomeClaimAt: Date;
   spawnCost: number;
   baseUpgradeCost: number;
+  goal: GoalDto;
 }
+
+const ENERGY_ITEMS: Record<number, ItemDetails> = {
+  1: {
+    level: 1,
+    name: "Искра",
+    description: "Малый источник нестабильной энергии",
+    icon: "⚡"
+  },
+  2: {
+    level: 2,
+    name: "Батарея",
+    description: "Стабильный переносной накопитель энергии",
+    icon: "🔋"
+  },
+  3: {
+    level: 3,
+    name: "Энергоячейка",
+    description: "Усиленная ячейка для длительной работы",
+    icon: "🔷"
+  },
+  4: {
+    level: 4,
+    name: "Конденсатор",
+    description: "Высокоемкий модуль быстрого выброса",
+    icon: "🧪"
+  },
+  5: {
+    level: 5,
+    name: "Реактор",
+    description: "Ядро генерации чистой энергии",
+    icon: "☢️"
+  }
+};
+
+const GAME_GOAL: GoalDto = {
+  title: "Создай Реактор",
+  rewardGold: 500
+};
 
 const ensureUser = async (): Promise<UserDocument> => {
   const existingUser = await User.findOne();
@@ -47,16 +107,30 @@ const getSpawnCost = (user: UserDocument): number => {
   return itemsCount < 2 ? 0 : SPAWN_COST;
 };
 
+const getItemDetails = (itemLevel: number): ItemDetails | null => {
+  if (itemLevel <= 0) {
+    return null;
+  }
+
+  return ENERGY_ITEMS[itemLevel] ?? null;
+};
+
 const toUserStateDto = (user: UserDocument): UserStateDto => {
   return {
     _id: user.id,
     gold: user.gold,
     baseLevel: user.baseLevel,
-    grid: user.grid,
+    grid: {
+      cells: user.grid.cells.map((cell) => ({
+        itemLevel: cell.itemLevel,
+        item: getItemDetails(cell.itemLevel)
+      }))
+    },
     incomePerMinute: calculateIncomeWithBase(user.grid, user.baseLevel),
     lastIncomeClaimAt: user.lastIncomeClaimAt,
     spawnCost: getSpawnCost(user),
-    baseUpgradeCost: getBaseUpgradeCost(user.baseLevel)
+    baseUpgradeCost: getBaseUpgradeCost(user.baseLevel),
+    goal: GAME_GOAL
   };
 };
 

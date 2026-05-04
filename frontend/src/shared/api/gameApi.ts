@@ -1,7 +1,15 @@
 ﻿import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
+export type GridItem = {
+  level: number;
+  name: string;
+  description: string;
+  icon: string;
+};
+
 export type GridCell = {
   itemLevel: number;
+  item: GridItem | null;
 };
 
 export type UserState = {
@@ -12,6 +20,10 @@ export type UserState = {
   lastIncomeClaimAt: string;
   spawnCost: number;
   baseUpgradeCost: number;
+  goal: {
+    title: string;
+    rewardGold: number;
+  };
   grid: {
     cells: GridCell[];
   };

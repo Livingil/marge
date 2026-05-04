@@ -48,6 +48,11 @@ export const GameBoard = () => {
         <p>Доход/мин: {user.incomePerMinute}</p>
       </div>
 
+      <div className="goal-box">
+        <p>Цель: {user.goal.title}</p>
+        <p>Награда: {user.goal.rewardGold} gold</p>
+      </div>
+
       <div className="actions">
         <button
           type="button"
@@ -78,7 +83,13 @@ export const GameBoard = () => {
             onDragOver={(event) => event.preventDefault()}
             onDrop={() => void onDropCell(index)}
           >
-            {cell.itemLevel > 0 ? cell.itemLevel : ""}
+            {cell.item ? (
+              <>
+                <div className="cell-icon">{cell.item.icon}</div>
+                <div className="cell-name">{cell.item.name}</div>
+                <div className="cell-level">Ур. {cell.item.level}</div>
+              </>
+            ) : null}
           </div>
         ))}
       </div>

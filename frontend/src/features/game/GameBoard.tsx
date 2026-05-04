@@ -49,8 +49,19 @@ export const GameBoard = () => {
       </div>
 
       <div className="goal-box">
-        <p>Цель: {user.goal.title}</p>
-        <p>Награда: {user.goal.rewardGold} gold</p>
+        <p>Цель: Открой первую энергетическую цепочку</p>
+        <p>Текущая цель: {user.currentGoal.title}</p>
+        <p>Награда: {user.currentGoal.rewardText}</p>
+      </div>
+
+      <div className="goal-box">
+        <p>Открытия:</p>
+        <p>⚡ Энергия: открыто</p>
+        <p>🧪 Наука: закрыто</p>
+        <p>🌱 Жизнь: закрыто</p>
+        <p>🌀 Порталы: закрыто</p>
+        <p>🧬 Мутации: закрыто</p>
+        <p>🏙️ Цивилизация: закрыто</p>
       </div>
 
       <div className="actions">

@@ -21,9 +21,10 @@ interface ItemDetails {
   icon: string;
 }
 
-interface GoalDto {
+interface CurrentGoalDto {
   title: string;
-  rewardGold: number;
+  targetLevel: number;
+  rewardText: string;
 }
 
 interface UserGridCellDto {
@@ -44,7 +45,7 @@ export interface UserStateDto {
   lastIncomeClaimAt: Date;
   spawnCost: number;
   baseUpgradeCost: number;
-  goal: GoalDto;
+  currentGoal: CurrentGoalDto;
 }
 
 const ENERGY_ITEMS: Record<number, ItemDetails> = {
@@ -64,13 +65,13 @@ const ENERGY_ITEMS: Record<number, ItemDetails> = {
     level: 3,
     name: "Энергоячейка",
     description: "Усиленная ячейка для длительной работы",
-    icon: "🔷"
+    icon: "💠"
   },
   4: {
     level: 4,
     name: "Конденсатор",
     description: "Высокоемкий модуль быстрого выброса",
-    icon: "🧪"
+    icon: "🧲"
   },
   5: {
     level: 5,
@@ -80,9 +81,10 @@ const ENERGY_ITEMS: Record<number, ItemDetails> = {
   }
 };
 
-const GAME_GOAL: GoalDto = {
-  title: "Создай Реактор",
-  rewardGold: 500
+const CURRENT_GOAL: CurrentGoalDto = {
+  title: "Создай ☢️ Реактор",
+  targetLevel: 5,
+  rewardText: "Открытие цепочки: 🧪 Наука"
 };
 
 const ensureUser = async (): Promise<UserDocument> => {
@@ -130,7 +132,7 @@ const toUserStateDto = (user: UserDocument): UserStateDto => {
     lastIncomeClaimAt: user.lastIncomeClaimAt,
     spawnCost: getSpawnCost(user),
     baseUpgradeCost: getBaseUpgradeCost(user.baseLevel),
-    goal: GAME_GOAL
+    currentGoal: CURRENT_GOAL
   };
 };
 

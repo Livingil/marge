@@ -20,9 +20,10 @@ export type UserState = {
   lastIncomeClaimAt: string;
   spawnCost: number;
   baseUpgradeCost: number;
-  goal: {
+  currentGoal: {
     title: string;
-    rewardGold: number;
+    targetLevel: number;
+    rewardText: string;
   };
   grid: {
     cells: GridCell[];

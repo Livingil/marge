@@ -40,8 +40,11 @@ const getBaseUpgradeCost = (baseLevel: number): number => {
 };
 
 const getSpawnCost = (user: UserDocument): number => {
-  const hasAnyItem = user.grid.cells.some((cell) => cell.itemLevel > 0);
-  return hasAnyItem ? SPAWN_COST : 0;
+  const itemsCount = user.grid.cells.reduce((count, cell) => {
+    return cell.itemLevel > 0 ? count + 1 : count;
+  }, 0);
+
+  return itemsCount < 2 ? 0 : SPAWN_COST;
 };
 
 const toUserStateDto = (user: UserDocument): UserStateDto => {

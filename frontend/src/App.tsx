@@ -3,7 +3,6 @@
 const App = () => {
   return (
     <main>
-      <h1>Emoji Alchemy</h1>
       <GameBoard />
     </main>
   );

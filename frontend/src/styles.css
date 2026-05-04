@@ -157,6 +157,14 @@ section {
   filter: brightness(0.98);
 }
 
+.cell.selected {
+  border-color: #f59e0b;
+  box-shadow:
+    0 0 0 3px rgba(245, 158, 11, 0.28),
+    0 14px 22px rgba(59, 130, 246, 0.28);
+  transform: scale(1.03);
+}
+
 .cell-icon {
   font-size: 46px;
   line-height: 1;
@@ -344,6 +352,10 @@ button:disabled {
     padding: 4px;
     border-radius: 12px;
     min-width: 0;
+  }
+
+  .cell.selected {
+    transform: scale(1.04);
   }
 
   .cell-icon {

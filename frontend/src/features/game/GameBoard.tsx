@@ -16,6 +16,7 @@ export const GameBoard = () => {
   const [claimIncome, { isLoading: isClaimingIncome }] = useClaimIncomeMutation();
   const [upgradeBase, { isLoading: isUpgradingBase }] = useUpgradeBaseMutation();
   const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [selectedCell, setSelectedCell] = useState<number | null>(null);
   const [isCollectionOpen, setIsCollectionOpen] = useState(false);
 
   const cells = useMemo(() => user?.grid.cells ?? [], [user]);
@@ -38,6 +39,31 @@ export const GameBoard = () => {
       await mergeCells({ cellA: dragFrom, cellB: toIndex }).unwrap();
     } finally {
       setDragFrom(null);
+      setSelectedCell(null);
+    }
+  };
+
+  const handleCellClick = async (index: number) => {
+    const cell = cells[index];
+
+    if (!cell || cell.itemLevel <= 0 || isMerging) {
+      return;
+    }
+
+    if (selectedCell === null) {
+      setSelectedCell(index);
+      return;
+    }
+
+    if (selectedCell === index) {
+      setSelectedCell(null);
+      return;
+    }
+
+    try {
+      await mergeCells({ cellA: selectedCell, cellB: index }).unwrap();
+    } finally {
+      setSelectedCell(null);
     }
   };
 
@@ -89,11 +115,12 @@ export const GameBoard = () => {
         {cells.map((cell, index) => (
           <div
             key={index}
-            className={`cell ${cell.itemLevel > 0 ? "filled" : "empty"}`}
+            className={`cell ${cell.itemLevel > 0 ? "filled" : "empty"} ${selectedCell === index ? "selected" : ""}`}
             draggable={cell.itemLevel > 0 && !isMerging}
             onDragStart={() => setDragFrom(index)}
             onDragOver={(event) => event.preventDefault()}
             onDrop={() => void onDropCell(index)}
+            onClick={() => void handleCellClick(index)}
           >
             {cell.item ? (
               <>

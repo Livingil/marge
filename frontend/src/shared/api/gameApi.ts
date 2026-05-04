@@ -20,7 +20,7 @@ export type MergePayload = {
 
 export const gameApi = createApi({
   reducerPath: "gameApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:4000" }),
+  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:3001" }),
   tagTypes: ["User"],
   endpoints: (builder) => ({
     getUser: builder.query<UserState, void>({
@@ -35,6 +35,20 @@ export const gameApi = createApi({
       }),
       invalidatesTags: ["User"]
     }),
+    spawnItem: builder.mutation<UserState, void>({
+      query: () => ({
+        url: "/spawn",
+        method: "POST"
+      }),
+      invalidatesTags: ["User"]
+    }),
+    claimIncome: builder.mutation<UserState, void>({
+      query: () => ({
+        url: "/income/claim",
+        method: "POST"
+      }),
+      invalidatesTags: ["User"]
+    }),
     upgradeBase: builder.mutation<UserState, void>({
       query: () => ({
         url: "/upgrade/base",
@@ -45,4 +59,10 @@ export const gameApi = createApi({
   })
 });
 
-export const { useGetUserQuery, useMergeCellsMutation, useUpgradeBaseMutation } = gameApi;
+export const {
+  useGetUserQuery,
+  useMergeCellsMutation,
+  useSpawnItemMutation,
+  useClaimIncomeMutation,
+  useUpgradeBaseMutation
+} = gameApi;

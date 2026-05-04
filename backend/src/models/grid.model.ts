@@ -1,4 +1,5 @@
 ﻿import { Schema } from "mongoose";
+import { GRID_SIZE, MAX_ITEM_LEVEL } from "../services/game.constants.js";
 
 export interface IGridCell {
   itemLevel: number;
@@ -8,14 +9,13 @@ export interface IGrid {
   cells: IGridCell[];
 }
 
-export const GRID_SIZE = 25;
-
 const gridCellSchema = new Schema<IGridCell>(
   {
     itemLevel: {
       type: Number,
       required: true,
       min: 0,
+      max: MAX_ITEM_LEVEL,
       default: 0
     }
   },

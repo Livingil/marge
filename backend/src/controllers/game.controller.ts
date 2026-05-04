@@ -1,5 +1,11 @@
 ﻿import { Request, Response } from "express";
-import { getUserState, mergeCells, upgradeBase } from "../services/game.service.js";
+import {
+  claimIncome,
+  getUserState,
+  mergeCells,
+  spawnItem,
+  upgradeBase
+} from "../services/game.service.js";
 
 export const getUserController = async (_req: Request, res: Response): Promise<void> => {
   const user = await getUserState();
@@ -9,6 +15,16 @@ export const getUserController = async (_req: Request, res: Response): Promise<v
 export const mergeController = async (req: Request, res: Response): Promise<void> => {
   const { cellA, cellB } = req.body as { cellA: number; cellB: number };
   const user = await mergeCells({ cellA, cellB });
+  res.status(200).json(user);
+};
+
+export const spawnController = async (_req: Request, res: Response): Promise<void> => {
+  const user = await spawnItem();
+  res.status(200).json(user);
+};
+
+export const claimIncomeController = async (_req: Request, res: Response): Promise<void> => {
+  const user = await claimIncome();
   res.status(200).json(user);
 };
 

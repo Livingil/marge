@@ -1,7 +1,9 @@
 ﻿import { useMemo, useState } from "react";
 import {
+  useClaimIncomeMutation,
   useGetUserQuery,
   useMergeCellsMutation,
+  useSpawnItemMutation,
   useUpgradeBaseMutation
 } from "../../shared/api/gameApi";
 
@@ -10,6 +12,8 @@ const GRID_SIZE = 5;
 export const GameBoard = () => {
   const { data: user, isLoading, isError } = useGetUserQuery();
   const [mergeCells, { isLoading: isMerging }] = useMergeCellsMutation();
+  const [spawnItem, { isLoading: isSpawning }] = useSpawnItemMutation();
+  const [claimIncome, { isLoading: isClaimingIncome }] = useClaimIncomeMutation();
   const [upgradeBase, { isLoading: isUpgradingBase }] = useUpgradeBaseMutation();
   const [dragFrom, setDragFrom] = useState<number | null>(null);
 
@@ -41,8 +45,17 @@ export const GameBoard = () => {
       <div className="top-bar">
         <p>Gold: {user.gold}</p>
         <p>Base level: {user.baseLevel}</p>
+      </div>
+
+      <div className="actions">
+        <button type="button" onClick={() => spawnItem()} disabled={isSpawning}>
+          Получить предмет
+        </button>
+        <button type="button" onClick={() => claimIncome()} disabled={isClaimingIncome}>
+          Собрать доход
+        </button>
         <button type="button" onClick={() => upgradeBase()} disabled={isUpgradingBase}>
-          Upgrade base
+          Улучшить базу
         </button>
       </div>
 

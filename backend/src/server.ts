@@ -1,4 +1,5 @@
 ﻿import "dotenv/config";
+import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import { router } from "./routes/index.js";
 import { connectDatabase } from "./services/database.service.js";
@@ -10,6 +11,13 @@ const start = async (): Promise<void> => {
   await connectDatabase(mongoUri);
 
   const app = express();
+  app.use(
+    cors({
+      origin: "http://localhost:5173",
+      methods: ["GET", "POST"],
+      credentials: false
+    })
+  );
   app.use(express.json());
   app.use(router);
 

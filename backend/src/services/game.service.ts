@@ -1,6 +1,7 @@
 ﻿import { User, UserDocument } from "../models/user.model.js";
+import { BASE_UPGRADE_COST_STEP, GRID_SIZE, SPAWN_ITEM_LEVEL } from "./game.constants.js";
+import { calculateIncomeWithBase } from "./income.service.js";
 import { merge } from "./merge.service.js";
-import { upgradeBaseForUserDocument } from "./income.service.js";
 
 export interface MergeCellsInput {
   cellA: number;
@@ -18,8 +19,8 @@ const ensureUser = async (): Promise<UserDocument> => {
 };
 
 const assertCellIndex = (index: number): void => {
-  if (!Number.isInteger(index) || index < 0 || index > 24) {
-    throw new Error("Cell index must be an integer from 0 to 24");
+  if (!Number.isInteger(index) || index < 0 || index >= GRID_SIZE) {
+    throw new Error(`Cell index must be an integer from 0 to ${GRID_SIZE - 1}`);
   }
 };
 
@@ -52,7 +53,38 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserDocument> 
   return user;
 };
 
+export const spawnItem = async (): Promise<UserDocument> => {
+  const user = await ensureUser();
+  const emptyIndex = user.grid.cells.findIndex((cell) => cell.itemLevel === 0);
+
+  if (emptyIndex === -1) {
+    throw new Error("No empty cells available");
+  }
+
+  user.grid.cells[emptyIndex].itemLevel = SPAWN_ITEM_LEVEL;
+  await user.save();
+  return user;
+};
+
+export const claimIncome = async (): Promise<UserDocument> => {
+  const user = await ensureUser();
+  const income = calculateIncomeWithBase(user.grid, user.baseLevel);
+  user.gold += income;
+  await user.save();
+  return user;
+};
+
 export const upgradeBase = async (): Promise<UserDocument> => {
   const user = await ensureUser();
-  return upgradeBaseForUserDocument(user);
+  const upgradeCost = user.baseLevel * BASE_UPGRADE_COST_STEP;
+
+  if (user.gold < upgradeCost) {
+    throw new Error("Not enough gold to upgrade base");
+  }
+
+  user.gold -= upgradeCost;
+  user.baseLevel += 1;
+  await user.save();
+
+  return user;
 };

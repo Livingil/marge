@@ -1,5 +1,6 @@
-﻿import { HydratedDocument, Model, Schema, model } from "mongoose";
-import { GRID_SIZE, IGrid, gridSchema } from "./grid.model.js";
+﻿import { GRID_SIZE } from "../services/game.constants.js";
+import { HydratedDocument, Model, Schema, model } from "mongoose";
+import { IGrid, gridSchema } from "./grid.model.js";
 
 export interface IUser {
   gold: number;

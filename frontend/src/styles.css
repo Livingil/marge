@@ -30,7 +30,7 @@ section {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .top-bar p {
@@ -38,8 +38,13 @@ section {
   font-weight: 600;
 }
 
-.top-bar button {
-  margin-left: auto;
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+button {
   border: 0;
   border-radius: 8px;
   padding: 8px 12px;
@@ -48,7 +53,7 @@ section {
   cursor: pointer;
 }
 
-.top-bar button:disabled {
+button:disabled {
   opacity: 0.6;
   cursor: default;
 }

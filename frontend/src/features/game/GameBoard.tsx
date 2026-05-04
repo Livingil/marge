@@ -51,9 +51,22 @@ export const GameBoard = () => {
   return (
     <section>
       <div className="top-bar">
-        <p>✨ Энергия: {user.gold}</p>
-        <p>🏛️ Лаборатория ур.: {user.baseLevel}</p>
-        <p>⚙️ Производство/мин: {user.incomePerMinute}</p>
+        <p>
+          <span className="label-full">✨ Энергия:</span>
+          <span className="label-compact">✨</span>
+          <span>{user.gold}</span>
+        </p>
+        <p>
+          <span className="label-full">🏛️ Лаборатория ур.:</span>
+          <span className="label-compact">🏛️</span>
+          <span>{user.baseLevel}</span>
+        </p>
+        <p>
+          <span className="label-full">⚙️ Производство/мин:</span>
+          <span className="label-compact">⚙️</span>
+          <span>{user.incomePerMinute}</span>
+          <span className="label-compact">/мин</span>
+        </p>
       </div>
 
       {user.latestDiscovery ? (

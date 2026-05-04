@@ -8,7 +8,6 @@ import {
 } from "../../shared/api/gameApi";
 
 const GRID_SIZE = 5;
-const TOTAL_ITEMS = 5;
 
 export const GameBoard = () => {
   const { data: user, isLoading, isError } = useGetUserQuery();
@@ -19,6 +18,14 @@ export const GameBoard = () => {
   const [dragFrom, setDragFrom] = useState<number | null>(null);
 
   const cells = useMemo(() => user?.grid.cells ?? [], [user]);
+
+  const targetItem = useMemo(() => {
+    if (!user) {
+      return null;
+    }
+
+    return user.itemCatalog.find((item) => item.level === user.currentGoal.targetLevel) ?? null;
+  }, [user]);
 
   const onDropCell = async (toIndex: number) => {
     if (dragFrom === null || dragFrom === toIndex) {
@@ -55,57 +62,13 @@ export const GameBoard = () => {
         </div>
       ) : null}
 
-      <div className="goal-box">
-        <p>Текущая цель:</p>
-        <p>{user.currentGoal.title}</p>
-        <p>Награда:</p>
-        <p>{user.currentGoal.rewardText}</p>
-      </div>
-
-      <div className="collection-box">
-        <p>Коллекция: {user.discoveredItems.length} / {TOTAL_ITEMS}</p>
-        <div className="collection-grid">
-          {user.itemCatalog.map((item) => {
-            const discovered = user.discoveredItems.includes(item.level);
-
-            return (
-              <div key={item.level} className={`collection-card ${discovered ? "open" : "closed"}`}>
-                {discovered ? (
-                  <>
-                    <div className="collection-icon">{item.icon}</div>
-                    <div className="collection-name">{item.name}</div>
-                    <div className="collection-level">Ур. {item.level}</div>
-                  </>
-                ) : (
-                  <>
-                    <div className="collection-icon">❔</div>
-                    <div className="collection-name">Не открыто</div>
-                  </>
-                )}
-              </div>
-            );
-          })}
+      <div className="hero-goal-card">
+        <div className="hero-goal-emoji">{targetItem?.icon ?? "☢️"}</div>
+        <div>
+          <p className="hero-goal-title">Открой Реактор</p>
+          <p className="hero-goal-subtitle">Соединяй символы энергии</p>
+          <p className="hero-goal-reward">Награда: {user.currentGoal.rewardText}</p>
         </div>
-      </div>
-
-      <div className="actions">
-        <button
-          type="button"
-          onClick={() => spawnItem()}
-          disabled={isSpawning || user.gold < user.spawnCost}
-        >
-          ✨ Создать символ ({user.spawnCost})
-        </button>
-        <button type="button" onClick={() => claimIncome()} disabled={isClaimingIncome}>
-          💰 Собрать энергию
-        </button>
-        <button
-          type="button"
-          onClick={() => upgradeBase()}
-          disabled={isUpgradingBase || user.gold < user.baseUpgradeCost}
-        >
-          🏛️ Улучшить лабораторию ({user.baseUpgradeCost})
-        </button>
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}>
@@ -129,6 +92,52 @@ export const GameBoard = () => {
             )}
           </div>
         ))}
+      </div>
+
+      <div className="actions">
+        <button
+          type="button"
+          onClick={() => spawnItem()}
+          disabled={isSpawning || user.gold < user.spawnCost}
+        >
+          ✨ Создать символ ({user.spawnCost})
+        </button>
+        <button type="button" onClick={() => claimIncome()} disabled={isClaimingIncome}>
+          💰 Собрать энергию
+        </button>
+        <button
+          type="button"
+          onClick={() => upgradeBase()}
+          disabled={isUpgradingBase || user.gold < user.baseUpgradeCost}
+        >
+          🏛️ Улучшить лабораторию ({user.baseUpgradeCost})
+        </button>
+      </div>
+
+      <div className="collection-box">
+        <p>Коллекция: {user.discoveredItems.length} / {user.itemCatalog.length}</p>
+        <div className="collection-grid">
+          {user.itemCatalog.map((item) => {
+            const discovered = user.discoveredItems.includes(item.level);
+
+            return (
+              <div key={item.level} className={`collection-card ${discovered ? "open" : "closed"}`}>
+                {discovered ? (
+                  <>
+                    <div className="collection-icon">{item.icon}</div>
+                    <div className="collection-name">{item.name}</div>
+                    <div className="collection-level">Ур. {item.level}</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="collection-icon">❔</div>
+                    <div className="collection-name">Не открыто</div>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

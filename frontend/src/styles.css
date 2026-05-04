@@ -353,8 +353,7 @@ button:disabled {
   }
 
   .cell-placeholder {
-    font-size: 8px;
-    opacity: 0.35;
+    display: none;
   }
 
   .actions {

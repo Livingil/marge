@@ -3,7 +3,7 @@
 const App = () => {
   return (
     <main>
-      <h1>Emoji Merge Universe</h1>
+      <h1>Emoji Alchemy</h1>
       <GameBoard />
     </main>
   );

@@ -46,6 +46,9 @@ export interface UserStateDto {
   spawnCost: number;
   baseUpgradeCost: number;
   currentGoal: CurrentGoalDto;
+  discoveredItems: number[];
+  itemCatalog: ItemDetails[];
+  latestDiscovery: ItemDetails | null;
 }
 
 const ENERGY_ITEMS: Record<number, ItemDetails> = {
@@ -82,10 +85,12 @@ const ENERGY_ITEMS: Record<number, ItemDetails> = {
 };
 
 const CURRENT_GOAL: CurrentGoalDto = {
-  title: "Создай ☢️ Реактор",
+  title: "☢️ Открой Реактор",
   targetLevel: 5,
-  rewardText: "Открытие цепочки: 🧪 Наука"
+  rewardText: "🧪 Новая цепочка: Наука"
 };
+
+const ITEM_CATALOG: ItemDetails[] = Object.values(ENERGY_ITEMS).sort((a, b) => a.level - b.level);
 
 const ensureUser = async (): Promise<UserDocument> => {
   const existingUser = await User.findOne();
@@ -117,7 +122,41 @@ const getItemDetails = (itemLevel: number): ItemDetails | null => {
   return ENERGY_ITEMS[itemLevel] ?? null;
 };
 
-const toUserStateDto = (user: UserDocument): UserStateDto => {
+const getDiscoveredLevelsFromGrid = (user: UserDocument): number[] => {
+  return Array.from(
+    new Set(user.grid.cells.map((cell) => cell.itemLevel).filter((level) => level > 0))
+  ).sort((a, b) => a - b);
+};
+
+const normalizeDiscoveredItems = async (user: UserDocument): Promise<void> => {
+  const discoveredFromGrid = getDiscoveredLevelsFromGrid(user);
+  const isArray = Array.isArray(user.discoveredItems);
+
+  if (!isArray) {
+    user.discoveredItems = discoveredFromGrid;
+    await user.save();
+    return;
+  }
+
+  if (user.discoveredItems.length === 0 && discoveredFromGrid.length > 0) {
+    user.discoveredItems = discoveredFromGrid;
+    await user.save();
+    return;
+  }
+
+  user.discoveredItems = Array.from(new Set(user.discoveredItems)).sort((a, b) => a - b);
+};
+
+const addDiscovery = (user: UserDocument, level: number): ItemDetails | null => {
+  if (level <= 0 || user.discoveredItems.includes(level)) {
+    return null;
+  }
+
+  user.discoveredItems = [...user.discoveredItems, level].sort((a, b) => a - b);
+  return getItemDetails(level);
+};
+
+const toUserStateDto = (user: UserDocument, latestDiscovery: ItemDetails | null): UserStateDto => {
   return {
     _id: user.id,
     gold: user.gold,
@@ -132,7 +171,10 @@ const toUserStateDto = (user: UserDocument): UserStateDto => {
     lastIncomeClaimAt: user.lastIncomeClaimAt,
     spawnCost: getSpawnCost(user),
     baseUpgradeCost: getBaseUpgradeCost(user.baseLevel),
-    currentGoal: CURRENT_GOAL
+    currentGoal: CURRENT_GOAL,
+    discoveredItems: user.discoveredItems,
+    itemCatalog: ITEM_CATALOG,
+    latestDiscovery
   };
 };
 
@@ -144,7 +186,8 @@ const assertCellIndex = (index: number): void => {
 
 export const getUserState = async (): Promise<UserStateDto> => {
   const user = await ensureUser();
-  return toUserStateDto(user);
+  await normalizeDiscoveredItems(user);
+  return toUserStateDto(user, null);
 };
 
 export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> => {
@@ -156,24 +199,30 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
   }
 
   const user = await ensureUser();
+  await normalizeDiscoveredItems(user);
+
   const firstCell = user.grid.cells[input.cellA];
   const secondCell = user.grid.cells[input.cellB];
 
   const result = merge(firstCell, secondCell);
 
   if (!result.merged) {
-    return toUserStateDto(user);
+    return toUserStateDto(user, null);
   }
 
   user.grid.cells[input.cellA].itemLevel = result.cellA.itemLevel;
   user.grid.cells[input.cellB].itemLevel = result.cellB.itemLevel;
 
+  const latestDiscovery = addDiscovery(user, result.cellA.itemLevel);
   await user.save();
-  return toUserStateDto(user);
+
+  return toUserStateDto(user, latestDiscovery);
 };
 
 export const spawnItem = async (): Promise<UserStateDto> => {
   const user = await ensureUser();
+  await normalizeDiscoveredItems(user);
+
   const emptyIndex = user.grid.cells.findIndex((cell) => cell.itemLevel === 0);
 
   if (emptyIndex === -1) {
@@ -189,12 +238,16 @@ export const spawnItem = async (): Promise<UserStateDto> => {
   user.gold -= spawnCost;
   user.grid.cells[emptyIndex].itemLevel = SPAWN_ITEM_LEVEL;
 
+  const latestDiscovery = addDiscovery(user, SPAWN_ITEM_LEVEL);
   await user.save();
-  return toUserStateDto(user);
+
+  return toUserStateDto(user, latestDiscovery);
 };
 
 export const claimIncome = async (): Promise<UserStateDto> => {
   const user = await ensureUser();
+  await normalizeDiscoveredItems(user);
+
   const now = new Date();
   const elapsedSecondsRaw = Math.floor((now.getTime() - user.lastIncomeClaimAt.getTime()) / 1000);
   const elapsedSeconds = Math.max(0, Math.min(elapsedSecondsRaw, MAX_OFFLINE_INCOME_SECONDS));
@@ -203,18 +256,20 @@ export const claimIncome = async (): Promise<UserStateDto> => {
   const earnedGold = Math.floor(incomePerSecond * elapsedSeconds);
 
   if (earnedGold <= 0) {
-    return toUserStateDto(user);
+    return toUserStateDto(user, null);
   }
 
   user.gold += earnedGold;
   user.lastIncomeClaimAt = now;
   await user.save();
 
-  return toUserStateDto(user);
+  return toUserStateDto(user, null);
 };
 
 export const upgradeBase = async (): Promise<UserStateDto> => {
   const user = await ensureUser();
+  await normalizeDiscoveredItems(user);
+
   const upgradeCost = getBaseUpgradeCost(user.baseLevel);
 
   if (user.gold < upgradeCost) {
@@ -225,5 +280,5 @@ export const upgradeBase = async (): Promise<UserStateDto> => {
   user.baseLevel += 1;
   await user.save();
 
-  return toUserStateDto(user);
+  return toUserStateDto(user, null);
 };

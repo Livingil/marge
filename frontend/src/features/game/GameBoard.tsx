@@ -8,6 +8,7 @@ import {
 } from "../../shared/api/gameApi";
 
 const GRID_SIZE = 5;
+const TOTAL_ITEMS = 5;
 
 export const GameBoard = () => {
   const { data: user, isLoading, isError } = useGetUserQuery();
@@ -43,25 +44,48 @@ export const GameBoard = () => {
   return (
     <section>
       <div className="top-bar">
-        <p>Gold: {user.gold}</p>
-        <p>Base level: {user.baseLevel}</p>
-        <p>Доход/мин: {user.incomePerMinute}</p>
+        <p>✨ Энергия: {user.gold}</p>
+        <p>🏛️ Лаборатория ур.: {user.baseLevel}</p>
+        <p>⚙️ Производство/мин: {user.incomePerMinute}</p>
       </div>
 
-      <div className="goal-box">
-        <p>Цель: Открой первую энергетическую цепочку</p>
-        <p>Текущая цель: {user.currentGoal.title}</p>
-        <p>Награда: {user.currentGoal.rewardText}</p>
-      </div>
+      {user.latestDiscovery ? (
+        <div className="discovery-box">
+          🎉 Новое открытие: {user.latestDiscovery.icon} {user.latestDiscovery.name}
+        </div>
+      ) : null}
 
       <div className="goal-box">
-        <p>Открытия:</p>
-        <p>⚡ Энергия: открыто</p>
-        <p>🧪 Наука: закрыто</p>
-        <p>🌱 Жизнь: закрыто</p>
-        <p>🌀 Порталы: закрыто</p>
-        <p>🧬 Мутации: закрыто</p>
-        <p>🏙️ Цивилизация: закрыто</p>
+        <p>Текущая цель:</p>
+        <p>{user.currentGoal.title}</p>
+        <p>Награда:</p>
+        <p>{user.currentGoal.rewardText}</p>
+      </div>
+
+      <div className="collection-box">
+        <p>Коллекция: {user.discoveredItems.length} / {TOTAL_ITEMS}</p>
+        <div className="collection-grid">
+          {user.itemCatalog.map((item) => {
+            const discovered = user.discoveredItems.includes(item.level);
+
+            return (
+              <div key={item.level} className={`collection-card ${discovered ? "open" : "closed"}`}>
+                {discovered ? (
+                  <>
+                    <div className="collection-icon">{item.icon}</div>
+                    <div className="collection-name">{item.name}</div>
+                    <div className="collection-level">Ур. {item.level}</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="collection-icon">❔</div>
+                    <div className="collection-name">Не открыто</div>
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <div className="actions">
@@ -70,17 +94,17 @@ export const GameBoard = () => {
           onClick={() => spawnItem()}
           disabled={isSpawning || user.gold < user.spawnCost}
         >
-          Получить предмет ({user.spawnCost})
+          ✨ Создать символ ({user.spawnCost})
         </button>
         <button type="button" onClick={() => claimIncome()} disabled={isClaimingIncome}>
-          Собрать доход
+          💰 Собрать энергию
         </button>
         <button
           type="button"
           onClick={() => upgradeBase()}
           disabled={isUpgradingBase || user.gold < user.baseUpgradeCost}
         >
-          Улучшить базу ({user.baseUpgradeCost})
+          🏛️ Улучшить лабораторию ({user.baseUpgradeCost})
         </button>
       </div>
 
@@ -100,7 +124,9 @@ export const GameBoard = () => {
                 <div className="cell-name">{cell.item.name}</div>
                 <div className="cell-level">Ур. {cell.item.level}</div>
               </>
-            ) : null}
+            ) : (
+              <div className="cell-placeholder">Пусто</div>
+            )}
           </div>
         ))}
       </div>

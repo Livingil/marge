@@ -25,6 +25,9 @@ export type UserState = {
     targetLevel: number;
     rewardText: string;
   };
+  discoveredItems: number[];
+  itemCatalog: GridItem[];
+  latestDiscovery: GridItem | null;
   grid: {
     cells: GridCell[];
   };

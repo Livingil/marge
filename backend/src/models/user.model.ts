@@ -7,7 +7,7 @@ export interface IUser {
   baseLevel: number;
   grid: IGrid;
   lastIncomeClaimAt: Date;
-  discoveredItems: number[];
+  discoveredItems: string[];
 }
 
 type UserModel = Model<IUser>;
@@ -30,7 +30,7 @@ const userSchema = new Schema<IUser, UserModel>(
       type: gridSchema,
       required: true,
       default: {
-        cells: Array.from({ length: GRID_SIZE }, () => ({ itemLevel: 0 }))
+        cells: Array.from({ length: GRID_SIZE }, () => ({ itemId: null }))
       }
     },
     lastIncomeClaimAt: {
@@ -39,7 +39,7 @@ const userSchema = new Schema<IUser, UserModel>(
       default: Date.now
     },
     discoveredItems: {
-      type: [Number],
+      type: [String],
       required: true,
       default: []
     }

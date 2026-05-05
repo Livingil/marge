@@ -1,5 +1,5 @@
-﻿import { MAX_ITEM_LEVEL } from "./game.constants.js";
-import { IGridCell } from "../models/grid.model.js";
+﻿import { IGridCell } from "../models/grid.model.js";
+import { RECIPES } from "./alchemy.data.js";
 
 export type MergeOutcome = "normal" | "bonus" | "downgrade" | "failed";
 
@@ -10,63 +10,39 @@ export interface MergeResult {
   cellB: IGridCell;
 }
 
-const clampLevel = (level: number): number => Math.min(level, MAX_ITEM_LEVEL);
-
-const getMergedLevel = (
-  level: number,
-  randomValue: number,
-  randomFn: () => number
-): { nextLevel: number; outcome: Exclude<MergeOutcome, "failed"> } => {
-  if (randomValue < 0.7) {
-    return {
-      nextLevel: clampLevel(level + 1),
-      outcome: "normal"
-    };
-  }
-
-  if (randomValue < 0.9) {
-    return {
-      nextLevel: clampLevel(level + 2),
-      outcome: "bonus"
-    };
-  }
-
-  const downgradeToZero = randomFn() < 0.5;
-  return {
-    nextLevel: downgradeToZero ? 0 : Math.max(0, level - 1),
-    outcome: "downgrade"
-  };
+const getRecipeKey = (a: string, b: string): string => {
+  return [a, b].sort().join("+");
 };
 
-export const merge = (
-  cellA: IGridCell,
-  cellB: IGridCell,
-  randomFn: () => number = Math.random
-): MergeResult => {
-  if (cellA.itemLevel === 0 || cellB.itemLevel === 0) {
+export const merge = (cellA: IGridCell, cellB: IGridCell): MergeResult => {
+  const itemA = cellA.itemId;
+  const itemB = cellB.itemId;
+
+  if (!itemA || !itemB) {
     return {
       merged: false,
       outcome: "failed",
-      cellA: { itemLevel: cellA.itemLevel },
-      cellB: { itemLevel: cellB.itemLevel }
+      cellA: { itemId: itemA ?? null },
+      cellB: { itemId: itemB ?? null }
     };
   }
 
-  if (cellA.itemLevel !== cellB.itemLevel) {
+  const recipeKey = getRecipeKey(itemA, itemB);
+  const resultItemId = RECIPES[recipeKey];
+
+  if (!resultItemId) {
     return {
       merged: false,
       outcome: "failed",
-      cellA: { itemLevel: cellA.itemLevel },
-      cellB: { itemLevel: cellB.itemLevel }
+      cellA: { itemId: itemA },
+      cellB: { itemId: itemB }
     };
   }
-
-  const merged = getMergedLevel(cellA.itemLevel, randomFn(), randomFn);
 
   return {
     merged: true,
-    outcome: merged.outcome,
-    cellA: { itemLevel: merged.nextLevel },
-    cellB: { itemLevel: 0 }
+    outcome: "normal",
+    cellA: { itemId: resultItemId },
+    cellB: { itemId: null }
   };
 };

@@ -1,8 +1,9 @@
 ﻿import { Schema } from "mongoose";
-import { GRID_SIZE, MAX_ITEM_LEVEL } from "../services/game.constants.js";
+import { GRID_SIZE } from "../services/game.constants.js";
 
 export interface IGridCell {
-  itemLevel: number;
+  itemId: string | null;
+  itemLevel?: number;
 }
 
 export interface IGrid {
@@ -11,12 +12,13 @@ export interface IGrid {
 
 const gridCellSchema = new Schema<IGridCell>(
   {
+    itemId: {
+      type: String,
+      default: null
+    },
     itemLevel: {
       type: Number,
-      required: true,
-      min: 0,
-      max: MAX_ITEM_LEVEL,
-      default: 0
+      required: false
     }
   },
   { _id: false }

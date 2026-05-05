@@ -2,7 +2,9 @@
 import { BASE_INCOME_STEP, INCOME_PER_LEVEL } from "./game.constants.js";
 
 export const calculateIncome = (grid: IGrid): number => {
-  return grid.cells.reduce((total, cell) => total + cell.itemLevel * INCOME_PER_LEVEL, 0);
+  return grid.cells.reduce((total, cell) => {
+    return cell.itemId ? total + INCOME_PER_LEVEL : total;
+  }, 0);
 };
 
 export const calculateIncomeMultiplier = (baseLevel: number): number => {

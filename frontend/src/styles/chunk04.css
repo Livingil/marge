@@ -196,6 +196,16 @@ button {
     linear-gradient(180deg, rgba(10, 28, 43, 0.96), rgba(7, 19, 31, 0.96));
 }
 
+.action-button-tertiary {
+  min-height: 58px;
+  background: linear-gradient(180deg, rgba(38, 25, 31, 0.92), rgba(24, 16, 21, 0.94));
+  border-color: rgba(255, 148, 166, 0.2);
+}
+
+.action-button-delete {
+  grid-column: 2 / 4;
+}
+
 .action-button-label {
   font-size: 15px;
   font-weight: 800;

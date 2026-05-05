@@ -17,11 +17,16 @@ export const GameBoardPlaySection = ({
   isSpawning,
   isClaimingIncome,
   isUpgradingBase,
+  isDeletingCell,
   canSpawn,
   canUpgradeBase,
+  hasSelectedCellItem,
+  canDeleteSelectedCell,
+  selectedCellDeleteCost,
   spawnItemAction,
   claimIncomeAction,
-  upgradeBaseAction
+  upgradeBaseAction,
+  deleteCellAction
 }: Pick<GameBoardViewProps,
   | "cells"
   | "activeRows"
@@ -38,11 +43,16 @@ export const GameBoardPlaySection = ({
   | "isSpawning"
   | "isClaimingIncome"
   | "isUpgradingBase"
+  | "isDeletingCell"
   | "canSpawn"
   | "canUpgradeBase"
+  | "hasSelectedCellItem"
+  | "canDeleteSelectedCell"
+  | "selectedCellDeleteCost"
   | "spawnItemAction"
   | "claimIncomeAction"
   | "upgradeBaseAction"
+  | "deleteCellAction"
 >) => {
   const availableExpansionModules = expansionModules.filter(
     (module) => !(module.hideWhenReached && user.baseLevel >= module.unlockLevel)
@@ -188,6 +198,19 @@ export const GameBoardPlaySection = ({
             <span className="mobile-label">{isClaimingIncome ? "Сбор..." : "Собрать"}</span>
           </span>
           <span className="action-button-meta">Снять накопленную энергию</span>
+        </button>
+        <button
+          type="button"
+          className="action-button action-button-tertiary action-button-delete"
+          onClick={deleteCellAction}
+          disabled={isDeletingCell || !hasSelectedCellItem || !canDeleteSelectedCell}
+        >
+          <span className="action-button-label">
+            {isDeletingCell ? "Утилизация..." : hasSelectedCellItem ? "Утилизировать" : "Выбери образец"}
+          </span>
+          <span className="action-button-meta">
+            {selectedCellDeleteCost !== null ? `Стоимость: ${selectedCellDeleteCost}` : "Платное удаление"}
+          </span>
         </button>
       </div>
     </>

@@ -10,8 +10,22 @@
     margin-top: auto;
   }
 
-  .action-button:first-child {
-    grid-column: 1 / -1;
+  .action-button-delete {
+    grid-column: auto;
+    order: 1;
+    min-height: 48px;
+  }
+
+  .action-button-primary {
+    order: 2;
+  }
+
+  .action-button-secondary:not(.action-button-income) {
+    order: 3;
+  }
+
+  .action-button-income {
+    order: 4;
   }
 
   .action-button {

@@ -2,6 +2,7 @@
 import {
   type GridCell,
   useClaimIncomeMutation,
+  useDeleteCellMutation,
   useGetUserQuery,
   useMergeCellsMutation,
   useSpawnItemMutation,
@@ -32,6 +33,7 @@ export const GameBoard = () => {
   const [spawnItem, { isLoading: isSpawning }] = useSpawnItemMutation();
   const [claimIncome, { isLoading: isClaimingIncome }] = useClaimIncomeMutation();
   const [upgradeBase, { isLoading: isUpgradingBase }] = useUpgradeBaseMutation();
+  const [deleteCell, { isLoading: isDeletingCell }] = useDeleteCellMutation();
 
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [selectedCell, setSelectedCell] = useState<number | null>(null);
@@ -68,6 +70,21 @@ export const GameBoard = () => {
   const hasAnyDiscoveredItems = discoveredCount > 0;
   const canSpawn = user ? user.gold >= user.spawnCost : false;
   const canUpgradeBase = user ? user.gold >= user.baseUpgradeCost : false;
+  const selectedCellDeleteCost = useMemo(() => {
+    if (selectedCell === null) {
+      return null;
+    }
+
+    return user?.deleteCosts?.[selectedCell] ?? null;
+  }, [selectedCell, user]);
+  const canDeleteSelectedCell = Boolean(
+    selectedCell !== null &&
+    cells[selectedCell]?.itemId &&
+    selectedCellDeleteCost !== null &&
+    user &&
+    user.gold >= selectedCellDeleteCost
+  );
+  const hasSelectedCellItem = Boolean(selectedCell !== null && cells[selectedCell]?.itemId);
 
   const selectedCellItem = useMemo(() => {
     if (selectedCell === null) {
@@ -220,8 +237,12 @@ export const GameBoard = () => {
       isSpawning={isSpawning}
       isClaimingIncome={isClaimingIncome}
       isUpgradingBase={isUpgradingBase}
+      isDeletingCell={isDeletingCell}
       canSpawn={canSpawn}
       canUpgradeBase={canUpgradeBase}
+      hasSelectedCellItem={hasSelectedCellItem}
+      canDeleteSelectedCell={canDeleteSelectedCell}
+      selectedCellDeleteCost={selectedCellDeleteCost}
       spawnItemAction={() => {
         void spawnItem();
       }}
@@ -230,6 +251,17 @@ export const GameBoard = () => {
       }}
       upgradeBaseAction={() => {
         void upgradeBase();
+      }}
+      deleteCellAction={() => {
+        if (selectedCell === null || !cells[selectedCell]?.itemId) {
+          return;
+        }
+
+        void deleteCell({ cellIndex: selectedCell })
+          .unwrap()
+          .then(() => {
+            setSelectedCell(null);
+          });
       }}
       isCollectionOpen={isCollectionOpen}
       setIsCollectionOpen={setIsCollectionOpen}

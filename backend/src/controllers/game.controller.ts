@@ -1,6 +1,7 @@
 ﻿import { Request, Response } from "express";
 import {
   claimIncome,
+  deleteCell,
   getUserState,
   mergeCells,
   spawnItem,
@@ -30,5 +31,11 @@ export const claimIncomeController = async (_req: Request, res: Response): Promi
 
 export const upgradeBaseController = async (_req: Request, res: Response): Promise<void> => {
   const user = await upgradeBase();
+  res.status(200).json(user);
+};
+
+export const deleteCellController = async (req: Request, res: Response): Promise<void> => {
+  const { cellIndex } = req.body as { cellIndex: number };
+  const user = await deleteCell({ cellIndex });
   res.status(200).json(user);
 };

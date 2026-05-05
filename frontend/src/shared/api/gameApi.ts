@@ -37,6 +37,7 @@ export type UserState = {
   discoveredRecipes: string[];
   discoveredRecipeDetails: DiscoveredRecipeDto[];
   itemCatalog: GridItem[];
+  deleteCosts: Array<number | null>;
   latestDiscovery: GridItem | null;
   lastActionMessage: string | null;
   grid: {
@@ -47,6 +48,10 @@ export type UserState = {
 export type MergePayload = {
   cellA: number;
   cellB: number;
+};
+
+export type DeleteCellPayload = {
+  cellIndex: number;
 };
 
 export const gameApi = createApi({
@@ -86,6 +91,14 @@ export const gameApi = createApi({
         method: "POST"
       }),
       invalidatesTags: ["User"]
+    }),
+    deleteCell: builder.mutation<UserState, DeleteCellPayload>({
+      query: (body) => ({
+        url: "/cell/delete",
+        method: "POST",
+        body
+      }),
+      invalidatesTags: ["User"]
     })
   })
 });
@@ -95,5 +108,6 @@ export const {
   useMergeCellsMutation,
   useSpawnItemMutation,
   useClaimIncomeMutation,
-  useUpgradeBaseMutation
+  useUpgradeBaseMutation,
+  useDeleteCellMutation
 } = gameApi;

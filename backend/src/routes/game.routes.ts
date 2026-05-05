@@ -1,6 +1,7 @@
 ﻿import { Router } from "express";
 import {
   claimIncomeController,
+  deleteCellController,
   getUserController,
   mergeController,
   spawnController,
@@ -14,3 +15,4 @@ gameRouter.post("/merge", mergeController);
 gameRouter.post("/spawn", spawnController);
 gameRouter.post("/income/claim", claimIncomeController);
 gameRouter.post("/upgrade/base", upgradeBaseController);
+gameRouter.post("/cell/delete", deleteCellController);

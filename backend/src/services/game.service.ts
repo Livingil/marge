@@ -1,4 +1,4 @@
-﻿import { User, UserDocument } from "../models/user.model.js";
+import { User, UserDocument } from "../models/user.model.js";
 import {
   ALCHEMY_ITEMS_BY_ID,
   BASE_SPAWN_ITEM_IDS,
@@ -7,17 +7,19 @@ import {
   getRecipeKey,
   LEGACY_LEVEL_TO_ITEM_ID
 } from "./alchemy.data.js";
+import { getActiveGridSize, GRID_SIZE, MAX_OFFLINE_INCOME_SECONDS } from "./game.constants.js";
 import {
-  BASE_UPGRADE_COST_STEP,
-  getActiveGridSize,
-  GRID_SIZE,
-  MAX_OFFLINE_INCOME_SECONDS,
-  SPAWN_COST
-} from "./game.constants.js";
+  getBaseUpgradeCost,
+  getDeleteCost,
+  getGoalReward,
+  getItemTier,
+  getSpawnCost as getDynamicSpawnCost
+} from "./game.economy.js";
 import { getItemDetails, ITEM_CATALOG } from "./game.catalog.js";
 import { calculateIncomeWithBase } from "./income.service.js";
 import type {
   CurrentGoalDto,
+  DeleteCellInput,
   DiscoveredRecipeDetailsDto,
   ItemDetails,
   MergeCellsInput,
@@ -27,27 +29,11 @@ import { MergeOutcome, merge } from "./merge.service.js";
 
 const ensureUser = async (): Promise<UserDocument> => {
   const existingUser = await User.findOne();
-
   if (existingUser) {
     return existingUser;
   }
 
   return User.create({ lastIncomeClaimAt: new Date() });
-};
-
-const getBaseUpgradeCost = (baseLevel: number): number => {
-  return baseLevel * BASE_UPGRADE_COST_STEP;
-};
-
-const GOAL_REWARD_ENERGY = 100;
-
-const getSpawnCost = (user: UserDocument): number => {
-  const activeGridSize = getActiveGridSize(user.baseLevel);
-  const itemsCount = user.grid.cells.slice(0, activeGridSize).reduce((count, cell) => {
-    return cell.itemId ? count + 1 : count;
-  }, 0);
-
-  return itemsCount < 2 ? 0 : SPAWN_COST;
 };
 
 const normalizeGridCellItemId = (cell: { itemId?: string | null; itemLevel?: number }): string | null => {
@@ -93,6 +79,20 @@ const normalizeGridFromLegacy = async (user: UserDocument): Promise<void> => {
   }
 };
 
+const getActiveCells = (user: UserDocument) => {
+  return user.grid.cells.slice(0, getActiveGridSize(user.baseLevel));
+};
+
+const getOccupiedActiveCellsCount = (user: UserDocument): number => {
+  return getActiveCells(user).reduce((count, cell) => {
+    return normalizeGridCellItemId(cell) ? count + 1 : count;
+  }, 0);
+};
+
+const getSpawnCost = (user: UserDocument): number => {
+  return getDynamicSpawnCost(getOccupiedActiveCellsCount(user), user.baseLevel);
+};
+
 const getDiscoveredItemIdsFromGrid = (user: UserDocument): string[] => {
   return Array.from(
     new Set(
@@ -113,21 +113,21 @@ const normalizeDiscoveredItems = async (user: UserDocument): Promise<void> => {
     return;
   }
 
-  const normalizedFromLegacy = user.discoveredItems.map((value) => {
-    if (typeof value === "string") {
-      return value;
-    }
+  const normalizedFromLegacy = user.discoveredItems
+    .map((value) => {
+      if (typeof value === "string") {
+        return value;
+      }
 
-    if (typeof value === "number") {
-      return LEGACY_LEVEL_TO_ITEM_ID[value] ?? "";
-    }
+      if (typeof value === "number") {
+        return LEGACY_LEVEL_TO_ITEM_ID[value] ?? "";
+      }
 
-    return "";
-  }).filter((value) => value.length > 0);
+      return "";
+    })
+    .filter((value) => value.length > 0);
 
-  const withGrid = [...normalizedFromLegacy, ...discoveredFromGrid];
-  const unique = Array.from(new Set(withGrid)).sort();
-
+  const unique = Array.from(new Set([...normalizedFromLegacy, ...discoveredFromGrid])).sort();
   if (unique.join("|") !== user.discoveredItems.join("|")) {
     user.discoveredItems = unique;
     await user.save();
@@ -193,36 +193,9 @@ const getDiscoveredRecipeDetails = (recipeKeys: string[]): DiscoveredRecipeDetai
         return null;
       }
 
-      return {
-        key,
-        left,
-        right,
-        result
-      };
+      return { key, left, right, result };
     })
     .filter((recipe): recipe is DiscoveredRecipeDetailsDto => Boolean(recipe));
-};
-
-const applyGoalRewards = (user: UserDocument): number => {
-  let rewardedGold = 0;
-
-  for (const goalItemId of GOAL_SEQUENCE) {
-    const discovered = user.discoveredItems.includes(goalItemId);
-    const alreadyRewarded = user.rewardedGoals.includes(goalItemId);
-
-    if (!discovered || alreadyRewarded) {
-      continue;
-    }
-
-    user.rewardedGoals = [...user.rewardedGoals, goalItemId].sort();
-    rewardedGold += GOAL_REWARD_ENERGY;
-  }
-
-  if (rewardedGold > 0) {
-    user.gold += rewardedGold;
-  }
-
-  return rewardedGold;
 };
 
 const addDiscovery = (user: UserDocument, itemId: string | null): ItemDetails | null => {
@@ -234,36 +207,75 @@ const addDiscovery = (user: UserDocument, itemId: string | null): ItemDetails | 
   return getItemDetails(itemId);
 };
 
-const getCurrentGoal = (discoveredItems: string[]): CurrentGoalDto => {
-  const nextTarget = GOAL_SEQUENCE.find((itemId) => !discoveredItems.includes(itemId)) ?? GOAL_SEQUENCE[GOAL_SEQUENCE.length - 1];
-  const allGoalsCompleted = GOAL_SEQUENCE.every((itemId) => discoveredItems.includes(itemId));
+const applyGoalRewards = (user: UserDocument): number => {
+  let rewardedGold = 0;
 
+  GOAL_SEQUENCE.forEach((goalItemId, goalIndex) => {
+    const discovered = user.discoveredItems.includes(goalItemId);
+    const alreadyRewarded = user.rewardedGoals.includes(goalItemId);
+    if (!discovered || alreadyRewarded) {
+      return;
+    }
+
+    const tier = getItemTier(goalItemId);
+    const reward = getGoalReward(goalIndex, tier);
+    user.rewardedGoals = [...user.rewardedGoals, goalItemId].sort();
+    rewardedGold += reward;
+  });
+
+  if (rewardedGold > 0) {
+    user.gold += rewardedGold;
+  }
+
+  return rewardedGold;
+};
+
+const getCurrentGoal = (discoveredItems: string[]): CurrentGoalDto => {
+  const nextTargetIndex = GOAL_SEQUENCE.findIndex((itemId) => !discoveredItems.includes(itemId));
+  const allGoalsCompleted = nextTargetIndex === -1;
+  const nextTarget = allGoalsCompleted
+    ? GOAL_SEQUENCE[GOAL_SEQUENCE.length - 1]
+    : GOAL_SEQUENCE[nextTargetIndex];
+
+  if (allGoalsCompleted) {
+    return {
+      title: "Все цели сектора выполнены",
+      targetItemId: nextTarget,
+      rewardText: "Все награды получены"
+    };
+  }
+
+  const tier = getItemTier(nextTarget);
+  const reward = getGoalReward(nextTargetIndex, tier);
   return {
-    title: allGoalsCompleted
-      ? "Все цели сектора выполнены"
-      : `Открой ${ALCHEMY_ITEMS_BY_ID[nextTarget].name}`,
+    title: `Открой ${ALCHEMY_ITEMS_BY_ID[nextTarget].name}`,
     targetItemId: nextTarget,
-    rewardText: allGoalsCompleted ? "Все награды получены" : `Награда: +${GOAL_REWARD_ENERGY} энергии`
+    rewardText: `Награда: +${reward} энергии`
   };
+};
+
+const buildDeleteCosts = (user: UserDocument): Array<number | null> => {
+  const activeGridSize = getActiveGridSize(user.baseLevel);
+  const occupiedActiveCells = getOccupiedActiveCellsCount(user);
+
+  return user.grid.cells.map((cell, index) => {
+    if (index >= activeGridSize) {
+      return null;
+    }
+
+    const itemId = normalizeGridCellItemId(cell);
+    if (!itemId) {
+      return null;
+    }
+
+    const tier = getItemTier(itemId);
+    return getDeleteCost(tier, occupiedActiveCells);
+  });
 };
 
 const buildMergeMessage = (outcome: MergeOutcome, item: ItemDetails | null): string => {
   if (outcome === "failed") {
     return "Эти символы пока не соединяются";
-  }
-
-  if (outcome === "bonus") {
-    if (item) {
-      return `✨ Открыто: ${item.icon} ${item.name}`;
-    }
-    return "✨ Открыто";
-  }
-
-  if (outcome === "downgrade") {
-    if (item) {
-      return `✨ Открыто: ${item.icon} ${item.name}`;
-    }
-    return "✨ Открыто";
   }
 
   if (item) {
@@ -297,6 +309,7 @@ const toUserStateDto = (
     discoveredRecipes: user.discoveredRecipes,
     discoveredRecipeDetails: getDiscoveredRecipeDetails(user.discoveredRecipes),
     itemCatalog: ITEM_CATALOG,
+    deleteCosts: buildDeleteCosts(user),
     latestDiscovery,
     lastActionMessage
   };
@@ -314,10 +327,12 @@ const prepareUser = async (): Promise<UserDocument> => {
   await normalizeDiscoveredItems(user);
   await normalizeDiscoveredRecipes(user);
   await normalizeRewardedGoals(user);
+
   const rewardGold = applyGoalRewards(user);
   if (rewardGold > 0) {
     await user.save();
   }
+
   return user;
 };
 
@@ -347,7 +362,6 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
   const secondItemId = normalizeGridCellItemId(secondCell);
 
   const result = merge(firstCell, secondCell);
-
   if (!result.merged) {
     return toUserStateDto(user, null, buildMergeMessage("failed", null));
   }
@@ -377,7 +391,6 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
 export const spawnItem = async (): Promise<UserStateDto> => {
   const user = await prepareUser();
   const activeGridSize = getActiveGridSize(user.baseLevel);
-
   const emptyIndex = user.grid.cells
     .slice(0, activeGridSize)
     .findIndex((cell) => !normalizeGridCellItemId(cell));
@@ -387,7 +400,6 @@ export const spawnItem = async (): Promise<UserStateDto> => {
   }
 
   const spawnCost = getSpawnCost(user);
-
   if (user.gold < spawnCost) {
     throw new Error("Недостаточно энергии");
   }
@@ -406,6 +418,33 @@ export const spawnItem = async (): Promise<UserStateDto> => {
   }
 
   return toUserStateDto(user, latestDiscovery, "✨ Синтезирован новый символ");
+};
+
+export const deleteCell = async (input: DeleteCellInput): Promise<UserStateDto> => {
+  const user = await prepareUser();
+  const activeGridSize = getActiveGridSize(user.baseLevel);
+  assertCellIndex(input.cellIndex, activeGridSize);
+
+  const cell = user.grid.cells[input.cellIndex];
+  const itemId = normalizeGridCellItemId(cell);
+  if (!itemId) {
+    throw new Error("Клетка уже пуста");
+  }
+
+  const occupiedCells = getOccupiedActiveCellsCount(user);
+  const itemTier = getItemTier(itemId);
+  const deleteCost = getDeleteCost(itemTier, occupiedCells);
+
+  if (user.gold < deleteCost) {
+    throw new Error("Недостаточно энергии для утилизации");
+  }
+
+  user.gold -= deleteCost;
+  user.grid.cells[input.cellIndex].itemId = null;
+  user.grid.cells[input.cellIndex].itemLevel = undefined;
+  await user.save();
+
+  return toUserStateDto(user, null, "♻️ Образец утилизирован");
 };
 
 export const claimIncome = async (): Promise<UserStateDto> => {
@@ -431,7 +470,6 @@ export const claimIncome = async (): Promise<UserStateDto> => {
 
 export const upgradeBase = async (): Promise<UserStateDto> => {
   const user = await prepareUser();
-
   const upgradeCost = getBaseUpgradeCost(user.baseLevel);
 
   if (user.gold < upgradeCost) {
@@ -444,4 +482,3 @@ export const upgradeBase = async (): Promise<UserStateDto> => {
 
   return toUserStateDto(user, null, "🏛️ Лаборатория усилена");
 };
-

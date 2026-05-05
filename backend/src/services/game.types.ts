@@ -1,6 +1,10 @@
-﻿export interface MergeCellsInput {
+export interface MergeCellsInput {
   cellA: number;
   cellB: number;
+}
+
+export interface DeleteCellInput {
+  cellIndex: number;
 }
 
 export interface ItemDetails {
@@ -47,6 +51,7 @@ export interface UserStateDto {
   discoveredRecipes: string[];
   discoveredRecipeDetails: DiscoveredRecipeDetailsDto[];
   itemCatalog: ItemDetails[];
+  deleteCosts: Array<number | null>;
   latestDiscovery: ItemDetails | null;
   lastActionMessage: string | null;
 }

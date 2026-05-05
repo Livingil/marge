@@ -23,11 +23,16 @@ export type GameBoardViewProps = {
   isSpawning: boolean;
   isClaimingIncome: boolean;
   isUpgradingBase: boolean;
+  isDeletingCell: boolean;
   canSpawn: boolean;
   canUpgradeBase: boolean;
+  hasSelectedCellItem: boolean;
+  canDeleteSelectedCell: boolean;
+  selectedCellDeleteCost: number | null;
   spawnItemAction: () => void;
   claimIncomeAction: () => void;
   upgradeBaseAction: () => void;
+  deleteCellAction: () => void;
   isCollectionOpen: boolean;
   setIsCollectionOpen: (value: boolean) => void;
   isHelpOpen: boolean;

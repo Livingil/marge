@@ -13,6 +13,13 @@ export type GridCell = {
   item: GridItem | null;
 };
 
+export type DiscoveredRecipeDto = {
+  key: string;
+  left: GridItem;
+  right: GridItem;
+  result: GridItem;
+};
+
 export type UserState = {
   _id: string;
   gold: number;
@@ -27,6 +34,8 @@ export type UserState = {
     rewardText: string;
   };
   discoveredItems: string[];
+  discoveredRecipes: string[];
+  discoveredRecipeDetails: DiscoveredRecipeDto[];
   itemCatalog: GridItem[];
   latestDiscovery: GridItem | null;
   lastActionMessage: string | null;

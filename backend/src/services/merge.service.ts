@@ -1,5 +1,5 @@
 ﻿import { IGridCell } from "../models/grid.model.js";
-import { RECIPES } from "./alchemy.data.js";
+import { getRecipeKey, RECIPES } from "./alchemy.data.js";
 
 export type MergeOutcome = "normal" | "bonus" | "downgrade" | "failed";
 
@@ -9,10 +9,6 @@ export interface MergeResult {
   cellA: IGridCell;
   cellB: IGridCell;
 }
-
-const getRecipeKey = (a: string, b: string): string => {
-  return [a, b].sort().join("+");
-};
 
 export const merge = (cellA: IGridCell, cellB: IGridCell): MergeResult => {
   const itemA = cellA.itemId;

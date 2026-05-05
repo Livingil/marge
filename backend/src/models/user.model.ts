@@ -8,6 +8,7 @@ export interface IUser {
   grid: IGrid;
   lastIncomeClaimAt: Date;
   discoveredItems: string[];
+  discoveredRecipes: string[];
 }
 
 type UserModel = Model<IUser>;
@@ -39,6 +40,11 @@ const userSchema = new Schema<IUser, UserModel>(
       default: Date.now
     },
     discoveredItems: {
+      type: [String],
+      required: true,
+      default: []
+    },
+    discoveredRecipes: {
       type: [String],
       required: true,
       default: []

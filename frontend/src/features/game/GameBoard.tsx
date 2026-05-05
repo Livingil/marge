@@ -10,9 +10,22 @@ import {
 } from "../../shared/api/gameApi";
 
 const GRID_SIZE = 5;
-const FLASH_DURATION_MS = 1100;
+const FLASH_DURATION_MS = 900;
 
-type FlashTone = "merge" | "bonus" | "downgrade" | "income" | "discovery" | "neutral";
+type FlashTone =
+  | "merge"
+  | "bonus"
+  | "downgrade"
+  | "income"
+  | "discovery"
+  | "failed"
+  | "upgrade"
+  | "spawn"
+  | "neutral";
+type ContextHint = {
+  title: string;
+  text: string;
+};
 
 const getActionTone = (message: string | null, latestDiscovery: GridItem | null): FlashTone => {
   if (latestDiscovery) {
@@ -21,6 +34,18 @@ const getActionTone = (message: string | null, latestDiscovery: GridItem | null)
 
   if (!message) {
     return "neutral";
+  }
+
+  if (message.includes("не соединяются")) {
+    return "failed";
+  }
+
+  if (message.includes("Синтезирован")) {
+    return "spawn";
+  }
+
+  if (message.includes("Лаборатория усилена")) {
+    return "upgrade";
   }
 
   if (message.includes("Удач")) {
@@ -70,6 +95,72 @@ export const GameBoard = () => {
 
     return Math.round((user.discoveredItems.length / user.itemCatalog.length) * 100);
   }, [user]);
+
+  const filledCellsCount = useMemo(() => cells.filter((cell) => Boolean(cell.itemId)).length, [cells]);
+  const emptyCellsCount = GRID_SIZE * GRID_SIZE - filledCellsCount;
+  const hasSelectedCell = selectedCell !== null;
+  const discoveredCount = user?.discoveredItems.length ?? 0;
+  const hasAnyDiscoveredItems = discoveredCount > 0;
+  const canSpawn = user ? user.gold >= user.spawnCost : false;
+  const canUpgradeBase = user ? user.gold >= user.baseUpgradeCost : false;
+
+  const selectedCellItem = useMemo(() => {
+    if (selectedCell === null) {
+      return null;
+    }
+    return cells[selectedCell]?.item ?? null;
+  }, [cells, selectedCell]);
+
+  const getContextHint = (): ContextHint => {
+    if (filledCellsCount === 0) {
+      return {
+        title: "Начни синтез",
+        text: "Нажми «Синтезировать ядро», чтобы создать первый символ."
+      };
+    }
+
+    if (filledCellsCount === 1) {
+      return {
+        title: "Нужна пара",
+        text: "Создай ещё одно ядро, чтобы попробовать первое слияние."
+      };
+    }
+
+    if (hasSelectedCell) {
+      return {
+        title: "Выбери второй символ",
+        text: "Нажми на другой символ, чтобы проверить реакцию."
+      };
+    }
+
+    if (emptyCellsCount === 0) {
+      return {
+        title: "Поле заполнено",
+        text: "Соедини образцы или собери поток перед новым синтезом."
+      };
+    }
+
+    if (!canSpawn) {
+      return {
+        title: "Не хватает энергии",
+        text: "Собери поток энергии или попробуй новые слияния."
+      };
+    }
+
+    if (discoveredCount < 5 || !hasAnyDiscoveredItems) {
+      return {
+        title: "Ищи первые реакции",
+        text: "Пробуй соединять одинаковые символы и простые стихии."
+      };
+    }
+
+    return {
+      title: "Продолжай исследование",
+      text: "Следуй цели смены и открывай новые ветки каталога."
+    };
+  };
+
+  const contextHint = getContextHint();
 
   useEffect(() => {
     if (!user?.lastActionMessage && !user?.latestDiscovery) {
@@ -183,6 +274,30 @@ export const GameBoard = () => {
             </div>
           </div>
 
+          <div className="onboarding-grid">
+            <div className="onboarding-card">
+              <p className="eyebrow">Подсказка лаборатории</p>
+              <p className="onboarding-title">{contextHint.title}</p>
+              <p className="onboarding-text">{contextHint.text}</p>
+              {selectedCellItem ? (
+                <p className="onboarding-selected">
+                  Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
+                  <br />
+                  Теперь выбери второй символ для реакции.
+                </p>
+              ) : null}
+            </div>
+            <div className="onboarding-card">
+              <p className="eyebrow">Как играть</p>
+              <ol className="onboarding-steps">
+                <li>Синтезируй ядро</li>
+                <li>Соедини два символа</li>
+                <li>Открой новый образец</li>
+                <li>Собери поток энергии</li>
+              </ol>
+            </div>
+          </div>
+
           {user.lastActionMessage ? (
             <div className={`action-banner action-${flashTone}`}>
               <span className="action-banner-label">Журнал</span>
@@ -207,6 +322,10 @@ export const GameBoard = () => {
               </div>
               <p className="board-hint">Перетащи один символ на другой или выбери две клетки по очереди.</p>
             </div>
+            {filledCellsCount === 0 ? (
+              <p className="board-empty-state">Поле пустое. Синтезируй первое ядро.</p>
+            ) : null}
+            {isMerging ? <p className="board-merge-state">Реакция...</p> : null}
 
             <div className="grid" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}>
               {cells.map((cell, index) => (
@@ -254,8 +373,10 @@ export const GameBoard = () => {
               onClick={() => spawnItem()}
               disabled={isSpawning || user.gold < user.spawnCost}
             >
-              <span className="action-button-label">Синтезировать ядро</span>
-              <span className="action-button-meta">Стоимость: {user.spawnCost}</span>
+              <span className="action-button-label">{isSpawning ? "Синтез..." : "Синтезировать ядро"}</span>
+              <span className="action-button-meta">
+                {canSpawn ? `Стоимость: ${user.spawnCost}` : `Нужно энергии: ${user.spawnCost}`}
+              </span>
             </button>
             <button
               type="button"
@@ -263,7 +384,7 @@ export const GameBoard = () => {
               onClick={() => claimIncome()}
               disabled={isClaimingIncome}
             >
-              <span className="action-button-label">Собрать поток</span>
+              <span className="action-button-label">{isClaimingIncome ? "Сбор..." : "Собрать поток"}</span>
               <span className="action-button-meta">Снять накопленную энергию</span>
             </button>
             <button
@@ -272,8 +393,10 @@ export const GameBoard = () => {
               onClick={() => upgradeBase()}
               disabled={isUpgradingBase || user.gold < user.baseUpgradeCost}
             >
-              <span className="action-button-label">Усилить лабораторию</span>
-              <span className="action-button-meta">Стоимость: {user.baseUpgradeCost}</span>
+              <span className="action-button-label">{isUpgradingBase ? "Усиление..." : "Усилить лабораторию"}</span>
+              <span className="action-button-meta">
+                {canUpgradeBase ? `Стоимость: ${user.baseUpgradeCost}` : `Нужно энергии: ${user.baseUpgradeCost}`}
+              </span>
             </button>
           </div>
         </div>
@@ -308,6 +431,31 @@ export const GameBoard = () => {
               <div className="progress-bar-fill" style={{ width: `${discoveredProgress}%` }} />
             </div>
             <p className="meta-text">Новые образцы дают прогресс каталога и открывают следующую ветку.</p>
+          </div>
+
+          <div className="meta-card reactions-card">
+            <p className="meta-kicker">Открытые реакции</p>
+            {user.discoveredRecipeDetails.length === 0 ? (
+              <p className="reaction-empty">Первые реакции появятся здесь после успешных слияний.</p>
+            ) : (
+              <div className="reaction-list">
+                {user.discoveredRecipeDetails.map((reaction) => (
+                  <div key={reaction.key} className="reaction-row">
+                    <span className="reaction-part">
+                      {reaction.left.icon} {reaction.left.name}
+                    </span>
+                    <span className="reaction-plus">+</span>
+                    <span className="reaction-part">
+                      {reaction.right.icon} {reaction.right.name}
+                    </span>
+                    <span className="reaction-arrow">→</span>
+                    <span className="reaction-part reaction-result">
+                      {reaction.result.icon} {reaction.result.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className={`collection-sheet ${isCollectionOpen ? "open" : ""}`}>

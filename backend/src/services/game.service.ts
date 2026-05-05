@@ -5,6 +5,8 @@ import {
   ALCHEMY_ITEM_TIERS,
   BASE_SPAWN_ITEM_IDS,
   GOAL_SEQUENCE,
+  getRecipeDetailsByKey,
+  getRecipeKey,
   LEGACY_LEVEL_TO_ITEM_ID
 } from "./alchemy.data.js";
 import {
@@ -44,6 +46,13 @@ interface UserGridDto {
   cells: UserGridCellDto[];
 }
 
+interface DiscoveredRecipeDetailsDto {
+  key: string;
+  left: ItemDetails;
+  right: ItemDetails;
+  result: ItemDetails;
+}
+
 export interface UserStateDto {
   _id: string;
   gold: number;
@@ -55,6 +64,8 @@ export interface UserStateDto {
   baseUpgradeCost: number;
   currentGoal: CurrentGoalDto;
   discoveredItems: string[];
+  discoveredRecipes: string[];
+  discoveredRecipeDetails: DiscoveredRecipeDetailsDto[];
   itemCatalog: ItemDetails[];
   latestDiscovery: ItemDetails | null;
   lastActionMessage: string | null;
@@ -182,6 +193,58 @@ const normalizeDiscoveredItems = async (user: UserDocument): Promise<void> => {
   }
 };
 
+const normalizeDiscoveredRecipes = async (user: UserDocument): Promise<void> => {
+  if (!Array.isArray(user.discoveredRecipes)) {
+    user.discoveredRecipes = [];
+    await user.save();
+    return;
+  }
+
+  const normalized = Array.from(
+    new Set(
+      user.discoveredRecipes.filter((value): value is string => typeof value === "string" && value.length > 0)
+    )
+  ).sort();
+
+  if (normalized.join("|") !== user.discoveredRecipes.join("|")) {
+    user.discoveredRecipes = normalized;
+    await user.save();
+  }
+};
+
+const addDiscoveredRecipe = (user: UserDocument, recipeKey: string): void => {
+  if (!recipeKey || user.discoveredRecipes.includes(recipeKey)) {
+    return;
+  }
+
+  user.discoveredRecipes = [...user.discoveredRecipes, recipeKey].sort();
+};
+
+const getDiscoveredRecipeDetails = (recipeKeys: string[]): DiscoveredRecipeDetailsDto[] => {
+  return recipeKeys
+    .map((key) => {
+      const recipe = getRecipeDetailsByKey(key);
+      if (!recipe) {
+        return null;
+      }
+
+      const left = getItemDetails(recipe.leftId);
+      const right = getItemDetails(recipe.rightId);
+      const result = getItemDetails(recipe.resultId);
+      if (!left || !right || !result) {
+        return null;
+      }
+
+      return {
+        key,
+        left,
+        right,
+        result
+      };
+    })
+    .filter((recipe): recipe is DiscoveredRecipeDetailsDto => Boolean(recipe));
+};
+
 const addDiscovery = (user: UserDocument, itemId: string | null): ItemDetails | null => {
   if (!itemId || user.discoveredItems.includes(itemId)) {
     return null;
@@ -248,6 +311,8 @@ const toUserStateDto = (
     baseUpgradeCost: getBaseUpgradeCost(user.baseLevel),
     currentGoal: getCurrentGoal(user.discoveredItems),
     discoveredItems: user.discoveredItems,
+    discoveredRecipes: user.discoveredRecipes,
+    discoveredRecipeDetails: getDiscoveredRecipeDetails(user.discoveredRecipes),
     itemCatalog: ITEM_CATALOG,
     latestDiscovery,
     lastActionMessage
@@ -264,6 +329,7 @@ const prepareUser = async (): Promise<UserDocument> => {
   const user = await ensureUser();
   await normalizeGridFromLegacy(user);
   await normalizeDiscoveredItems(user);
+  await normalizeDiscoveredRecipes(user);
   return user;
 };
 
@@ -289,6 +355,8 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
 
   const firstCell = user.grid.cells[input.cellA];
   const secondCell = user.grid.cells[input.cellB];
+  const firstItemId = normalizeGridCellItemId(firstCell);
+  const secondItemId = normalizeGridCellItemId(secondCell);
 
   const result = merge(firstCell, secondCell);
 
@@ -303,6 +371,11 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
 
   const mergedItem = getItemDetails(result.cellA.itemId ?? null);
   const latestDiscovery = addDiscovery(user, result.cellA.itemId ?? null);
+
+  if (firstItemId && secondItemId) {
+    addDiscoveredRecipe(user, getRecipeKey(firstItemId, secondItemId));
+  }
+
   await user.save();
 
   return toUserStateDto(user, latestDiscovery, buildMergeMessage(result.outcome, mergedItem));

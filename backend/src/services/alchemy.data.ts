@@ -6,6 +6,12 @@
 }
 
 type RecipePair = [string, string, string];
+export interface RecipeDetails {
+  key: string;
+  leftId: string;
+  rightId: string;
+  resultId: string;
+}
 
 const MAX_VISUAL_TIER = 5;
 
@@ -66,7 +72,7 @@ export const ALCHEMY_ITEMS: AlchemyItem[] = [
   { id: "genesisCore", icon: "🧬", name: "Ядро генезиса", description: "Финальный техно-магический источник творения" }
 ];
 
-const keyFor = (a: string, b: string): string => {
+export const getRecipeKey = (a: string, b: string): string => {
   return [a, b].sort().join("+");
 };
 
@@ -260,7 +266,7 @@ export const validateAlchemyData = (): void => {
       throw new Error(`Recipe result item '${resultId}' is missing in ALCHEMY_ITEMS`);
     }
 
-    const key = keyFor(leftId, rightId);
+    const key = getRecipeKey(leftId, rightId);
     const existingResult = recipeResultsByKey.get(key);
 
     if (existingResult && existingResult !== resultId) {
@@ -292,11 +298,26 @@ export const ALCHEMY_ITEMS_BY_ID: Record<string, AlchemyItem> = Object.fromEntri
 
 export const RECIPES: Record<string, string> = recipePairs.reduce<Record<string, string>>(
   (acc, [a, b, result]) => {
-    acc[keyFor(a, b)] = result;
+    acc[getRecipeKey(a, b)] = result;
     return acc;
   },
   {}
 );
+
+export const RECIPE_DETAILS: RecipeDetails[] = recipePairs.map(([leftId, rightId, resultId]) => ({
+  key: getRecipeKey(leftId, rightId),
+  leftId,
+  rightId,
+  resultId
+}));
+
+export const RECIPE_DETAILS_BY_KEY: Record<string, RecipeDetails> = Object.fromEntries(
+  RECIPE_DETAILS.map((recipe) => [recipe.key, recipe])
+);
+
+export const getRecipeDetailsByKey = (key: string): RecipeDetails | null => {
+  return RECIPE_DETAILS_BY_KEY[key] ?? null;
+};
 
 const computeAlchemyItemTiers = (): Record<string, number> => {
   const tiers = Object.fromEntries(

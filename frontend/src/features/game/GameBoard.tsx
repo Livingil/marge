@@ -90,6 +90,7 @@ export const GameBoard = () => {
   const [flashTone, setFlashTone] = useState<FlashTone>("neutral");
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [isUtilityMenuOpen, setIsUtilityMenuOpen] = useState(false);
   const [catalogTab, setCatalogTab] = useState<CatalogTab>("items");
   const [tierFilter, setTierFilter] = useState<TierFilter>("all");
   const [chainFilter, setChainFilter] = useState<ChainFilter>("all");
@@ -258,6 +259,12 @@ export const GameBoard = () => {
     return () => window.clearTimeout(timeoutId);
   }, [user?.lastActionMessage, user?.latestDiscovery]);
 
+  useEffect(() => {
+    if (isHelpOpen || isCatalogOpen) {
+      setIsUtilityMenuOpen(false);
+    }
+  }, [isCatalogOpen, isHelpOpen]);
+
   const getCellTierClassName = (cell: GridCell): string => {
     if (!cell.item) {
       return "tier-empty";
@@ -338,6 +345,41 @@ export const GameBoard = () => {
             <span className="resource-value">{user.incomePerMinute}/мин</span>
           </span>
         </div>
+        <div className="resource-menu-shell mobile-only">
+          <button
+            type="button"
+            className="utility-menu-button"
+            aria-label="Открыть меню"
+            onClick={() => setIsUtilityMenuOpen((value) => !value)}
+          >
+            ⋯
+          </button>
+          {isUtilityMenuOpen ? (
+            <div className="utility-menu-panel">
+              <button
+                type="button"
+                className="utility-menu-item"
+                onClick={() => {
+                  setCatalogTab("items");
+                  setIsCatalogOpen(true);
+                  setIsUtilityMenuOpen(false);
+                }}
+              >
+                Каталог {user.discoveredItems.length}/{user.itemCatalog.length}
+              </button>
+              <button
+                type="button"
+                className="utility-menu-item"
+                onClick={() => {
+                  setIsHelpOpen(true);
+                  setIsUtilityMenuOpen(false);
+                }}
+              >
+                Помощь
+              </button>
+            </div>
+          ) : null}
+        </div>
       </header>
 
       <div className="lab-layout">
@@ -346,7 +388,7 @@ export const GameBoard = () => {
             <div className="mission-copy">
               <div className="mission-topline">
                 <p className="eyebrow">Сектор синтеза</p>
-                <div className="mission-actions">
+                <div className="mission-actions desktop-only">
                   <button
                     type="button"
                     className="utility-button utility-button-catalog"

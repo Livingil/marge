@@ -63,7 +63,7 @@ export const RECIPES: Record<string, string> = recipePairs.reduce<Record<string,
   {}
 );
 
-export const BASE_SPAWN_ITEM_IDS = ["spark", "water", "seed", "stone"];
+export const BASE_SPAWN_ITEM_IDS = ["spark", "water", "seed", "stone", "fire"];
 
 export const LEGACY_LEVEL_TO_ITEM_ID: Record<number, string> = {
   1: "spark",

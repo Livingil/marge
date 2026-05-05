@@ -11,6 +11,14 @@ import {
 
 const GRID_SIZE = 5;
 const FLASH_DURATION_MS = 900;
+const ONBOARDING_HINT_DISMISSED_KEY = "marge_onboarding_hint_dismissed";
+const ONBOARDING_GUIDE_DISMISSED_KEY = "marge_onboarding_guide_dismissed";
+const readDismissedFlag = (key: string): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  return window.localStorage.getItem(key) === "1";
+};
 
 type FlashTone =
   | "merge"
@@ -26,6 +34,7 @@ type ContextHint = {
   title: string;
   text: string;
 };
+type CatalogTab = "items" | "reactions";
 
 const getActionTone = (message: string | null, latestDiscovery: GridItem | null): FlashTone => {
   if (latestDiscovery) {
@@ -77,6 +86,11 @@ export const GameBoard = () => {
   const [selectedCell, setSelectedCell] = useState<number | null>(null);
   const [isCollectionOpen, setIsCollectionOpen] = useState(false);
   const [flashTone, setFlashTone] = useState<FlashTone>("neutral");
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isCatalogOpen, setIsCatalogOpen] = useState(false);
+  const [catalogTab, setCatalogTab] = useState<CatalogTab>("items");
+  const [isHintDismissed, setIsHintDismissed] = useState(() => readDismissedFlag(ONBOARDING_HINT_DISMISSED_KEY));
+  const [isGuideDismissed, setIsGuideDismissed] = useState(() => readDismissedFlag(ONBOARDING_GUIDE_DISMISSED_KEY));
 
   const cells = useMemo(() => user?.grid.cells ?? [], [user]);
 
@@ -161,6 +175,20 @@ export const GameBoard = () => {
   };
 
   const contextHint = getContextHint();
+
+  const dismissHint = () => {
+    setIsHintDismissed(true);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(ONBOARDING_HINT_DISMISSED_KEY, "1");
+    }
+  };
+
+  const dismissGuide = () => {
+    setIsGuideDismissed(true);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(ONBOARDING_GUIDE_DISMISSED_KEY, "1");
+    }
+  };
 
   useEffect(() => {
     if (!user?.lastActionMessage && !user?.latestDiscovery) {
@@ -274,29 +302,46 @@ export const GameBoard = () => {
             </div>
           </div>
 
-          <div className="onboarding-grid">
-            <div className="onboarding-card">
-              <p className="eyebrow">Подсказка лаборатории</p>
-              <p className="onboarding-title">{contextHint.title}</p>
-              <p className="onboarding-text">{contextHint.text}</p>
-              {selectedCellItem ? (
-                <p className="onboarding-selected">
-                  Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
-                  <br />
-                  Теперь выбери второй символ для реакции.
-                </p>
+          {!isHintDismissed || !isGuideDismissed ? (
+            <div className="onboarding-grid">
+              {!isHintDismissed ? (
+                <div className="onboarding-card">
+                  <button type="button" className="onboarding-close" onClick={dismissHint}>
+                    ✕
+                  </button>
+                  <p className="eyebrow">Подсказка лаборатории</p>
+                  <p className="onboarding-title">{contextHint.title}</p>
+                  <p className="onboarding-text">{contextHint.text}</p>
+                  <p className={`onboarding-selected ${selectedCellItem ? "" : "empty"}`}>
+                    {selectedCellItem ? (
+                      <>
+                        Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
+                        <br />
+                        Теперь выбери второй символ для реакции.
+                      </>
+                    ) : (
+                      " "
+                    )}
+                  </p>
+                </div>
+              ) : null}
+
+              {!isGuideDismissed ? (
+                <div className="onboarding-card how-to-play">
+                  <button type="button" className="onboarding-close" onClick={dismissGuide}>
+                    ✕
+                  </button>
+                  <p className="eyebrow">Как играть</p>
+                  <ol className="onboarding-steps">
+                    <li>Синтезируй ядро</li>
+                    <li>Соедини два символа</li>
+                    <li>Открой новый образец</li>
+                    <li>Собери поток энергии</li>
+                  </ol>
+                </div>
               ) : null}
             </div>
-            <div className="onboarding-card">
-              <p className="eyebrow">Как играть</p>
-              <ol className="onboarding-steps">
-                <li>Синтезируй ядро</li>
-                <li>Соедини два символа</li>
-                <li>Открой новый образец</li>
-                <li>Собери поток энергии</li>
-              </ol>
-            </div>
-          </div>
+          ) : null}
 
           {user.lastActionMessage ? (
             <div className={`action-banner action-${flashTone}`}>
@@ -325,8 +370,6 @@ export const GameBoard = () => {
             {filledCellsCount === 0 ? (
               <p className="board-empty-state">Поле пустое. Синтезируй первое ядро.</p>
             ) : null}
-            {isMerging ? <p className="board-merge-state">Реакция...</p> : null}
-
             <div className="grid" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}>
               {cells.map((cell, index) => (
                 <div
@@ -358,7 +401,7 @@ export const GameBoard = () => {
                   ) : (
                     <div className="cell-placeholder">
                       <span className="cell-placeholder-plus">+</span>
-                      <span>Пусто</span>
+                      <span className="cell-placeholder-text">Пусто</span>
                     </div>
                   )}
                 </div>
@@ -373,9 +416,26 @@ export const GameBoard = () => {
               onClick={() => spawnItem()}
               disabled={isSpawning || user.gold < user.spawnCost}
             >
-              <span className="action-button-label">{isSpawning ? "Синтез..." : "Синтезировать ядро"}</span>
+              <span className="action-button-label">
+                <span className="desktop-label">{isSpawning ? "Синтез..." : "Синтезировать ядро"}</span>
+                <span className="mobile-label">{isSpawning ? "Синтез..." : "Синтез"}</span>
+              </span>
               <span className="action-button-meta">
                 {canSpawn ? `Стоимость: ${user.spawnCost}` : `Нужно энергии: ${user.spawnCost}`}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="action-button action-button-secondary"
+              onClick={() => upgradeBase()}
+              disabled={isUpgradingBase || user.gold < user.baseUpgradeCost}
+            >
+              <span className="action-button-label">
+                <span className="desktop-label">{isUpgradingBase ? "Усиление..." : "Усилить лабораторию"}</span>
+                <span className="mobile-label">{isUpgradingBase ? "Усиление..." : "Усилить"}</span>
+              </span>
+              <span className="action-button-meta">
+                {canUpgradeBase ? `Стоимость: ${user.baseUpgradeCost}` : `Нужно энергии: ${user.baseUpgradeCost}`}
               </span>
             </button>
             <button
@@ -384,34 +444,17 @@ export const GameBoard = () => {
               onClick={() => claimIncome()}
               disabled={isClaimingIncome}
             >
-              <span className="action-button-label">{isClaimingIncome ? "Сбор..." : "Собрать поток"}</span>
-              <span className="action-button-meta">Снять накопленную энергию</span>
-            </button>
-            <button
-              type="button"
-              className="action-button action-button-secondary"
-              onClick={() => upgradeBase()}
-              disabled={isUpgradingBase || user.gold < user.baseUpgradeCost}
-            >
-              <span className="action-button-label">{isUpgradingBase ? "Усиление..." : "Усилить лабораторию"}</span>
-              <span className="action-button-meta">
-                {canUpgradeBase ? `Стоимость: ${user.baseUpgradeCost}` : `Нужно энергии: ${user.baseUpgradeCost}`}
+              <span className="action-button-label">
+                <span className="desktop-label">{isClaimingIncome ? "Сбор..." : "Собрать поток"}</span>
+                <span className="mobile-label">{isClaimingIncome ? "Сбор..." : "Собрать"}</span>
               </span>
+              <span className="action-button-meta">Снять накопленную энергию</span>
             </button>
           </div>
         </div>
 
         <aside className="lab-sidepanel">
-          <div className="meta-card goal-card">
-            <p className="meta-kicker">Цель смены</p>
-            <h3>{targetItem?.name ?? "Неизвестный образец"}</h3>
-            <p className="meta-text">
-              {targetItem?.description ?? "Следующий этап исследования пока не определён."}
-            </p>
-            <p className="goal-reward">Награда: {user.currentGoal.rewardText}</p>
-          </div>
-
-          <div className="meta-card progress-card">
+          <div className="meta-card progress-card desktop-only">
             <div className="progress-head">
               <div>
                 <p className="meta-kicker">Каталог образцов</p>
@@ -433,7 +476,7 @@ export const GameBoard = () => {
             <p className="meta-text">Новые образцы дают прогресс каталога и открывают следующую ветку.</p>
           </div>
 
-          <div className="meta-card reactions-card">
+          <div className="meta-card reactions-card desktop-only">
             <p className="meta-kicker">Открытые реакции</p>
             {user.discoveredRecipeDetails.length === 0 ? (
               <p className="reaction-empty">Первые реакции появятся здесь после успешных слияний.</p>
@@ -489,6 +532,134 @@ export const GameBoard = () => {
           </div>
         </aside>
       </div>
+
+      <div className="mobile-footer mobile-only">
+        <button type="button" className="footer-button" onClick={() => setIsHelpOpen(true)}>
+          Помощь
+        </button>
+        <button
+          type="button"
+          className="footer-button"
+          onClick={() => {
+            setCatalogTab("items");
+            setIsCatalogOpen(true);
+          }}
+        >
+          Каталог
+        </button>
+      </div>
+
+      {isHelpOpen ? (
+        <div className="fullscreen-overlay mobile-only" role="dialog" aria-modal="true">
+          <div className="fullscreen-sheet">
+            <div className="fullscreen-header">
+              <h3>Помощь</h3>
+              <button type="button" className="fullscreen-close" onClick={() => setIsHelpOpen(false)}>
+                Закрыть
+              </button>
+            </div>
+            <div className="fullscreen-content">
+              <p className="eyebrow">Подсказка лаборатории</p>
+              <p className="onboarding-title">{contextHint.title}</p>
+              <p className="onboarding-text">{contextHint.text}</p>
+              {selectedCellItem ? (
+                <p className="onboarding-selected">
+                  Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
+                  <br />
+                  Теперь выбери второй символ для реакции.
+                </p>
+              ) : null}
+              <p className="eyebrow">Как играть</p>
+              <ol className="onboarding-steps">
+                <li>Синтезируй ядро</li>
+                <li>Соедини два символа</li>
+                <li>Открой новый образец</li>
+                <li>Собери поток энергии</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {isCatalogOpen ? (
+        <div className="fullscreen-overlay mobile-only" role="dialog" aria-modal="true">
+          <div className="fullscreen-sheet">
+            <div className="fullscreen-header">
+              <h3>Каталог</h3>
+              <button type="button" className="fullscreen-close" onClick={() => setIsCatalogOpen(false)}>
+                Закрыть
+              </button>
+            </div>
+            <div className="catalog-tabs">
+              <button
+                type="button"
+                className={`catalog-tab ${catalogTab === "items" ? "active" : ""}`}
+                onClick={() => setCatalogTab("items")}
+              >
+                Образцы
+              </button>
+              <button
+                type="button"
+                className={`catalog-tab ${catalogTab === "reactions" ? "active" : ""}`}
+                onClick={() => setCatalogTab("reactions")}
+              >
+                Реакции
+              </button>
+            </div>
+            <div className="fullscreen-content">
+              {catalogTab === "items" ? (
+                <div className="collection-grid">
+                  {user.itemCatalog.map((item) => {
+                    const discovered = user.discoveredItems.includes(item.id);
+
+                    return (
+                      <div
+                        key={item.id}
+                        className={`collection-card ${discovered ? "open" : "closed"} tier-${item.tier}`}
+                      >
+                        <div className="collection-level-badge">T{item.tier}</div>
+                        {discovered ? (
+                          <>
+                            <div className="collection-icon">{item.icon}</div>
+                            <div className="collection-name">{item.name}</div>
+                            <div className="collection-level">{item.description}</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="collection-icon">?</div>
+                            <div className="collection-name">Не открыто</div>
+                            <div className="collection-level">Неизвестный образец</div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : user.discoveredRecipeDetails.length === 0 ? (
+                <p className="reaction-empty">Первые реакции появятся здесь после успешных слияний.</p>
+              ) : (
+                <div className="reaction-list">
+                  {user.discoveredRecipeDetails.map((reaction) => (
+                    <div key={reaction.key} className="reaction-row">
+                      <span className="reaction-part">
+                        {reaction.left.icon} {reaction.left.name}
+                      </span>
+                      <span className="reaction-plus">+</span>
+                      <span className="reaction-part">
+                        {reaction.right.icon} {reaction.right.name}
+                      </span>
+                      <span className="reaction-arrow">→</span>
+                      <span className="reaction-part reaction-result">
+                        {reaction.result.icon} {reaction.result.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 };

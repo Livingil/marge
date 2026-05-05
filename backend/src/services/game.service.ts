@@ -208,23 +208,23 @@ const buildMergeMessage = (outcome: MergeOutcome, item: ItemDetails | null): str
 
   if (outcome === "bonus") {
     if (item) {
-      return `✨ Открыто/Создано: ${item.icon} ${item.name}`;
+      return `✨ Открыто: ${item.icon} ${item.name}`;
     }
-    return "✨ Открыто/Создано";
+    return "✨ Открыто";
   }
 
   if (outcome === "downgrade") {
     if (item) {
-      return `✨ Открыто/Создано: ${item.icon} ${item.name}`;
+      return `✨ Открыто: ${item.icon} ${item.name}`;
     }
-    return "✨ Открыто/Создано";
+    return "✨ Открыто";
   }
 
   if (item) {
-    return `✨ Открыто/Создано: ${item.icon} ${item.name}`;
+    return `✨ Открыто: ${item.icon} ${item.name}`;
   }
 
-  return "✨ Открыто/Создано";
+  return "✨ Открыто";
 };
 
 const toUserStateDto = (
@@ -314,13 +314,13 @@ export const spawnItem = async (): Promise<UserStateDto> => {
   const emptyIndex = user.grid.cells.findIndex((cell) => !normalizeGridCellItemId(cell));
 
   if (emptyIndex === -1) {
-    throw new Error("No empty cells available");
+    throw new Error("Нет свободных клеток");
   }
 
   const spawnCost = getSpawnCost(user);
 
   if (user.gold < spawnCost) {
-    throw new Error("Not enough gold to spawn item");
+    throw new Error("Недостаточно энергии");
   }
 
   user.gold -= spawnCost;
@@ -331,7 +331,7 @@ export const spawnItem = async (): Promise<UserStateDto> => {
   const latestDiscovery = addDiscovery(user, spawnedItemId);
   await user.save();
 
-  return toUserStateDto(user, latestDiscovery, "✨ Создан новый символ");
+  return toUserStateDto(user, latestDiscovery, "✨ Синтезирован новый символ");
 };
 
 export const claimIncome = async (): Promise<UserStateDto> => {
@@ -345,14 +345,14 @@ export const claimIncome = async (): Promise<UserStateDto> => {
   const earnedGold = Math.floor(incomePerSecond * elapsedSeconds);
 
   if (earnedGold <= 0) {
-    return toUserStateDto(user, null, "💰 Энергия собрана");
+    return toUserStateDto(user, null, "💰 Поток собран");
   }
 
   user.gold += earnedGold;
   user.lastIncomeClaimAt = now;
   await user.save();
 
-  return toUserStateDto(user, null, "💰 Энергия собрана");
+  return toUserStateDto(user, null, "💰 Поток собран");
 };
 
 export const upgradeBase = async (): Promise<UserStateDto> => {
@@ -361,12 +361,12 @@ export const upgradeBase = async (): Promise<UserStateDto> => {
   const upgradeCost = getBaseUpgradeCost(user.baseLevel);
 
   if (user.gold < upgradeCost) {
-    throw new Error("Not enough gold to upgrade base");
+    throw new Error("Недостаточно энергии");
   }
 
   user.gold -= upgradeCost;
   user.baseLevel += 1;
   await user.save();
 
-  return toUserStateDto(user, null, "🏛️ Лаборатория улучшена");
+  return toUserStateDto(user, null, "🏛️ Лаборатория усилена");
 };

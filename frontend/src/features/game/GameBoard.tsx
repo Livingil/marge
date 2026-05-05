@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import {
   type GridCell,
   type GridItem,
@@ -27,15 +27,15 @@ const getActionTone = (message: string | null, latestDiscovery: GridItem | null)
     return "bonus";
   }
 
-  if (message.includes("Нестаб") || message.includes("ухуд")) {
+  if (message.includes("Нестаб") || message.includes("ослаб")) {
     return "downgrade";
   }
 
-  if (message.includes("Энерг") || message.includes("Собра")) {
+  if (message.includes("Энерг") || message.includes("Поток")) {
     return "income";
   }
 
-  if (message.includes("Создан") || message.includes("соедин")) {
+  if (message.includes("Открыто") || message.includes("соедин")) {
     return "merge";
   }
 
@@ -145,21 +145,21 @@ export const GameBoard = () => {
 
       <header className="resource-bar">
         <div className="resource-pill resource-pill-energy">
-          <span className="resource-icon">✦</span>
+          <span className="resource-icon">✨</span>
           <span className="resource-copy">
             <span className="resource-label">Энергия</span>
             <span className="resource-value">{user.gold}</span>
           </span>
         </div>
         <div className="resource-pill resource-pill-base">
-          <span className="resource-icon">▣</span>
+          <span className="resource-icon">🏛️</span>
           <span className="resource-copy">
             <span className="resource-label">Лаборатория</span>
             <span className="resource-value">Ур. {user.baseLevel}</span>
           </span>
         </div>
         <div className="resource-pill resource-pill-income">
-          <span className="resource-icon">≈</span>
+          <span className="resource-icon">⚙️</span>
           <span className="resource-copy">
             <span className="resource-label">Поток</span>
             <span className="resource-value">{user.incomePerMinute}/мин</span>
@@ -174,7 +174,7 @@ export const GameBoard = () => {
               <p className="eyebrow">Сектор синтеза</p>
               <h1 className="mission-title">{user.currentGoal.title}</h1>
               <p className="mission-subtitle">
-                Соединяй одинаковые ядра, удерживай поток и прокачивай лабораторию до следующей цепочки.
+                Соединяй символы, открывай новые образцы и усиливай лабораторию.
               </p>
             </div>
             <div className="target-core">
@@ -205,7 +205,7 @@ export const GameBoard = () => {
                 <p className="board-kicker">Реакторное поле</p>
                 <h2>Камера слияния 5x5</h2>
               </div>
-              <p className="board-hint">Перетащи одинаковые элементы друг на друга или выбери их по тапу.</p>
+              <p className="board-hint">Перетащи один символ на другой или выбери две клетки по очереди.</p>
             </div>
 
             <div className="grid" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}>
@@ -307,7 +307,7 @@ export const GameBoard = () => {
             <div className="progress-bar">
               <div className="progress-bar-fill" style={{ width: `${discoveredProgress}%` }} />
             </div>
-            <p className="meta-text">Новые образцы дают коллекционный прогресс и открывают следующую ветку.</p>
+            <p className="meta-text">Новые образцы дают прогресс каталога и открывают следующую ветку.</p>
           </div>
 
           <div className={`collection-sheet ${isCollectionOpen ? "open" : ""}`}>

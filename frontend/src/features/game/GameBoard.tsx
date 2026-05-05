@@ -35,6 +35,8 @@ type ContextHint = {
   text: string;
 };
 type CatalogTab = "items" | "reactions";
+type TierFilter = "all" | "1" | "2" | "3" | "4" | "5";
+type ChainFilter = "all" | "Энергия" | "Жизнь" | "Технологии" | "Магия" | "Пространство" | "Техно-магия" | "Прочее";
 
 const getActionTone = (message: string | null, latestDiscovery: GridItem | null): FlashTone => {
   if (latestDiscovery) {
@@ -89,6 +91,8 @@ export const GameBoard = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [catalogTab, setCatalogTab] = useState<CatalogTab>("items");
+  const [tierFilter, setTierFilter] = useState<TierFilter>("all");
+  const [chainFilter, setChainFilter] = useState<ChainFilter>("all");
   const [isHintDismissed, setIsHintDismissed] = useState(() => readDismissedFlag(ONBOARDING_HINT_DISMISSED_KEY));
   const [isGuideDismissed, setIsGuideDismissed] = useState(() => readDismissedFlag(ONBOARDING_GUIDE_DISMISSED_KEY));
 
@@ -124,6 +128,56 @@ export const GameBoard = () => {
     }
     return cells[selectedCell]?.item ?? null;
   }, [cells, selectedCell]);
+
+  const getItemChain = (itemId: string): string => {
+    const energy = new Set(["spark", "battery", "energyCell", "magnet", "reactor", "lightning", "plasma", "powerCore", "quantumCore"]);
+    const life = new Set(["water", "seed", "plant", "algae", "tree", "life", "organism", "beast", "mind"]);
+    const tech = new Set(["stone", "metal", "mechanism", "wire", "circuit", "machine", "robot", "drone", "android", "factory"]);
+    const magic = new Set(["crystal", "mana", "soul", "golem", "spirit", "spell"]);
+    const space = new Set(["portal", "gate", "dimension", "meteor", "star", "world", "universe", "void"]);
+    const finalChain = new Set(["artificialSoul", "livingMachine", "worldEngine", "genesisCore"]);
+
+    if (energy.has(itemId)) {
+      return "Энергия";
+    }
+    if (life.has(itemId)) {
+      return "Жизнь";
+    }
+    if (tech.has(itemId)) {
+      return "Технологии";
+    }
+    if (magic.has(itemId)) {
+      return "Магия";
+    }
+    if (space.has(itemId)) {
+      return "Пространство";
+    }
+    if (finalChain.has(itemId)) {
+      return "Техно-магия";
+    }
+
+    return "Прочее";
+  };
+
+  const filteredCatalogItems = useMemo(() => {
+    const filtered = user?.itemCatalog.filter((item) => {
+      if (tierFilter !== "all" && String(item.tier) !== tierFilter) {
+        return false;
+      }
+      const itemChain = getItemChain(item.id);
+      if (chainFilter !== "all" && itemChain !== chainFilter) {
+        return false;
+      }
+      return true;
+    }) ?? [];
+
+    return [...filtered].sort((a, b) => {
+      if (a.tier !== b.tier) {
+        return a.tier - b.tier;
+      }
+      return a.name.localeCompare(b.name, "ru");
+    });
+  }, [chainFilter, tierFilter, user]);
 
   const getContextHint = (): ContextHint => {
     if (filledCellsCount === 0) {
@@ -285,6 +339,22 @@ export const GameBoard = () => {
           </span>
         </div>
       </header>
+
+      <div className="utility-bar">
+        <button
+          type="button"
+          className="utility-button utility-button-catalog"
+          onClick={() => {
+            setCatalogTab("items");
+            setIsCatalogOpen(true);
+          }}
+        >
+          Каталог {user.discoveredItems.length}/{user.itemCatalog.length}
+        </button>
+        <button type="button" className="utility-button utility-button-icon" onClick={() => setIsHelpOpen(true)}>
+          ?
+        </button>
+      </div>
 
       <div className="lab-layout">
         <div className="lab-main">
@@ -533,22 +603,6 @@ export const GameBoard = () => {
         </aside>
       </div>
 
-      <div className="mobile-footer mobile-only">
-        <button type="button" className="footer-button" onClick={() => setIsHelpOpen(true)}>
-          Помощь
-        </button>
-        <button
-          type="button"
-          className="footer-button"
-          onClick={() => {
-            setCatalogTab("items");
-            setIsCatalogOpen(true);
-          }}
-        >
-          Каталог
-        </button>
-      </div>
-
       {isHelpOpen ? (
         <div className="fullscreen-overlay mobile-only" role="dialog" aria-modal="true">
           <div className="fullscreen-sheet">
@@ -594,7 +648,9 @@ export const GameBoard = () => {
               <button
                 type="button"
                 className={`catalog-tab ${catalogTab === "items" ? "active" : ""}`}
-                onClick={() => setCatalogTab("items")}
+                onClick={() => {
+                  setCatalogTab("items");
+                }}
               >
                 Образцы
               </button>
@@ -606,10 +662,52 @@ export const GameBoard = () => {
                 Реакции
               </button>
             </div>
+            <div className="catalog-filter-bar">
+              {catalogTab === "items" ? (
+                <div className="catalog-filter-chips catalog-filter-sort">
+                  <label className="catalog-sort-label" htmlFor="catalog-sort-select">
+                    Тир
+                  </label>
+                  <select
+                    id="catalog-sort-select"
+                    className="catalog-sort-select"
+                    value={tierFilter}
+                    onChange={(event) => setTierFilter(event.target.value as TierFilter)}
+                  >
+                    <option value="all">Все</option>
+                    <option value="1">T1</option>
+                    <option value="2">T2</option>
+                    <option value="3">T3</option>
+                    <option value="4">T4</option>
+                    <option value="5">T5</option>
+                  </select>
+                  <label className="catalog-sort-label" htmlFor="catalog-chain-select">
+                    Цепочка
+                  </label>
+                  <select
+                    id="catalog-chain-select"
+                    className="catalog-sort-select"
+                    value={chainFilter}
+                    onChange={(event) => setChainFilter(event.target.value as ChainFilter)}
+                  >
+                    <option value="all">Все</option>
+                    <option value="Энергия">Энергия</option>
+                    <option value="Жизнь">Жизнь</option>
+                    <option value="Технологии">Технологии</option>
+                    <option value="Магия">Магия</option>
+                    <option value="Пространство">Пространство</option>
+                    <option value="Техно-магия">Техно-магия</option>
+                    <option value="Прочее">Прочее</option>
+                  </select>
+                </div>
+              ) : (
+                <p className="catalog-hint">Рецепты показывают только найденные реакции.</p>
+              )}
+            </div>
             <div className="fullscreen-content">
               {catalogTab === "items" ? (
                 <div className="collection-grid">
-                  {user.itemCatalog.map((item) => {
+                  {filteredCatalogItems.map((item) => {
                     const discovered = user.discoveredItems.includes(item.id);
 
                     return (

@@ -28,6 +28,7 @@ export type UserState = {
   discoveredItems: number[];
   itemCatalog: GridItem[];
   latestDiscovery: GridItem | null;
+  lastActionMessage: string | null;
   grid: {
     cells: GridCell[];
   };

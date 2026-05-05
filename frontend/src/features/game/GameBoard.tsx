@@ -111,6 +111,8 @@ export const GameBoard = () => {
         </div>
       </div>
 
+      {user.lastActionMessage ? <div className="action-message">{user.lastActionMessage}</div> : null}
+
       <div className="grid" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}>
         {cells.map((cell, index) => (
           <div

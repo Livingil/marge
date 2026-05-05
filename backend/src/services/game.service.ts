@@ -7,7 +7,7 @@ import {
   SPAWN_ITEM_LEVEL
 } from "./game.constants.js";
 import { calculateIncomeWithBase } from "./income.service.js";
-import { merge } from "./merge.service.js";
+import { MergeOutcome, merge } from "./merge.service.js";
 
 export interface MergeCellsInput {
   cellA: number;
@@ -49,6 +49,7 @@ export interface UserStateDto {
   discoveredItems: number[];
   itemCatalog: ItemDetails[];
   latestDiscovery: ItemDetails | null;
+  lastActionMessage: string | null;
 }
 
 const ENERGY_ITEMS: Record<number, ItemDetails> = {
@@ -156,7 +157,31 @@ const addDiscovery = (user: UserDocument, level: number): ItemDetails | null => 
   return getItemDetails(level);
 };
 
-const toUserStateDto = (user: UserDocument, latestDiscovery: ItemDetails | null): UserStateDto => {
+const buildMergeMessage = (outcome: MergeOutcome, item: ItemDetails | null): string => {
+  if (outcome === "failed") {
+    return "Эти символы нельзя соединить";
+  }
+
+  if (outcome === "bonus") {
+    return "🌟 Удачное соединение! Символ усилен";
+  }
+
+  if (outcome === "downgrade") {
+    return "⚠️ Нестабильное соединение! Символ ослаб";
+  }
+
+  if (item) {
+    return `✨ Создано: ${item.icon} ${item.name}`;
+  }
+
+  return "✨ Создан новый символ";
+};
+
+const toUserStateDto = (
+  user: UserDocument,
+  latestDiscovery: ItemDetails | null,
+  lastActionMessage: string | null
+): UserStateDto => {
   return {
     _id: user.id,
     gold: user.gold,
@@ -174,7 +199,8 @@ const toUserStateDto = (user: UserDocument, latestDiscovery: ItemDetails | null)
     currentGoal: CURRENT_GOAL,
     discoveredItems: user.discoveredItems,
     itemCatalog: ITEM_CATALOG,
-    latestDiscovery
+    latestDiscovery,
+    lastActionMessage
   };
 };
 
@@ -187,7 +213,7 @@ const assertCellIndex = (index: number): void => {
 export const getUserState = async (): Promise<UserStateDto> => {
   const user = await ensureUser();
   await normalizeDiscoveredItems(user);
-  return toUserStateDto(user, null);
+  return toUserStateDto(user, null, null);
 };
 
 export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> => {
@@ -207,16 +233,17 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
   const result = merge(firstCell, secondCell);
 
   if (!result.merged) {
-    return toUserStateDto(user, null);
+    return toUserStateDto(user, null, buildMergeMessage("failed", null));
   }
 
   user.grid.cells[input.cellA].itemLevel = result.cellA.itemLevel;
   user.grid.cells[input.cellB].itemLevel = result.cellB.itemLevel;
 
+  const mergedItem = getItemDetails(result.cellA.itemLevel);
   const latestDiscovery = addDiscovery(user, result.cellA.itemLevel);
   await user.save();
 
-  return toUserStateDto(user, latestDiscovery);
+  return toUserStateDto(user, latestDiscovery, buildMergeMessage(result.outcome, mergedItem));
 };
 
 export const spawnItem = async (): Promise<UserStateDto> => {
@@ -241,7 +268,7 @@ export const spawnItem = async (): Promise<UserStateDto> => {
   const latestDiscovery = addDiscovery(user, SPAWN_ITEM_LEVEL);
   await user.save();
 
-  return toUserStateDto(user, latestDiscovery);
+  return toUserStateDto(user, latestDiscovery, "✨ Создан новый символ");
 };
 
 export const claimIncome = async (): Promise<UserStateDto> => {
@@ -256,14 +283,14 @@ export const claimIncome = async (): Promise<UserStateDto> => {
   const earnedGold = Math.floor(incomePerSecond * elapsedSeconds);
 
   if (earnedGold <= 0) {
-    return toUserStateDto(user, null);
+    return toUserStateDto(user, null, "💰 Энергия собрана");
   }
 
   user.gold += earnedGold;
   user.lastIncomeClaimAt = now;
   await user.save();
 
-  return toUserStateDto(user, null);
+  return toUserStateDto(user, null, "💰 Энергия собрана");
 };
 
 export const upgradeBase = async (): Promise<UserStateDto> => {
@@ -280,5 +307,5 @@ export const upgradeBase = async (): Promise<UserStateDto> => {
   user.baseLevel += 1;
   await user.save();
 
-  return toUserStateDto(user, null);
+  return toUserStateDto(user, null, "🏛️ Лаборатория улучшена");
 };

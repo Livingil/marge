@@ -1,0 +1,225 @@
+﻿
+.mission-panel::after,
+.board-shell::after,
+.meta-card::after,
+.collection-sheet::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, rgba(88, 222, 255, 0.08), transparent 35%),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.02), transparent 22%);
+}
+
+.eyebrow,
+.board-kicker,
+.meta-kicker,
+.discovery-kicker,
+.action-banner-label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #73dfff;
+}
+
+.mission-title,
+.board-shell h2,
+.meta-card h3 {
+  margin: 0;
+}
+
+.mission-title {
+  font-size: clamp(26px, 4vw, 40px);
+  line-height: 0.96;
+  max-width: 11ch;
+}
+
+.mission-subtitle,
+.board-hint,
+.meta-text,
+.goal-reward,
+.collection-level,
+.cell-level {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.mission-subtitle {
+  margin-top: 8px;
+  max-width: 42ch;
+  font-size: 13px;
+}
+
+.target-core {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+}
+
+.target-core-icon {
+  position: relative;
+  z-index: 1;
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  display: grid;
+  place-items: center;
+  font-size: 52px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.target-core-ring {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(97, 247, 190, 0.3);
+  box-shadow:
+    0 0 0 12px rgba(97, 247, 190, 0.04),
+    0 0 42px rgba(88, 222, 255, 0.16);
+  animation: core-spin 10s linear infinite;
+}
+
+.action-banner,
+.discovery-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(133, 218, 255, 0.14);
+  background: rgba(10, 24, 39, 0.84);
+}
+
+.action-banner {
+  animation: panel-raise 220ms ease-out;
+}
+
+.action-merge {
+  box-shadow: 0 0 0 1px rgba(88, 222, 255, 0.12), 0 0 28px rgba(88, 222, 255, 0.12);
+}
+
+.action-bonus {
+  box-shadow: 0 0 0 1px rgba(255, 211, 107, 0.16), 0 0 34px rgba(255, 211, 107, 0.18);
+}
+
+.action-downgrade {
+  box-shadow: 0 0 0 1px rgba(255, 108, 140, 0.18), 0 0 38px rgba(255, 108, 140, 0.2);
+  animation: panel-raise 220ms ease-out, glitch-pulse 420ms ease-out;
+}
+
+.action-income {
+  box-shadow: 0 0 0 1px rgba(97, 247, 190, 0.14), 0 0 26px rgba(97, 247, 190, 0.16);
+}
+
+.action-failed {
+  box-shadow: 0 0 0 1px rgba(255, 108, 140, 0.22), 0 0 26px rgba(255, 108, 140, 0.18);
+  animation: panel-raise 220ms ease-out, soft-shake 360ms ease-out;
+}
+
+.action-upgrade {
+  box-shadow: 0 0 0 1px rgba(153, 246, 228, 0.2), 0 0 30px rgba(45, 212, 191, 0.2);
+}
+
+.action-spawn {
+  box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.2), 0 0 28px rgba(56, 189, 248, 0.2);
+}
+
+.discovery-banner {
+  justify-content: space-between;
+  border-color: rgba(255, 211, 107, 0.16);
+  background:
+    linear-gradient(135deg, rgba(255, 211, 107, 0.12), transparent 40%),
+    rgba(17, 24, 34, 0.92);
+  animation: discovery-reveal 420ms ease-out;
+}
+
+.onboarding-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.onboarding-card {
+  position: relative;
+  border-radius: 18px;
+  border: 1px solid rgba(133, 218, 255, 0.14);
+  background: rgba(10, 24, 39, 0.84);
+  padding: 12px 14px;
+}
+
+.onboarding-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(133, 218, 255, 0.22);
+  background: rgba(7, 18, 30, 0.9);
+  color: #b8dfff;
+  font-size: 12px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.onboarding-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.onboarding-text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.onboarding-selected {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #dff8ff;
+  line-height: 1.35;
+  min-height: 2.9em;
+}
+
+.onboarding-selected.empty {
+  opacity: 0;
+}
+
+.onboarding-steps {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-soft);
+  font-size: 13px;
+  display: grid;
+  gap: 4px;
+}
+
+.board-shell {
+  padding: 16px;
+}
+
+.lab-expansion-preview {
+  border-radius: 16px;
+  border: 1px dashed rgba(133, 218, 255, 0.2);
+  background: linear-gradient(180deg, rgba(7, 20, 34, 0.88), rgba(5, 16, 27, 0.9));
+  padding: 10px;
+}
+
+.expansion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}

@@ -1,4 +1,5 @@
-﻿export interface AlchemyItem {
+﻿import { validateAlchemyData } from "./alchemy.validation.js";
+export interface AlchemyItem {
   id: string;
   icon: string;
   name: string;
@@ -190,107 +191,14 @@ export const GOAL_SEQUENCE = [
   "genesisCore"
 ];
 
-const getReachableItemIds = (): Set<string> => {
-  const reachable = new Set<string>(BASE_SPAWN_ITEM_IDS);
-  let changed = true;
-
-  while (changed) {
-    changed = false;
-
-    recipePairs.forEach(([leftId, rightId, resultId]) => {
-      if (reachable.has(leftId) && reachable.has(rightId) && !reachable.has(resultId)) {
-        reachable.add(resultId);
-        changed = true;
-      }
-    });
-  }
-
-  return reachable;
-};
-
-export const validateAlchemyData = (): void => {
-  const rawItemIds = ALCHEMY_ITEMS.map((item) => item.id);
-  const uniqueItemIds = new Set(rawItemIds);
-
-  if (uniqueItemIds.size !== rawItemIds.length) {
-    const seen = new Set<string>();
-    const duplicates = rawItemIds.filter((id) => {
-      if (seen.has(id)) {
-        return true;
-      }
-      seen.add(id);
-      return false;
-    });
-
-    throw new Error(
-      `Duplicate item ids in ALCHEMY_ITEMS: ${Array.from(new Set(duplicates)).join(", ")}`
-    );
-  }
-
-  ALCHEMY_ITEMS.forEach((item) => {
-    if (!item.id || !item.icon || !item.name || !item.description) {
-      throw new Error(`Item '${item.id || "<empty>"}' must include id, icon, name and description`);
-    }
-  });
-
-  const itemIds = new Set(rawItemIds);
-
-  BASE_SPAWN_ITEM_IDS.forEach((itemId) => {
-    if (!itemIds.has(itemId)) {
-      throw new Error(`Spawn item '${itemId}' is missing in ALCHEMY_ITEMS`);
-    }
-  });
-
-  GOAL_SEQUENCE.forEach((itemId) => {
-    if (!itemIds.has(itemId)) {
-      throw new Error(`Goal item '${itemId}' is missing in ALCHEMY_ITEMS`);
-    }
-  });
-
-  Object.entries(LEGACY_LEVEL_TO_ITEM_ID).forEach(([level, itemId]) => {
-    if (!itemIds.has(itemId)) {
-      throw new Error(`Legacy level '${level}' points to missing item '${itemId}'`);
-    }
-  });
-
-  const recipeResultsByKey = new Map<string, string>();
-
-  recipePairs.forEach(([leftId, rightId, resultId]) => {
-    if (!itemIds.has(leftId)) {
-      throw new Error(`Recipe left item '${leftId}' is missing in ALCHEMY_ITEMS`);
-    }
-    if (!itemIds.has(rightId)) {
-      throw new Error(`Recipe right item '${rightId}' is missing in ALCHEMY_ITEMS`);
-    }
-    if (!itemIds.has(resultId)) {
-      throw new Error(`Recipe result item '${resultId}' is missing in ALCHEMY_ITEMS`);
-    }
-
-    const key = getRecipeKey(leftId, rightId);
-    const existingResult = recipeResultsByKey.get(key);
-
-    if (existingResult && existingResult !== resultId) {
-      throw new Error(
-        `Ambiguous recipe '${key}': both '${existingResult}' and '${resultId}' are defined`
-      );
-    }
-
-    if (existingResult) {
-      throw new Error(`Duplicate recipe key '${key}' in recipePairs`);
-    }
-
-    recipeResultsByKey.set(key, resultId);
-  });
-
-  const reachable = getReachableItemIds();
-  GOAL_SEQUENCE.forEach((goalId) => {
-    if (!reachable.has(goalId)) {
-      throw new Error(`Goal '${goalId}' is not reachable from BASE_SPAWN_ITEM_IDS`);
-    }
-  });
-};
-
-validateAlchemyData();
+validateAlchemyData({
+  items: ALCHEMY_ITEMS,
+  recipePairs,
+  baseSpawnItemIds: BASE_SPAWN_ITEM_IDS,
+  goalSequence: GOAL_SEQUENCE,
+  legacyLevelToItemId: LEGACY_LEVEL_TO_ITEM_ID,
+  getRecipeKey
+});
 
 export const ALCHEMY_ITEMS_BY_ID: Record<string, AlchemyItem> = Object.fromEntries(
   ALCHEMY_ITEMS.map((item) => [item.id, item])
@@ -356,3 +264,4 @@ const computeAlchemyItemTiers = (): Record<string, number> => {
 };
 
 export const ALCHEMY_ITEM_TIERS = computeAlchemyItemTiers();
+

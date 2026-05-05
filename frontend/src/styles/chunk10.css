@@ -1,0 +1,9 @@
+﻿@media (max-width: 420px) {
+  .collection-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .resource-value {
+    font-size: 11px;
+  }
+}

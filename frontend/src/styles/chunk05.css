@@ -1,0 +1,227 @@
+﻿
+.reaction-list {
+  display: grid;
+  width: 100%;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 4px;
+  align-content: start;
+  grid-auto-rows: min-content;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(125, 211, 252, 0.45) rgba(7, 20, 34, 0.55);
+}
+
+.reactions-card .reaction-list {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+
+.reaction-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.reaction-list::-webkit-scrollbar-track {
+  background: rgba(7, 20, 34, 0.55);
+  border-radius: 999px;
+}
+
+.reaction-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(125, 211, 252, 0.7), rgba(56, 189, 248, 0.5));
+  border-radius: 999px;
+  border: 2px solid rgba(7, 20, 34, 0.65);
+}
+
+.reaction-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(125, 211, 252, 0.85), rgba(56, 189, 248, 0.65));
+}
+
+.reaction-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr) 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  font-size: 12px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(133, 218, 255, 0.12);
+  background: rgba(8, 20, 32, 0.72);
+}
+
+.reaction-part {
+  min-width: 0;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #d9f4ff;
+}
+
+.reaction-plus,
+.reaction-arrow {
+  display: grid;
+  place-items: center;
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+.reaction-result {
+  color: #fef3c7;
+  text-align: right;
+}
+
+.reaction-empty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+.mobile-label {
+  display: none;
+}
+
+.mobile-section summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: #dff8ff;
+}
+
+.mobile-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.mobile-section summary::after {
+  content: "▸";
+  float: right;
+  color: var(--text-soft);
+}
+
+.mobile-section[open] summary::after {
+  content: "▾";
+}
+
+.mobile-section-body {
+  margin-top: 10px;
+}
+
+.utility-button {
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  background: linear-gradient(180deg, rgba(16, 42, 66, 0.96), rgba(10, 27, 43, 0.98));
+  color: #e6f6ff;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 6px 16px rgba(2, 8, 15, 0.28);
+}
+
+.utility-button-icon {
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+.utility-menu-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  background: linear-gradient(180deg, rgba(16, 42, 66, 0.96), rgba(10, 27, 43, 0.98));
+  color: #e6f6ff;
+  font-size: 20px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.utility-menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: max-content;
+  min-width: 160px;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(133, 218, 255, 0.2);
+  background: rgba(6, 18, 30, 0.96);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+}
+
+.utility-menu-item {
+  min-height: 30px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(133, 218, 255, 0.16);
+  background: rgba(10, 27, 43, 0.92);
+  color: #dff8ff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(2, 10, 18, 0.88);
+  display: flex;
+  align-items: stretch;
+}
+
+.fullscreen-sheet {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding:
+    calc(env(safe-area-inset-top) + 10px)
+    10px
+    calc(env(safe-area-inset-bottom) + 10px);
+  gap: 10px;
+}
+
+.fullscreen-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fullscreen-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.fullscreen-close {
+  width: auto;
+  min-height: 34px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(133, 218, 255, 0.22);
+  background: rgba(10, 25, 40, 0.9);
+  color: #d7f6ff;
+  font-size: 12px;
+  font-weight: 700;
+}

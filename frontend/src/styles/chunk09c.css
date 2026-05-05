@@ -1,0 +1,107 @@
+﻿@media (max-width: 640px) {
+  .cell-name {
+    font-size: 8px;
+    -webkit-line-clamp: 1;
+  }
+
+  .control-deck {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: auto;
+  }
+
+  .action-button:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .action-button {
+    min-height: 56px;
+    padding: 8px 10px;
+    border-radius: 12px;
+  }
+
+  .action-button-label {
+    font-size: 13px;
+  }
+
+  .action-button-meta {
+    font-size: 10px;
+  }
+
+  .desktop-label {
+    display: none;
+  }
+
+  .mobile-label {
+    display: inline;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .mobile-only {
+    display: block;
+  }
+
+  .lab-sidepanel {
+    display: none;
+  }
+
+  .mobile-section {
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  .mobile-section .collection-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .fullscreen-content .collection-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .catalog-search {
+    min-height: 32px;
+    font-size: 11px;
+  }
+
+  .mobile-section .collection-card {
+    min-height: 92px;
+    padding: 14px 8px 8px;
+    border-radius: 12px;
+  }
+
+  .mobile-section .collection-icon {
+    font-size: 22px;
+  }
+
+  .mobile-section .collection-name {
+    font-size: 11px;
+  }
+
+  .mobile-section .collection-level {
+    display: none;
+  }
+
+  .reaction-list {
+    max-height: 160px;
+    gap: 6px;
+  }
+
+  .reaction-row {
+    padding: 6px 8px;
+    gap: 4px;
+    font-size: 10px;
+  }
+
+  .reaction-empty {
+    font-size: 11px;
+  }
+
+  .collection-sheet {
+    display: none;
+  }
+}

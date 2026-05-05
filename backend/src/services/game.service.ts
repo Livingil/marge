@@ -1,8 +1,6 @@
 ﻿import { User, UserDocument } from "../models/user.model.js";
 import {
-  ALCHEMY_ITEMS,
   ALCHEMY_ITEMS_BY_ID,
-  ALCHEMY_ITEM_TIERS,
   BASE_SPAWN_ITEM_IDS,
   GOAL_SEQUENCE,
   getRecipeDetailsByKey,
@@ -15,69 +13,16 @@ import {
   MAX_OFFLINE_INCOME_SECONDS,
   SPAWN_COST
 } from "./game.constants.js";
+import { getItemDetails, ITEM_CATALOG } from "./game.catalog.js";
 import { calculateIncomeWithBase } from "./income.service.js";
+import type {
+  CurrentGoalDto,
+  DiscoveredRecipeDetailsDto,
+  ItemDetails,
+  MergeCellsInput,
+  UserStateDto
+} from "./game.types.js";
 import { MergeOutcome, merge } from "./merge.service.js";
-
-export interface MergeCellsInput {
-  cellA: number;
-  cellB: number;
-}
-
-interface ItemDetails {
-  id: string;
-  icon: string;
-  name: string;
-  description: string;
-  tier: number;
-}
-
-interface CurrentGoalDto {
-  title: string;
-  targetItemId: string;
-  rewardText: string;
-}
-
-interface UserGridCellDto {
-  itemId: string | null;
-  item: ItemDetails | null;
-}
-
-interface UserGridDto {
-  cells: UserGridCellDto[];
-}
-
-interface DiscoveredRecipeDetailsDto {
-  key: string;
-  left: ItemDetails;
-  right: ItemDetails;
-  result: ItemDetails;
-}
-
-export interface UserStateDto {
-  _id: string;
-  gold: number;
-  baseLevel: number;
-  grid: UserGridDto;
-  incomePerMinute: number;
-  lastIncomeClaimAt: Date;
-  spawnCost: number;
-  baseUpgradeCost: number;
-  currentGoal: CurrentGoalDto;
-  discoveredItems: string[];
-  discoveredRecipes: string[];
-  discoveredRecipeDetails: DiscoveredRecipeDetailsDto[];
-  itemCatalog: ItemDetails[];
-  latestDiscovery: ItemDetails | null;
-  lastActionMessage: string | null;
-}
-
-const ITEM_CATALOG: ItemDetails[] = ALCHEMY_ITEMS.map((item) => ({
-  id: item.id,
-  icon: item.icon,
-  name: item.name,
-  description: item.description,
-  tier: ALCHEMY_ITEM_TIERS[item.id] ?? 1
-}));
 
 const ensureUser = async (): Promise<UserDocument> => {
   const existingUser = await User.findOne();
@@ -99,25 +44,6 @@ const getSpawnCost = (user: UserDocument): number => {
   }, 0);
 
   return itemsCount < 2 ? 0 : SPAWN_COST;
-};
-
-const getItemDetails = (itemId: string | null): ItemDetails | null => {
-  if (!itemId) {
-    return null;
-  }
-
-  const item = ALCHEMY_ITEMS_BY_ID[itemId];
-  if (!item) {
-    return null;
-  }
-
-  return {
-    id: item.id,
-    icon: item.icon,
-    name: item.name,
-    description: item.description,
-    tier: ALCHEMY_ITEM_TIERS[item.id] ?? 1
-  };
 };
 
 const normalizeGridCellItemId = (cell: { itemId?: string | null; itemLevel?: number }): string | null => {
@@ -443,3 +369,4 @@ export const upgradeBase = async (): Promise<UserStateDto> => {
 
   return toUserStateDto(user, null, "🏛️ Лаборатория усилена");
 };
+

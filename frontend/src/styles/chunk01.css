@@ -1,0 +1,221 @@
+﻿:root {
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  line-height: 1.4;
+  color: #f4f7fb;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(87, 224, 255, 0.18), transparent 30%),
+    radial-gradient(circle at 85% 15%, rgba(80, 247, 186, 0.16), transparent 26%),
+    linear-gradient(180deg, #08111d 0%, #071522 48%, #041019 100%);
+  --screen-border: rgba(149, 227, 255, 0.16);
+  --screen-fill: rgba(7, 20, 34, 0.9);
+  --text-soft: #8ca8be;
+  --text-bright: #ecf9ff;
+  --panel-fill: linear-gradient(180deg, rgba(9, 24, 39, 0.96), rgba(5, 17, 29, 0.92));
+  --panel-border: rgba(133, 218, 255, 0.14);
+  --cyan: #58deff;
+  --mint: #61f7be;
+  --amber: #ffd36b;
+  --rose: #ff6c8c;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  color: var(--text-bright);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 42px 42px;
+  opacity: 0.2;
+}
+
+main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 18px;
+  min-height: 100dvh;
+}
+
+.lab-screen {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid var(--screen-border);
+  background:
+    linear-gradient(135deg, rgba(88, 222, 255, 0.05), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 14%),
+    var(--screen-fill);
+  box-shadow:
+    0 30px 80px rgba(1, 8, 15, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.lab-chrome {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at top, rgba(88, 222, 255, 0.16), transparent 40%),
+    linear-gradient(90deg, transparent 0%, rgba(97, 247, 190, 0.05) 50%, transparent 100%);
+  opacity: 0.9;
+}
+
+.lab-layout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.78fr);
+  align-items: stretch;
+  gap: 18px;
+  padding: 0 18px 18px;
+}
+
+.lab-main,
+.lab-sidepanel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.lab-sidepanel {
+  min-height: 100%;
+}
+
+.resource-bar {
+  position: relative;
+  z-index: 8;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  padding: 18px 18px 0;
+  margin-bottom: 14px;
+}
+
+.resource-menu-shell {
+  position: relative;
+  display: none;
+  justify-self: end;
+  z-index: 25;
+}
+
+.resource-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(133, 218, 255, 0.15);
+  background: linear-gradient(180deg, rgba(12, 27, 44, 0.94), rgba(7, 18, 31, 0.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 22px rgba(0, 0, 0, 0.22);
+}
+
+.resource-pill-energy {
+  animation: income-pulse 4s ease-in-out infinite;
+}
+
+.resource-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  color: var(--text-bright);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.22), transparent 50%),
+    linear-gradient(135deg, rgba(88, 222, 255, 0.34), rgba(32, 89, 125, 0.34));
+  border: 1px solid rgba(111, 226, 255, 0.24);
+  box-shadow: 0 0 18px rgba(88, 222, 255, 0.18);
+}
+
+.resource-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.resource-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--text-soft);
+}
+
+.resource-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-bright);
+  white-space: nowrap;
+}
+
+.mission-panel,
+.board-shell,
+.meta-card,
+.collection-sheet {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-fill);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 20px 40px rgba(0, 0, 0, 0.22);
+}
+
+.mission-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  min-height: 136px;
+}
+
+.mission-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.mission-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+@media (min-width: 761px) {
+  .mission-panel,
+  .progress-card.desktop-only {
+    min-height: 200px;
+  }
+
+  .progress-card.desktop-only {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+}

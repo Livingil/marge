@@ -1,0 +1,150 @@
+﻿@media (max-width: 640px) {
+.how-to-play .onboarding-steps {
+  margin-top: 0;
+  font-size: 11px;
+  gap: 2px;
+}
+
+  .action-banner,
+  .discovery-banner {
+    min-height: 44px;
+    padding: 9px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+
+  .board-shell {
+    margin-top: 0;
+    padding: 10px;
+    border-radius: 16px;
+  }
+
+  .lab-expansion-preview {
+    flex: 1;
+    min-height: 108px;
+    padding: 7px;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .expansion-header {
+    margin-bottom: 5px;
+  }
+
+  .expansion-header span:first-child {
+    font-size: 10px;
+  }
+
+  .expansion-header span:last-child {
+    font-size: 9px;
+  }
+
+  .expansion-modules {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
+    padding-bottom: 0;
+  }
+
+  .expansion-module {
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+    padding: 6px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow: hidden;
+  }
+
+  .expansion-module-title {
+    font-size: 11px;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .expansion-module-unlock,
+  .expansion-module-description {
+    font-size: 9px;
+  }
+
+  .expansion-module-unlock {
+    margin-top: 3px;
+  }
+
+  .expansion-module-description {
+    margin-top: 3px;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .board-header {
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .board-kicker {
+    margin-bottom: 2px;
+    font-size: 9px;
+  }
+
+  .board-shell h2 {
+    font-size: 14px;
+  }
+
+  .board-hint {
+    display: none;
+  }
+
+  .board-empty-state,
+  .board-merge-state {
+    margin-bottom: 8px;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .grid {
+    gap: 5px;
+  }
+
+  .cell {
+    border-radius: 12px;
+    padding: 4px 2px 3px;
+    gap: 2px;
+  }
+
+  .cell-frame {
+    inset: 2px;
+    border-radius: 9px;
+  }
+
+  .cell-level {
+    display: none;
+  }
+
+  .cell-placeholder-text {
+    display: none;
+  }
+
+  .cell-placeholder-plus {
+    font-size: 18px;
+  }
+
+  .cell-level-badge {
+    top: 5px;
+    left: 5px;
+    padding: 2px 5px;
+    font-size: 8px;
+  }
+
+}

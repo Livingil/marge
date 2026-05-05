@@ -1,0 +1,149 @@
+﻿@media (max-width: 640px) {
+  main {
+    padding: 6px;
+    min-height: 100dvh;
+    display: flex;
+  }
+
+  .lab-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-radius: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .lab-chrome {
+    display: none;
+  }
+
+  .resource-bar {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+    gap: 6px;
+    padding: 8px 8px 0;
+    margin-bottom: 8px;
+    align-items: stretch;
+  }
+
+  .resource-pill {
+    gap: 4px;
+    padding: 6px 7px;
+    border-radius: 10px;
+  }
+
+  .resource-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 8px;
+    font-size: 11px;
+    box-shadow: none;
+    border-color: rgba(111, 226, 255, 0.14);
+  }
+
+  .resource-label {
+    font-size: 8px;
+    letter-spacing: 0.05em;
+  }
+
+  .resource-value {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .resource-menu-shell {
+    display: grid;
+    align-items: start;
+  }
+
+  .lab-layout {
+    flex: 1;
+    gap: 6px;
+    padding: 0 8px 8px;
+  }
+
+  .lab-main,
+  .lab-sidepanel {
+    min-height: 0;
+    gap: 6px;
+  }
+
+  .lab-main {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mission-panel {
+    min-height: 0;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 12px;
+  }
+
+  .mission-topline {
+    gap: 6px;
+  }
+
+  .mission-title {
+    font-size: 15px;
+    line-height: 1.08;
+  }
+
+  .mission-subtitle {
+    display: none;
+  }
+
+  .mission-panel .eyebrow {
+    margin-bottom: 3px;
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  .target-core {
+    width: 36px;
+    height: 36px;
+    border-radius: 0;
+    background: transparent;
+    border: 0;
+  }
+
+  .target-core-icon {
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    font-size: 15px;
+    line-height: 1;
+  }
+
+  .target-core-ring {
+    display: block;
+    inset: 2px;
+    border-color: rgba(97, 247, 190, 0.3);
+    box-shadow:
+      0 0 0 3px rgba(97, 247, 190, 0.04),
+      0 0 12px rgba(88, 222, 255, 0.14);
+  }
+
+  .onboarding-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .onboarding-card {
+    padding: 9px 10px;
+    border-radius: 12px;
+  }
+
+  .onboarding-title {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .onboarding-text,
+  .onboarding-selected {
+    font-size: 11px;
+  }
+
+}

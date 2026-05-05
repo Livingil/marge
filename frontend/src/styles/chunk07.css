@@ -1,0 +1,222 @@
+﻿
+.collection-level {
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.flash-merge .board-shell,
+.flash-bonus .board-shell,
+.flash-discovery .board-shell {
+  animation: board-flash 600ms ease-out;
+}
+
+.flash-downgrade .board-shell {
+  animation: board-shudder 320ms ease-out;
+}
+
+.flash-income .resource-pill-energy {
+  animation: income-pulse 700ms ease-out 2;
+}
+
+.flash-failed .lab-screen {
+  animation: failed-shake 420ms ease-out;
+}
+
+.flash-failed .action-banner {
+  animation: panel-raise 220ms ease-out, soft-shake 360ms ease-out;
+}
+
+.flash-spawn .action-banner {
+  animation: panel-raise 220ms ease-out, spawn-flare 620ms ease-out;
+}
+
+.flash-upgrade .action-banner {
+  animation: panel-raise 220ms ease-out, upgrade-glow 780ms ease-out;
+}
+
+.flash-merge .action-banner {
+  animation: panel-raise 220ms ease-out, merge-soft-flash 640ms ease-out;
+}
+
+.flash-discovery .discovery-banner {
+  animation: discovery-reveal 420ms ease-out, discovery-pulse 900ms ease-out;
+}
+
+@keyframes panel-raise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes board-flash {
+  0% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 20px 40px rgba(0, 0, 0, 0.22);
+  }
+  40% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 0 0 1px rgba(88, 222, 255, 0.16),
+      0 0 42px rgba(88, 222, 255, 0.14);
+  }
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 20px 40px rgba(0, 0, 0, 0.22);
+  }
+}
+
+@keyframes board-shudder {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-3px);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+  80% {
+    transform: translateX(-2px);
+  }
+}
+
+@keyframes merge-burst {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes crack-shift {
+  0% {
+    transform: translateY(-2px);
+    filter: saturate(1);
+  }
+  30% {
+    transform: translate(-2px, -1px);
+    filter: saturate(0.6);
+  }
+  60% {
+    transform: translate(2px, 0);
+    filter: saturate(1.2);
+  }
+  100% {
+    transform: translateY(-2px);
+    filter: saturate(1);
+  }
+}
+
+@keyframes soft-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+  75% {
+    transform: translateX(-1px);
+  }
+}
+
+@keyframes failed-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-2px);
+  }
+  40% {
+    transform: translateX(2px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(1px);
+  }
+}
+
+@keyframes spawn-flare {
+  0% {
+    box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.16), 0 0 12px rgba(56, 189, 248, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.24), 0 0 32px rgba(56, 189, 248, 0.22);
+  }
+  100% {
+    box-shadow: 0 0 0 1px rgba(125, 211, 252, 0.16), 0 0 12px rgba(56, 189, 248, 0.1);
+  }
+}
+
+@keyframes upgrade-glow {
+  0% {
+    box-shadow: 0 0 0 1px rgba(153, 246, 228, 0.14), 0 0 14px rgba(45, 212, 191, 0.12);
+  }
+  55% {
+    box-shadow: 0 0 0 1px rgba(153, 246, 228, 0.28), 0 0 36px rgba(45, 212, 191, 0.26);
+  }
+  100% {
+    box-shadow: 0 0 0 1px rgba(153, 246, 228, 0.14), 0 0 14px rgba(45, 212, 191, 0.12);
+  }
+}
+
+@keyframes merge-soft-flash {
+  0% {
+    filter: brightness(1);
+  }
+  40% {
+    filter: brightness(1.08);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+@keyframes discovery-pulse {
+  0% {
+    box-shadow: 0 0 0 1px rgba(255, 211, 107, 0.16), 0 0 16px rgba(255, 211, 107, 0.14);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(255, 211, 107, 0.24), 0 0 34px rgba(255, 211, 107, 0.26);
+  }
+  100% {
+    box-shadow: 0 0 0 1px rgba(255, 211, 107, 0.16), 0 0 16px rgba(255, 211, 107, 0.14);
+  }
+}
+
+@keyframes glitch-pulse {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(-1px);
+  }
+  35% {
+    transform: translateX(2px);
+  }
+  55% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(1px);
+  }
+}

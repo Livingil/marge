@@ -2,7 +2,6 @@
 
 export const GameBoardTopSection = ({
   user,
-  targetItem,
   isHintDismissed,
   isGuideDismissed,
   dismissHint,
@@ -12,7 +11,6 @@ export const GameBoardTopSection = ({
   flashTone
 }: Pick<GameBoardViewProps,
   | "user"
-  | "targetItem"
   | "isHintDismissed"
   | "isGuideDismissed"
   | "dismissHint"
@@ -23,22 +21,6 @@ export const GameBoardTopSection = ({
 >) => {
   return (
     <>
-      <div className="mission-panel">
-        <div className="mission-copy">
-          <div className="mission-topline">
-            <p className="eyebrow">Сектор синтеза</p>
-          </div>
-          <h1 className="mission-title">{user.currentGoal.title}</h1>
-          <p className="mission-subtitle">
-            Соединяй символы, открывай новые образцы и усиливай лабораторию.
-          </p>
-        </div>
-        <div className="target-core">
-          <div className="target-core-icon">{targetItem?.icon ?? "☢️"}</div>
-          <div className="target-core-ring" />
-        </div>
-      </div>
-
       {!isHintDismissed || !isGuideDismissed ? (
         <div className="onboarding-grid">
           {!isHintDismissed ? (

@@ -20,8 +20,7 @@
   }
 
   .lab-expansion-preview {
-    flex: 1;
-    min-height: 108px;
+    min-height: 102px;
     padding: 7px;
     border-radius: 12px;
     overflow: hidden;
@@ -42,17 +41,28 @@
   }
 
   .expansion-modules {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 6px;
-    overflow: hidden;
+    overflow-y: auto;
     padding-bottom: 0;
+    max-height: 130px;
+  }
+
+  .expansion-modules-single {
+    max-height: none;
+    overflow: visible;
+    margin-bottom: 0;
+  }
+
+  .lab-expansion-preview-flat {
+    min-height: auto;
+    padding: 0;
+    overflow: visible;
   }
 
   .expansion-module {
-    flex: 1 1 0;
-    min-height: 0;
+    flex: 0 0 auto;
     min-width: 0;
     padding: 6px;
     border-radius: 10px;

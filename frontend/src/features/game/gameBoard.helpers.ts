@@ -1,6 +1,8 @@
 ﻿import type { GridItem } from "../../shared/api/gameApi";
 
-export const GRID_SIZE = 5;
+export const GRID_COLUMNS = 5;
+export const BASE_GRID_ROWS = 5;
+export const GRID_ROW_UNLOCK_LEVELS = [25, 75, 150] as const;
 export const FLASH_DURATION_MS = 900;
 export const ONBOARDING_HINT_DISMISSED_KEY = "marge_onboarding_hint_dismissed";
 export const ONBOARDING_GUIDE_DISMISSED_KEY = "marge_onboarding_guide_dismissed";
@@ -26,18 +28,23 @@ export type ExpansionModule = {
   title: string;
   unlockLevel: number;
   description: string;
+  hideWhenReached?: boolean;
 };
 
 export type CatalogTab = "items" | "reactions";
 export type TierFilter = "all" | "1" | "2" | "3" | "4" | "5";
 export type ChainFilter = "all" | "Энергия" | "Жизнь" | "Технологии" | "Магия" | "Пространство" | "Техно-магия" | "Прочее";
 
+// Expansion concept: columns stay fixed at 5 on mobile.
+// Future upgrades may add rows only: 5x5 -> 5x6 -> 5x7 -> 5x8.
+// Do not add 6-column layouts.
 export const expansionModules: ExpansionModule[] = [
   {
-    id: "row-extension",
-    title: "Новый ряд поля",
+    id: "row-extension-1",
+    title: "+1 ряд поля",
     unlockLevel: 25,
-    description: "Больше места для сложных реакций."
+    description: "Поле станет 5×6: ширина останется удобной.",
+    hideWhenReached: true
   },
   {
     id: "auto-income",
@@ -50,8 +57,31 @@ export const expansionModules: ExpansionModule[] = [
     title: "Расширенный реактор",
     unlockLevel: 100,
     description: "Откроет крупные цепочки синтеза."
+  },
+  {
+    id: "row-extension-2",
+    title: "+2 ряд поля",
+    unlockLevel: 75,
+    description: "Поле станет 5×7 без уменьшения клеток.",
+    hideWhenReached: true
+  },
+  {
+    id: "row-extension-3",
+    title: "+3 ряд поля",
+    unlockLevel: 150,
+    description: "Поле станет 5×8 для длинных цепочек.",
+    hideWhenReached: true
   }
 ];
+
+export const getActiveGridRows = (baseLevel: number): number => {
+  const unlockedRows = GRID_ROW_UNLOCK_LEVELS.filter((level) => baseLevel >= level).length;
+  return BASE_GRID_ROWS + unlockedRows;
+};
+
+export const getActiveGridCells = (baseLevel: number): number => {
+  return GRID_COLUMNS * getActiveGridRows(baseLevel);
+};
 
 const energyChain = new Set(["spark", "battery", "energyCell", "magnet", "reactor", "lightning", "plasma", "powerCore", "quantumCore"]);
 const lifeChain = new Set(["water", "seed", "plant", "algae", "tree", "life", "organism", "beast", "mind"]);

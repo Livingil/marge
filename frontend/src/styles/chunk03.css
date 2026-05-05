@@ -7,6 +7,17 @@
   text-transform: uppercase;
 }
 
+.lab-expansion-preview-flat {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  width: 100%;
+  min-height: auto;
+  display: block;
+  overflow: visible;
+}
+
 .expansion-header span:last-child {
   font-size: 10px;
   color: var(--text-soft);
@@ -18,6 +29,22 @@
   overflow-x: auto;
   padding-bottom: 2px;
   scrollbar-width: thin;
+}
+
+.expansion-modules-single {
+  overflow: visible;
+  padding-bottom: 0;
+  display: block;
+  width: 100%;
+}
+
+.expansion-modules-single .expansion-module {
+  flex: none;
+  width: 100%;
+}
+
+.lab-expansion-preview-flat .expansion-header {
+  padding-left: 1px;
 }
 
 .expansion-module {

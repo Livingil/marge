@@ -43,4 +43,5 @@ export type GameBoardViewProps = {
   chainFilter: ChainFilter;
   setChainFilter: (value: ChainFilter) => void;
   filteredCatalogItems: GridItem[];
+  activeRows: number;
 };

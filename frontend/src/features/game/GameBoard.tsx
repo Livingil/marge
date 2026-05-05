@@ -12,12 +12,15 @@ import {
   type ChainFilter,
   type FlashTone,
   type TierFilter,
+  BASE_GRID_ROWS,
   FLASH_DURATION_MS,
-  GRID_SIZE,
+  GRID_COLUMNS,
+  getActiveGridCells,
   ONBOARDING_GUIDE_DISMISSED_KEY,
   ONBOARDING_HINT_DISMISSED_KEY,
   getActionTone,
   getContextHint,
+  getActiveGridRows,
   getItemChain,
   readDismissedFlag
 } from "./gameBoard.helpers";
@@ -43,7 +46,12 @@ export const GameBoard = () => {
   const [isHintDismissed, setIsHintDismissed] = useState(() => readDismissedFlag(ONBOARDING_HINT_DISMISSED_KEY));
   const [isGuideDismissed, setIsGuideDismissed] = useState(() => readDismissedFlag(ONBOARDING_GUIDE_DISMISSED_KEY));
 
-  const cells = useMemo(() => user?.grid.cells ?? [], [user]);
+  const activeRows = useMemo(() => (user ? getActiveGridRows(user.baseLevel) : BASE_GRID_ROWS), [user]);
+  const activeCellsCount = useMemo(
+    () => (user ? getActiveGridCells(user.baseLevel) : BASE_GRID_ROWS * GRID_COLUMNS),
+    [user]
+  );
+  const cells = useMemo(() => (user?.grid.cells ?? []).slice(0, activeCellsCount), [activeCellsCount, user]);
 
   const targetItem = useMemo(() => {
     if (!user) {
@@ -54,7 +62,7 @@ export const GameBoard = () => {
   }, [user]);
 
   const filledCellsCount = useMemo(() => cells.filter((cell) => Boolean(cell.itemId)).length, [cells]);
-  const emptyCellsCount = GRID_SIZE * GRID_SIZE - filledCellsCount;
+  const emptyCellsCount = activeCellsCount - filledCellsCount;
   const hasSelectedCell = selectedCell !== null;
   const discoveredCount = user?.discoveredItems.length ?? 0;
   const hasAnyDiscoveredItems = discoveredCount > 0;
@@ -238,6 +246,7 @@ export const GameBoard = () => {
       chainFilter={chainFilter}
       setChainFilter={setChainFilter}
       filteredCatalogItems={filteredCatalogItems}
+      activeRows={activeRows}
     />
   );
 };

@@ -9,6 +9,7 @@ import {
 } from "./alchemy.data.js";
 import {
   BASE_UPGRADE_COST_STEP,
+  getActiveGridSize,
   GRID_SIZE,
   MAX_OFFLINE_INCOME_SECONDS,
   SPAWN_COST
@@ -38,8 +39,11 @@ const getBaseUpgradeCost = (baseLevel: number): number => {
   return baseLevel * BASE_UPGRADE_COST_STEP;
 };
 
+const GOAL_REWARD_ENERGY = 100;
+
 const getSpawnCost = (user: UserDocument): number => {
-  const itemsCount = user.grid.cells.reduce((count, cell) => {
+  const activeGridSize = getActiveGridSize(user.baseLevel);
+  const itemsCount = user.grid.cells.slice(0, activeGridSize).reduce((count, cell) => {
     return cell.itemId ? count + 1 : count;
   }, 0);
 
@@ -72,6 +76,17 @@ const normalizeGridFromLegacy = async (user: UserDocument): Promise<void> => {
       itemLevel: undefined
     };
   });
+
+  if (user.grid.cells.length < GRID_SIZE) {
+    const missingCells = GRID_SIZE - user.grid.cells.length;
+    user.grid.cells.push(...Array.from({ length: missingCells }, () => ({ itemId: null })));
+    changed = true;
+  }
+
+  if (user.grid.cells.length > GRID_SIZE) {
+    user.grid.cells = user.grid.cells.slice(0, GRID_SIZE);
+    changed = true;
+  }
 
   if (changed) {
     await user.save();
@@ -138,6 +153,23 @@ const normalizeDiscoveredRecipes = async (user: UserDocument): Promise<void> => 
   }
 };
 
+const normalizeRewardedGoals = async (user: UserDocument): Promise<void> => {
+  if (!Array.isArray(user.rewardedGoals)) {
+    user.rewardedGoals = [];
+    await user.save();
+    return;
+  }
+
+  const normalized = Array.from(
+    new Set(user.rewardedGoals.filter((value): value is string => typeof value === "string" && value.length > 0))
+  ).sort();
+
+  if (normalized.join("|") !== user.rewardedGoals.join("|")) {
+    user.rewardedGoals = normalized;
+    await user.save();
+  }
+};
+
 const addDiscoveredRecipe = (user: UserDocument, recipeKey: string): void => {
   if (!recipeKey || user.discoveredRecipes.includes(recipeKey)) {
     return;
@@ -171,6 +203,28 @@ const getDiscoveredRecipeDetails = (recipeKeys: string[]): DiscoveredRecipeDetai
     .filter((recipe): recipe is DiscoveredRecipeDetailsDto => Boolean(recipe));
 };
 
+const applyGoalRewards = (user: UserDocument): number => {
+  let rewardedGold = 0;
+
+  for (const goalItemId of GOAL_SEQUENCE) {
+    const discovered = user.discoveredItems.includes(goalItemId);
+    const alreadyRewarded = user.rewardedGoals.includes(goalItemId);
+
+    if (!discovered || alreadyRewarded) {
+      continue;
+    }
+
+    user.rewardedGoals = [...user.rewardedGoals, goalItemId].sort();
+    rewardedGold += GOAL_REWARD_ENERGY;
+  }
+
+  if (rewardedGold > 0) {
+    user.gold += rewardedGold;
+  }
+
+  return rewardedGold;
+};
+
 const addDiscovery = (user: UserDocument, itemId: string | null): ItemDetails | null => {
   if (!itemId || user.discoveredItems.includes(itemId)) {
     return null;
@@ -182,11 +236,14 @@ const addDiscovery = (user: UserDocument, itemId: string | null): ItemDetails | 
 
 const getCurrentGoal = (discoveredItems: string[]): CurrentGoalDto => {
   const nextTarget = GOAL_SEQUENCE.find((itemId) => !discoveredItems.includes(itemId)) ?? GOAL_SEQUENCE[GOAL_SEQUENCE.length - 1];
+  const allGoalsCompleted = GOAL_SEQUENCE.every((itemId) => discoveredItems.includes(itemId));
 
   return {
-    title: `Открой ${ALCHEMY_ITEMS_BY_ID[nextTarget].name}`,
+    title: allGoalsCompleted
+      ? "Все цели сектора выполнены"
+      : `Открой ${ALCHEMY_ITEMS_BY_ID[nextTarget].name}`,
     targetItemId: nextTarget,
-    rewardText: "Новая цепочка: 🧪 Наука"
+    rewardText: allGoalsCompleted ? "Все награды получены" : `Награда: +${GOAL_REWARD_ENERGY} энергии`
   };
 };
 
@@ -245,9 +302,9 @@ const toUserStateDto = (
   };
 };
 
-const assertCellIndex = (index: number): void => {
-  if (!Number.isInteger(index) || index < 0 || index >= GRID_SIZE) {
-    throw new Error(`Cell index must be an integer from 0 to ${GRID_SIZE - 1}`);
+const assertCellIndex = (index: number, maxSize: number): void => {
+  if (!Number.isInteger(index) || index < 0 || index >= maxSize) {
+    throw new Error(`Cell index must be an integer from 0 to ${maxSize - 1}`);
   }
 };
 
@@ -256,6 +313,11 @@ const prepareUser = async (): Promise<UserDocument> => {
   await normalizeGridFromLegacy(user);
   await normalizeDiscoveredItems(user);
   await normalizeDiscoveredRecipes(user);
+  await normalizeRewardedGoals(user);
+  const rewardGold = applyGoalRewards(user);
+  if (rewardGold > 0) {
+    await user.save();
+  }
   return user;
 };
 
@@ -270,14 +332,14 @@ export const getUserState = async (): Promise<UserStateDto> => {
 };
 
 export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> => {
-  assertCellIndex(input.cellA);
-  assertCellIndex(input.cellB);
-
   if (input.cellA === input.cellB) {
     throw new Error("cellA and cellB must be different");
   }
 
   const user = await prepareUser();
+  const activeGridSize = getActiveGridSize(user.baseLevel);
+  assertCellIndex(input.cellA, activeGridSize);
+  assertCellIndex(input.cellB, activeGridSize);
 
   const firstCell = user.grid.cells[input.cellA];
   const secondCell = user.grid.cells[input.cellB];
@@ -297,6 +359,7 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
 
   const mergedItem = getItemDetails(result.cellA.itemId ?? null);
   const latestDiscovery = addDiscovery(user, result.cellA.itemId ?? null);
+  const rewardGold = applyGoalRewards(user);
 
   if (firstItemId && secondItemId) {
     addDiscoveredRecipe(user, getRecipeKey(firstItemId, secondItemId));
@@ -304,13 +367,20 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
 
   await user.save();
 
+  if (rewardGold > 0) {
+    return toUserStateDto(user, latestDiscovery, `🎯 Цель выполнена: +${rewardGold} энергии`);
+  }
+
   return toUserStateDto(user, latestDiscovery, buildMergeMessage(result.outcome, mergedItem));
 };
 
 export const spawnItem = async (): Promise<UserStateDto> => {
   const user = await prepareUser();
+  const activeGridSize = getActiveGridSize(user.baseLevel);
 
-  const emptyIndex = user.grid.cells.findIndex((cell) => !normalizeGridCellItemId(cell));
+  const emptyIndex = user.grid.cells
+    .slice(0, activeGridSize)
+    .findIndex((cell) => !normalizeGridCellItemId(cell));
 
   if (emptyIndex === -1) {
     throw new Error("Нет свободных клеток");
@@ -328,7 +398,12 @@ export const spawnItem = async (): Promise<UserStateDto> => {
   user.grid.cells[emptyIndex].itemLevel = undefined;
 
   const latestDiscovery = addDiscovery(user, spawnedItemId);
+  const rewardGold = applyGoalRewards(user);
   await user.save();
+
+  if (rewardGold > 0) {
+    return toUserStateDto(user, latestDiscovery, `🎯 Цель выполнена: +${rewardGold} энергии`);
+  }
 
   return toUserStateDto(user, latestDiscovery, "✨ Синтезирован новый символ");
 };

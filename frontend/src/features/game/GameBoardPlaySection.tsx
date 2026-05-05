@@ -1,8 +1,9 @@
-﻿import { GRID_SIZE, expansionModules } from "./gameBoard.helpers";
+﻿import { GRID_COLUMNS, expansionModules } from "./gameBoard.helpers";
 import type { GameBoardViewProps } from "./gameBoard.view.types";
 
 export const GameBoardPlaySection = ({
   cells,
+  activeRows,
   filledCellsCount,
   selectedCell,
   dragFrom,
@@ -12,6 +13,7 @@ export const GameBoardPlaySection = ({
   handleCellClick,
   getCellTierClassName,
   user,
+  targetItem,
   isSpawning,
   isClaimingIncome,
   isUpgradingBase,
@@ -22,6 +24,7 @@ export const GameBoardPlaySection = ({
   upgradeBaseAction
 }: Pick<GameBoardViewProps,
   | "cells"
+  | "activeRows"
   | "filledCellsCount"
   | "selectedCell"
   | "dragFrom"
@@ -31,6 +34,7 @@ export const GameBoardPlaySection = ({
   | "handleCellClick"
   | "getCellTierClassName"
   | "user"
+  | "targetItem"
   | "isSpawning"
   | "isClaimingIncome"
   | "isUpgradingBase"
@@ -40,20 +44,58 @@ export const GameBoardPlaySection = ({
   | "claimIncomeAction"
   | "upgradeBaseAction"
 >) => {
+  const availableExpansionModules = expansionModules.filter(
+    (module) => !(module.hideWhenReached && user.baseLevel >= module.unlockLevel)
+  );
+  const nextExpansionModule =
+    availableExpansionModules.find((module) => user.baseLevel < module.unlockLevel) ??
+    availableExpansionModules[0] ??
+    null;
+
   return (
     <>
+      <section className="lab-expansion-preview lab-expansion-preview-flat">
+        <div className="expansion-header">
+          <span>Следующая модернизация</span>
+        </div>
+        <div className="expansion-modules expansion-modules-single">
+          {nextExpansionModule ? (
+            <article
+              key={nextExpansionModule.id}
+              className={`expansion-module ${user.baseLevel >= nextExpansionModule.unlockLevel ? "ready" : "locked"}`}
+            >
+              <p className="expansion-module-title">{nextExpansionModule.title}</p>
+              <p className="expansion-module-unlock">
+                {user.baseLevel >= nextExpansionModule.unlockLevel
+                  ? "Запланировано"
+                  : `🔒 Ур. ${nextExpansionModule.unlockLevel}`}
+              </p>
+              <p className="expansion-module-description">{nextExpansionModule.description}</p>
+            </article>
+          ) : (
+            <article className="expansion-module ready">
+              <p className="expansion-module-title">Все модули открыты</p>
+              <p className="expansion-module-unlock">Лаборатория стабилизирована</p>
+              <p className="expansion-module-description">
+                Базовая программа расширения завершена.
+              </p>
+            </article>
+          )}
+        </div>
+      </section>
+
       <div className="board-shell">
         <div className="board-header">
           <div>
             <p className="board-kicker">Реакторное поле</p>
-            <h2>Камера слияния 5x5</h2>
+            <h2>{`Камера слияния 5x${activeRows}`}</h2>
           </div>
           <p className="board-hint">Перетащи один символ на другой или выбери две клетки по очереди.</p>
         </div>
         {filledCellsCount === 0 ? (
           <p className="board-empty-state">Поле пустое. Синтезируй первое ядро.</p>
         ) : null}
-        <div className="grid" style={{ gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)` }}>
+        <div className="grid" style={{ gridTemplateColumns: `repeat(${GRID_COLUMNS}, 1fr)` }}>
           {cells.map((cell, index) => (
             <div
               key={index}
@@ -92,30 +134,19 @@ export const GameBoardPlaySection = ({
         </div>
       </div>
 
-      <section className="lab-expansion-preview">
-        <div className="expansion-header">
-          <span>Расширение лаборатории</span>
-          <span>На вырост</span>
+      <div className="mission-panel">
+        <div className="mission-copy">
+          <div className="mission-topline">
+            <p className="eyebrow">Сектор синтеза</p>
+          </div>
+          <h1 className="mission-title">{user.currentGoal.title}</h1>
+          <p className="mission-subtitle">{user.currentGoal.rewardText}</p>
         </div>
-        <div className="expansion-modules">
-          {expansionModules.map((module) => {
-            const isReady = user.baseLevel >= module.unlockLevel;
-
-            return (
-              <article
-                key={module.id}
-                className={`expansion-module ${isReady ? "ready" : "locked"}`}
-              >
-                <p className="expansion-module-title">{module.title}</p>
-                <p className="expansion-module-unlock">
-                  {isReady ? "Готово к активации" : `🔒 Откроется на Ур. ${module.unlockLevel}`}
-                </p>
-                <p className="expansion-module-description">{module.description}</p>
-              </article>
-            );
-          })}
+        <div className="target-core">
+          <div className="target-core-icon">{targetItem?.icon ?? "☢️"}</div>
+          <div className="target-core-ring" />
         </div>
-      </section>
+      </div>
 
       <div className="control-deck">
         <button

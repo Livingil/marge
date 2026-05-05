@@ -5,6 +5,7 @@ export type GridItem = {
   name: string;
   description: string;
   icon: string;
+  tier: number;
 };
 
 export type GridCell = {

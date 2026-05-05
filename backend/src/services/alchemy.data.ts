@@ -1,9 +1,11 @@
-﻿export interface AlchemyItem {
+export interface AlchemyItem {
   id: string;
   icon: string;
   name: string;
   description: string;
 }
+
+const MAX_VISUAL_TIER = 5;
 
 export const ALCHEMY_ITEMS: AlchemyItem[] = [
   { id: "spark", icon: "⚡", name: "Искра", description: "Малый источник нестабильной энергии" },
@@ -64,6 +66,44 @@ export const RECIPES: Record<string, string> = recipePairs.reduce<Record<string,
 );
 
 export const BASE_SPAWN_ITEM_IDS = ["spark", "water", "seed", "stone", "fire"];
+
+const computeAlchemyItemTiers = (): Record<string, number> => {
+  const tiers = Object.fromEntries(
+    ALCHEMY_ITEMS.map((item) => [item.id, Number.POSITIVE_INFINITY])
+  ) as Record<string, number>;
+
+  BASE_SPAWN_ITEM_IDS.forEach((itemId) => {
+    tiers[itemId] = 1;
+  });
+
+  let changed = true;
+
+  while (changed) {
+    changed = false;
+
+    recipePairs.forEach(([leftId, rightId, resultId]) => {
+      const leftTier = tiers[leftId];
+      const rightTier = tiers[rightId];
+
+      if (!Number.isFinite(leftTier) || !Number.isFinite(rightTier)) {
+        return;
+      }
+
+      const nextTier = Math.min(MAX_VISUAL_TIER, Math.max(leftTier, rightTier) + 1);
+
+      if (nextTier < tiers[resultId]) {
+        tiers[resultId] = nextTier;
+        changed = true;
+      }
+    });
+  }
+
+  return Object.fromEntries(
+    Object.entries(tiers).map(([itemId, tier]) => [itemId, Number.isFinite(tier) ? tier : MAX_VISUAL_TIER])
+  );
+};
+
+export const ALCHEMY_ITEM_TIERS = computeAlchemyItemTiers();
 
 export const LEGACY_LEVEL_TO_ITEM_ID: Record<number, string> = {
   1: "spark",

@@ -2,6 +2,7 @@
 import {
   ALCHEMY_ITEMS,
   ALCHEMY_ITEMS_BY_ID,
+  ALCHEMY_ITEM_TIERS,
   BASE_SPAWN_ITEM_IDS,
   GOAL_SEQUENCE,
   LEGACY_LEVEL_TO_ITEM_ID
@@ -25,6 +26,7 @@ interface ItemDetails {
   icon: string;
   name: string;
   description: string;
+  tier: number;
 }
 
 interface CurrentGoalDto {
@@ -62,7 +64,8 @@ const ITEM_CATALOG: ItemDetails[] = ALCHEMY_ITEMS.map((item) => ({
   id: item.id,
   icon: item.icon,
   name: item.name,
-  description: item.description
+  description: item.description,
+  tier: ALCHEMY_ITEM_TIERS[item.id] ?? 1
 }));
 
 const ensureUser = async (): Promise<UserDocument> => {
@@ -101,7 +104,8 @@ const getItemDetails = (itemId: string | null): ItemDetails | null => {
     id: item.id,
     icon: item.icon,
     name: item.name,
-    description: item.description
+    description: item.description,
+    tier: ALCHEMY_ITEM_TIERS[item.id] ?? 1
   };
 };
 

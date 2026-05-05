@@ -163,11 +163,15 @@ const buildMergeMessage = (outcome: MergeOutcome, item: ItemDetails | null): str
   }
 
   if (outcome === "bonus") {
+    if (item) {
+      return `🌟 Удачное соединение: ${item.icon} ${item.name}`;
+    }
+
     return "🌟 Удачное соединение! Символ усилен";
   }
 
   if (outcome === "downgrade") {
-    return "⚠️ Нестабильное соединение! Символ ослаб";
+    return "⚠️ Нестабильное соединение";
   }
 
   if (item) {

@@ -340,27 +340,35 @@ export const GameBoard = () => {
         </div>
       </header>
 
-      <div className="utility-bar">
-        <button
-          type="button"
-          className="utility-button utility-button-catalog"
-          onClick={() => {
-            setCatalogTab("items");
-            setIsCatalogOpen(true);
-          }}
-        >
-          Каталог {user.discoveredItems.length}/{user.itemCatalog.length}
-        </button>
-        <button type="button" className="utility-button utility-button-icon" onClick={() => setIsHelpOpen(true)}>
-          ?
-        </button>
-      </div>
-
       <div className="lab-layout">
         <div className="lab-main">
           <div className="mission-panel">
             <div className="mission-copy">
-              <p className="eyebrow">Сектор синтеза</p>
+              <div className="mission-topline">
+                <p className="eyebrow">Сектор синтеза</p>
+                <div className="mission-actions">
+                  <button
+                    type="button"
+                    className="utility-button utility-button-catalog"
+                    aria-label="Открыть каталог"
+                    onClick={() => {
+                      setCatalogTab("items");
+                      setIsCatalogOpen(true);
+                    }}
+                  >
+                    <span className="desktop-label">Каталог {user.discoveredItems.length}/{user.itemCatalog.length}</span>
+                    <span className="mobile-label">📚 {user.discoveredItems.length}/{user.itemCatalog.length}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="utility-button utility-button-icon"
+                    aria-label="Открыть помощь"
+                    onClick={() => setIsHelpOpen(true)}
+                  >
+                    ?
+                  </button>
+                </div>
+              </div>
               <h1 className="mission-title">{user.currentGoal.title}</h1>
               <p className="mission-subtitle">
                 Соединяй символы, открывай новые образцы и усиливай лабораторию.

@@ -345,7 +345,7 @@ export const GameBoard = () => {
             <span className="resource-value">{user.incomePerMinute}/мин</span>
           </span>
         </div>
-        <div className="resource-menu-shell mobile-only">
+        <div className="resource-menu-shell">
           <button
             type="button"
             className="utility-menu-button"
@@ -388,28 +388,6 @@ export const GameBoard = () => {
             <div className="mission-copy">
               <div className="mission-topline">
                 <p className="eyebrow">Сектор синтеза</p>
-                <div className="mission-actions desktop-only">
-                  <button
-                    type="button"
-                    className="utility-button utility-button-catalog"
-                    aria-label="Открыть каталог"
-                    onClick={() => {
-                      setCatalogTab("items");
-                      setIsCatalogOpen(true);
-                    }}
-                  >
-                    <span className="desktop-label">Каталог {user.discoveredItems.length}/{user.itemCatalog.length}</span>
-                    <span className="mobile-label">📚 {user.discoveredItems.length}/{user.itemCatalog.length}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="utility-button utility-button-icon"
-                    aria-label="Открыть помощь"
-                    onClick={() => setIsHelpOpen(true)}
-                  >
-                    ?
-                  </button>
-                </div>
               </div>
               <h1 className="mission-title">{user.currentGoal.title}</h1>
               <p className="mission-subtitle">

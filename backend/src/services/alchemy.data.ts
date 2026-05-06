@@ -41,6 +41,7 @@ const ACTIVE_ITEM_IDS = [
   // milestone helper
   "science"
 ] as const;
+export const ACTIVE_ALCHEMY_ITEM_IDS = ACTIVE_ITEM_IDS;
 
 const ACTIVE_ITEM_ID_SET = new Set<string>(ACTIVE_ITEM_IDS);
 
@@ -91,27 +92,33 @@ const filteredRecipePairs: RecipePair[] = ALCHEMY_RECIPE_PLAN.filter(([leftId, r
   const resultStage = paletteById.get(resultId)?.stage;
   return resultStage === "early" || resultStage === "mid";
 });
+export const ACTIVE_FILTERED_RECIPE_PAIRS = filteredRecipePairs;
 
 const curatedExtraPairs: RecipePair[] = [
   ["spark", "battery", "energyCell"],
   ["spark", "energyCell", "magnet"],
   ["battery", "magnet", "reactor"],
   ["stone", "energyCell", "crystal"],
-  ["metal", "energyCell", "wire"],
   ["charge", "charge", "coil"],
   ["magnet", "magnet", "reactor"],
   ["reactor", "magnet", "portal"]
 ];
+export const ACTIVE_CURATED_EXTRA_PAIRS = curatedExtraPairs;
 
 const recipePairMap = new Map<string, RecipePair>();
 [...filteredRecipePairs, ...curatedExtraPairs].forEach(([leftId, rightId, resultId]) => {
   const key = getRecipeKey(leftId, rightId);
-  if (!recipePairMap.has(key)) {
-    recipePairMap.set(key, [leftId, rightId, resultId]);
+  const existing = recipePairMap.get(key);
+  if (existing) {
+    throw new Error(
+      `Duplicate active recipe key '${key}': existing result '${existing[2]}', new result '${resultId}'`
+    );
   }
+  recipePairMap.set(key, [leftId, rightId, resultId]);
 });
 
 const recipePairs: RecipePair[] = Array.from(recipePairMap.values());
+export const ACTIVE_RECIPE_PAIRS = recipePairs;
 
 export const BASE_SPAWN_ITEM_IDS = ["spark", "water", "seed", "stone", "fire"];
 

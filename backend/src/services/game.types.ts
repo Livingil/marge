@@ -7,6 +7,11 @@ export interface DeleteCellInput {
   cellIndex: number;
 }
 
+export interface UpdateOnboardingInput {
+  hintDismissed?: boolean;
+  guideDismissed?: boolean;
+}
+
 export interface ItemDetails {
   id: string;
   icon: string;
@@ -43,6 +48,7 @@ export interface UserStateDto {
   baseLevel: number;
   grid: UserGridDto;
   incomePerMinute: number;
+  claimableIncome: number;
   lastIncomeClaimAt: Date;
   spawnCost: number;
   baseUpgradeCost: number;
@@ -54,4 +60,6 @@ export interface UserStateDto {
   deleteCosts: Array<number | null>;
   latestDiscovery: ItemDetails | null;
   lastActionMessage: string | null;
+  onboardingHintDismissed: boolean;
+  onboardingGuideDismissed: boolean;
 }

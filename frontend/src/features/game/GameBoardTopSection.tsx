@@ -2,66 +2,13 @@
 
 export const GameBoardTopSection = ({
   user,
-  isHintDismissed,
-  isGuideDismissed,
-  dismissHint,
-  dismissGuide,
-  contextHint,
-  selectedCellItem,
   flashTone
 }: Pick<GameBoardViewProps,
   | "user"
-  | "isHintDismissed"
-  | "isGuideDismissed"
-  | "dismissHint"
-  | "dismissGuide"
-  | "contextHint"
-  | "selectedCellItem"
   | "flashTone"
 >) => {
   return (
     <>
-      {!isHintDismissed || !isGuideDismissed ? (
-        <div className="onboarding-grid">
-          {!isHintDismissed ? (
-            <div className="onboarding-card">
-              <button type="button" className="onboarding-close" onClick={dismissHint}>
-                ✕
-              </button>
-              <p className="eyebrow">Подсказка лаборатории</p>
-              <p className="onboarding-title">{contextHint.title}</p>
-              <p className="onboarding-text">{contextHint.text}</p>
-              <p className={`onboarding-selected ${selectedCellItem ? "" : "empty"}`}>
-                {selectedCellItem ? (
-                  <>
-                    Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
-                    <br />
-                    Теперь выбери второй символ для реакции.
-                  </>
-                ) : (
-                  " "
-                )}
-              </p>
-            </div>
-          ) : null}
-
-          {!isGuideDismissed ? (
-            <div className="onboarding-card how-to-play">
-              <button type="button" className="onboarding-close" onClick={dismissGuide}>
-                ✕
-              </button>
-              <p className="eyebrow">Как играть</p>
-              <ol className="onboarding-steps">
-                <li>Синтезируй ядро</li>
-                <li>Соедини два символа</li>
-                <li>Открой новый образец</li>
-                <li>Собери поток энергии</li>
-              </ol>
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
       {user.lastActionMessage ? (
         <div className={`action-banner action-${flashTone}`}>
           <span className="action-banner-label">Журнал</span>

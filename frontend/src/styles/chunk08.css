@@ -96,8 +96,12 @@
   }
 
   .target-core {
-    width: 44px;
-    height: 44px;
+    gap: 6px;
+  }
+
+  .target-core-icon-shell {
+    width: 28px;
+    height: 28px;
   }
 
   .target-core-icon {
@@ -106,10 +110,10 @@
 
   .target-core-ring {
     display: block;
-    inset: 3px;
+    inset: 0;
     border-color: rgba(97, 247, 190, 0.3);
     box-shadow:
-      0 0 0 4px rgba(97, 247, 190, 0.04),
+      0 0 0 3px rgba(97, 247, 190, 0.04),
       0 0 14px rgba(88, 222, 255, 0.16);
   }
 

@@ -225,3 +225,50 @@
   font-size: 12px;
   font-weight: 700;
 }
+
+.onboarding-guide-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 35;
+  background: rgba(2, 10, 18, 0.72);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.onboarding-guide-card {
+  width: min(440px, 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(133, 218, 255, 0.25);
+  background: rgba(7, 21, 34, 0.96);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.5);
+  padding: 14px;
+}
+
+.onboarding-guide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.onboarding-guide-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.onboarding-guide-close {
+  width: auto;
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(133, 218, 255, 0.22);
+  background: rgba(10, 25, 40, 0.9);
+  color: #d7f6ff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.onboarding-guide-content {
+  margin-top: 10px;
+}

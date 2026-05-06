@@ -33,7 +33,27 @@
 .mission-title {
   font-size: clamp(26px, 4vw, 40px);
   line-height: 0.96;
-  max-width: 11ch;
+  max-width: 100%;
+}
+
+.mission-mainline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mission-reward-chip {
+  margin: 0;
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 211, 107, 0.3);
+  background: rgba(255, 211, 107, 0.1);
+  color: #ffe6a1;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .mission-subtitle,
@@ -53,10 +73,18 @@
 }
 
 .target-core {
-  position: relative;
-  width: 124px;
-  height: 124px;
   flex: 0 0 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.target-core-icon-shell {
+  position: relative;
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
 }
@@ -77,13 +105,53 @@
 
 .target-core-ring {
   position: absolute;
-  inset: 8px;
+  inset: 0;
   border-radius: 50%;
   border: 1px solid rgba(97, 247, 190, 0.3);
   box-shadow:
-    0 0 0 12px rgba(97, 247, 190, 0.04),
-    0 0 42px rgba(88, 222, 255, 0.16);
+    0 0 0 6px rgba(97, 247, 190, 0.04),
+    0 0 24px rgba(88, 222, 255, 0.16);
   animation: core-spin 10s linear infinite;
+}
+
+.target-reward-chip {
+  z-index: 1;
+}
+
+@media (min-width: 761px) {
+  .mission-panel {
+    min-height: 136px;
+    gap: 14px;
+  }
+
+  .mission-title {
+    font-size: clamp(24px, 2.6vw, 34px);
+    line-height: 1.02;
+  }
+
+  .target-core {
+    gap: 10px;
+  }
+
+  .target-core-icon-shell {
+    width: 42px;
+    height: 42px;
+  }
+
+  .target-core-icon {
+    font-size: 24px;
+  }
+
+  .target-core-ring {
+    box-shadow:
+      0 0 0 5px rgba(97, 247, 190, 0.04),
+      0 0 18px rgba(88, 222, 255, 0.14);
+  }
+
+  .target-reward-chip {
+    font-size: 13px;
+    padding: 4px 9px;
+  }
 }
 
 .action-banner,
@@ -189,11 +257,11 @@
   font-size: 12px;
   color: #dff8ff;
   line-height: 1.35;
-  min-height: 2.9em;
+  min-height: 0;
 }
 
 .onboarding-selected.empty {
-  opacity: 0;
+  display: none;
 }
 
 .onboarding-steps {

@@ -6,6 +6,7 @@ import {
   useGetUserQuery,
   useMergeCellsMutation,
   useSpawnItemMutation,
+  useUpdateOnboardingMutation,
   useUpgradeBaseMutation
 } from "../../shared/api/gameApi";
 import {
@@ -17,13 +18,10 @@ import {
   FLASH_DURATION_MS,
   GRID_COLUMNS,
   getActiveGridCells,
-  ONBOARDING_GUIDE_DISMISSED_KEY,
-  ONBOARDING_HINT_DISMISSED_KEY,
   getActionTone,
   getContextHint,
   getActiveGridRows,
-  getItemChain,
-  readDismissedFlag
+  getItemChain
 } from "./gameBoard.helpers";
 import { GameBoardView } from "./GameBoardView";
 
@@ -34,6 +32,7 @@ export const GameBoard = () => {
   const [claimIncome, { isLoading: isClaimingIncome }] = useClaimIncomeMutation();
   const [upgradeBase, { isLoading: isUpgradingBase }] = useUpgradeBaseMutation();
   const [deleteCell, { isLoading: isDeletingCell }] = useDeleteCellMutation();
+  const [updateOnboarding] = useUpdateOnboardingMutation();
 
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [selectedCell, setSelectedCell] = useState<number | null>(null);
@@ -45,8 +44,6 @@ export const GameBoard = () => {
   const [catalogTab, setCatalogTab] = useState<CatalogTab>("items");
   const [tierFilter, setTierFilter] = useState<TierFilter>("all");
   const [chainFilter, setChainFilter] = useState<ChainFilter>("all");
-  const [isHintDismissed, setIsHintDismissed] = useState(() => readDismissedFlag(ONBOARDING_HINT_DISMISSED_KEY));
-  const [isGuideDismissed, setIsGuideDismissed] = useState(() => readDismissedFlag(ONBOARDING_GUIDE_DISMISSED_KEY));
 
   const activeRows = useMemo(() => (user ? getActiveGridRows(user.baseLevel) : BASE_GRID_ROWS), [user]);
   const activeCellsCount = useMemo(
@@ -127,17 +124,11 @@ export const GameBoard = () => {
   );
 
   const dismissHint = () => {
-    setIsHintDismissed(true);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(ONBOARDING_HINT_DISMISSED_KEY, "1");
-    }
+    void updateOnboarding({ hintDismissed: true });
   };
 
   const dismissGuide = () => {
-    setIsGuideDismissed(true);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(ONBOARDING_GUIDE_DISMISSED_KEY, "1");
-    }
+    void updateOnboarding({ guideDismissed: true });
   };
 
   useEffect(() => {
@@ -222,8 +213,8 @@ export const GameBoard = () => {
       targetItem={targetItem}
       contextHint={contextHint}
       selectedCellItem={selectedCellItem}
-      isHintDismissed={isHintDismissed}
-      isGuideDismissed={isGuideDismissed}
+      isHintDismissed={user.onboardingHintDismissed}
+      isGuideDismissed={user.onboardingGuideDismissed}
       dismissHint={dismissHint}
       dismissGuide={dismissGuide}
       filledCellsCount={filledCellsCount}

@@ -10,6 +10,10 @@ export interface IUser {
   discoveredItems: string[];
   discoveredRecipes: string[];
   rewardedGoals: string[];
+  onboardingHintDismissed: boolean;
+  onboardingGuideDismissed: boolean;
+  freeSpawnsUsed: number;
+  deleteActionsUsed: number;
 }
 
 type UserModel = Model<IUser>;
@@ -54,6 +58,28 @@ const userSchema = new Schema<IUser, UserModel>(
       type: [String],
       required: true,
       default: []
+    },
+    onboardingHintDismissed: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
+    onboardingGuideDismissed: {
+      type: Boolean,
+      required: true,
+      default: false
+    },
+    freeSpawnsUsed: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0
+    },
+    deleteActionsUsed: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0
     }
   },
   {

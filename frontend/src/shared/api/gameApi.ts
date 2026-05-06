@@ -25,6 +25,7 @@ export type UserState = {
   gold: number;
   baseLevel: number;
   incomePerMinute: number;
+  claimableIncome: number;
   lastIncomeClaimAt: string;
   spawnCost: number;
   baseUpgradeCost: number;
@@ -40,6 +41,8 @@ export type UserState = {
   deleteCosts: Array<number | null>;
   latestDiscovery: GridItem | null;
   lastActionMessage: string | null;
+  onboardingHintDismissed: boolean;
+  onboardingGuideDismissed: boolean;
   grid: {
     cells: GridCell[];
   };
@@ -52,6 +55,11 @@ export type MergePayload = {
 
 export type DeleteCellPayload = {
   cellIndex: number;
+};
+
+export type UpdateOnboardingPayload = {
+  hintDismissed?: boolean;
+  guideDismissed?: boolean;
 };
 
 export const gameApi = createApi({
@@ -99,6 +107,14 @@ export const gameApi = createApi({
         body
       }),
       invalidatesTags: ["User"]
+    }),
+    updateOnboarding: builder.mutation<UserState, UpdateOnboardingPayload>({
+      query: (body) => ({
+        url: "/user/onboarding",
+        method: "PATCH",
+        body
+      }),
+      invalidatesTags: ["User"]
     })
   })
 });
@@ -109,5 +125,6 @@ export const {
   useSpawnItemMutation,
   useClaimIncomeMutation,
   useUpgradeBaseMutation,
-  useDeleteCellMutation
+  useDeleteCellMutation,
+  useUpdateOnboardingMutation
 } = gameApi;

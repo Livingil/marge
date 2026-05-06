@@ -2,6 +2,8 @@
 import type { GameBoardViewProps } from "./gameBoard.view.types";
 
 export const GameBoardOverlays = ({
+  isGuideDismissed,
+  dismissGuide,
   isHelpOpen,
   setIsHelpOpen,
   contextHint,
@@ -17,6 +19,8 @@ export const GameBoardOverlays = ({
   filteredCatalogItems,
   user
 }: Pick<GameBoardViewProps,
+  | "isGuideDismissed"
+  | "dismissGuide"
   | "isHelpOpen"
   | "setIsHelpOpen"
   | "contextHint"
@@ -34,6 +38,27 @@ export const GameBoardOverlays = ({
 >) => {
   return (
     <>
+      {!isGuideDismissed ? (
+        <div className="onboarding-guide-overlay" role="dialog" aria-modal="true">
+          <div className="onboarding-guide-card">
+            <div className="onboarding-guide-header">
+              <h3>Как играть</h3>
+              <button type="button" className="onboarding-guide-close" onClick={dismissGuide}>
+                Понятно
+              </button>
+            </div>
+            <div className="onboarding-guide-content">
+              <ol className="onboarding-steps">
+                <li>Синтезируй ядро</li>
+                <li>Соедини два символа</li>
+                <li>Открой новый образец</li>
+                <li>Собери поток энергии</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {isHelpOpen ? (
         <div className="fullscreen-overlay mobile-only" role="dialog" aria-modal="true">
           <div className="fullscreen-sheet">

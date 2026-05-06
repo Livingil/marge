@@ -91,8 +91,17 @@
     line-height: 1.08;
   }
 
-  .mission-subtitle {
-    display: none;
+  .mission-mainline {
+    gap: 6px;
+  }
+
+  .mission-reward-chip {
+    padding: 3px 7px;
+    font-size: 10px;
+  }
+
+  .target-reward-chip {
+    position: static;
   }
 
   .mission-panel .eyebrow {
@@ -102,14 +111,19 @@
   }
 
   .target-core {
-    width: 36px;
-    height: 36px;
     border-radius: 0;
     background: transparent;
     border: 0;
+    gap: 5px;
+  }
+
+  .target-core-icon-shell {
+    width: 24px;
+    height: 24px;
   }
 
   .target-core-icon {
+    position: relative;
     width: auto;
     height: auto;
     border-radius: 0;
@@ -119,31 +133,51 @@
 
   .target-core-ring {
     display: block;
-    inset: 2px;
+    inset: 0;
     border-color: rgba(97, 247, 190, 0.3);
     box-shadow:
-      0 0 0 3px rgba(97, 247, 190, 0.04),
+      0 0 0 2px rgba(97, 247, 190, 0.04),
       0 0 12px rgba(88, 222, 255, 0.14);
   }
 
   .onboarding-grid {
     grid-template-columns: 1fr;
-    gap: 6px;
+    gap: 4px;
+    flex: 1;
+    min-height: 0;
   }
 
   .onboarding-card {
-    padding: 9px 10px;
+    padding: 7px 9px;
     border-radius: 12px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .onboarding-card .eyebrow {
+    margin-bottom: 2px;
+    font-size: 8px;
+    letter-spacing: 0.08em;
+  }
+
+  .onboarding-close {
+    top: 6px;
+    right: 6px;
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
   }
 
   .onboarding-title {
-    font-size: 14px;
-    margin-bottom: 4px;
+    font-size: 13px;
+    margin-bottom: 2px;
   }
 
   .onboarding-text,
   .onboarding-selected {
-    font-size: 11px;
+    font-size: 10px;
+    line-height: 1.25;
   }
 
 }

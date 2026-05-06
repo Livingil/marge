@@ -5,6 +5,7 @@ import {
   getUserState,
   mergeCells,
   spawnItem,
+  updateOnboardingState,
   upgradeBase
 } from "../services/game.service.js";
 
@@ -37,5 +38,14 @@ export const upgradeBaseController = async (_req: Request, res: Response): Promi
 export const deleteCellController = async (req: Request, res: Response): Promise<void> => {
   const { cellIndex } = req.body as { cellIndex: number };
   const user = await deleteCell({ cellIndex });
+  res.status(200).json(user);
+};
+
+export const updateOnboardingController = async (req: Request, res: Response): Promise<void> => {
+  const { hintDismissed, guideDismissed } = req.body as {
+    hintDismissed?: boolean;
+    guideDismissed?: boolean;
+  };
+  const user = await updateOnboardingState({ hintDismissed, guideDismissed });
   res.status(200).json(user);
 };

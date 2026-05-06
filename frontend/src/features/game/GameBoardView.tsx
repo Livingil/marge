@@ -82,6 +82,8 @@ export const GameBoardView = (props: GameBoardViewProps) => {
       </div>
 
       <GameBoardOverlays
+        isGuideDismissed={props.isGuideDismissed}
+        dismissGuide={props.dismissGuide}
         isHelpOpen={props.isHelpOpen}
         setIsHelpOpen={props.setIsHelpOpen}
         contextHint={props.contextHint}

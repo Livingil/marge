@@ -5,6 +5,7 @@ import {
   getUserController,
   mergeController,
   spawnController,
+  updateOnboardingController,
   upgradeBaseController
 } from "../controllers/game.controller.js";
 
@@ -16,3 +17,4 @@ gameRouter.post("/spawn", spawnController);
 gameRouter.post("/income/claim", claimIncomeController);
 gameRouter.post("/upgrade/base", upgradeBaseController);
 gameRouter.post("/cell/delete", deleteCellController);
+gameRouter.patch("/user/onboarding", updateOnboardingController);

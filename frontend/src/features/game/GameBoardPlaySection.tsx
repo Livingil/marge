@@ -1,7 +1,12 @@
-﻿import { GRID_COLUMNS, expansionModules } from "./gameBoard.helpers";
+﻿import { useEffect, useMemo, useState } from "react";
+import { GRID_COLUMNS, expansionModules } from "./gameBoard.helpers";
 import type { GameBoardViewProps } from "./gameBoard.view.types";
 
 export const GameBoardPlaySection = ({
+  contextHint,
+  selectedCellItem,
+  isHintDismissed,
+  dismissHint,
   cells,
   activeRows,
   filledCellsCount,
@@ -28,6 +33,10 @@ export const GameBoardPlaySection = ({
   upgradeBaseAction,
   deleteCellAction
 }: Pick<GameBoardViewProps,
+  | "contextHint"
+  | "selectedCellItem"
+  | "isHintDismissed"
+  | "dismissHint"
   | "cells"
   | "activeRows"
   | "filledCellsCount"
@@ -54,6 +63,28 @@ export const GameBoardPlaySection = ({
   | "upgradeBaseAction"
   | "deleteCellAction"
 >) => {
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timerId = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+
+    return () => window.clearInterval(timerId);
+  }, []);
+
+  const liveClaimableIncome = useMemo(() => {
+    const lastClaimMs = Date.parse(user.lastIncomeClaimAt);
+    if (!Number.isFinite(lastClaimMs)) {
+      return user.claimableIncome;
+    }
+
+    const elapsedSecondsRaw = Math.floor((nowMs - lastClaimMs) / 1000);
+    const elapsedSeconds = Math.max(0, Math.min(elapsedSecondsRaw, 2 * 60 * 60));
+    const incomePerSecond = user.incomePerMinute / 60;
+    const computed = Math.floor(incomePerSecond * elapsedSeconds);
+    return Math.max(user.claimableIncome, computed);
+  }, [nowMs, user.claimableIncome, user.incomePerMinute, user.lastIncomeClaimAt]);
   const availableExpansionModules = expansionModules.filter(
     (module) => !(module.hideWhenReached && user.baseLevel >= module.unlockLevel)
   );
@@ -149,14 +180,44 @@ export const GameBoardPlaySection = ({
           <div className="mission-topline">
             <p className="eyebrow">Сектор синтеза</p>
           </div>
-          <h1 className="mission-title">{user.currentGoal.title}</h1>
-          <p className="mission-subtitle">{user.currentGoal.rewardText}</p>
+          <div className="mission-mainline">
+            <h1 className="mission-title">{user.currentGoal.title}</h1>
+          </div>
         </div>
         <div className="target-core">
-          <div className="target-core-icon">{targetItem?.icon ?? "☢️"}</div>
-          <div className="target-core-ring" />
+          <div className="target-core-icon-shell">
+            <div className="target-core-icon">{targetItem?.icon ?? "☢️"}</div>
+            <div className="target-core-ring" />
+          </div>
+          <p className="mission-reward-chip target-reward-chip">+{user.currentGoal.rewardText.match(/\d+/)?.[0] ?? "0"}</p>
         </div>
       </div>
+
+      {!isHintDismissed ? (
+        <div className="onboarding-grid">
+          {!isHintDismissed ? (
+            <div className="onboarding-card">
+              <button type="button" className="onboarding-close" onClick={dismissHint}>
+                ✕
+              </button>
+              <p className="eyebrow">Подсказка лаборатории</p>
+              <p className="onboarding-title">{contextHint.title}</p>
+              <p className="onboarding-text">{contextHint.text}</p>
+              <p className={`onboarding-selected ${selectedCellItem ? "" : "empty"}`}>
+                {selectedCellItem ? (
+                  <>
+                    Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
+                    <br />
+                    Теперь выбери второй символ для реакции.
+                  </>
+                ) : (
+                  " "
+                )}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="control-deck">
         <button
@@ -167,7 +228,7 @@ export const GameBoardPlaySection = ({
         >
           <span className="action-button-label">
             <span className="desktop-label">{isSpawning ? "Синтез..." : "Синтезировать ядро"}</span>
-            <span className="mobile-label">{isSpawning ? "Синтез..." : "Синтез"}</span>
+            <span className="mobile-label">{isSpawning ? "Синтез..." : "Синтезировать ядро"}</span>
           </span>
           <span className="action-button-meta">
             {canSpawn ? `Стоимость: ${user.spawnCost}` : `Нужно энергии: ${user.spawnCost}`}
@@ -197,7 +258,7 @@ export const GameBoardPlaySection = ({
             <span className="desktop-label">{isClaimingIncome ? "Сбор..." : "Собрать поток"}</span>
             <span className="mobile-label">{isClaimingIncome ? "Сбор..." : "Собрать"}</span>
           </span>
-          <span className="action-button-meta">Снять накопленную энергию</span>
+          <span className="action-button-meta">К сбору: {liveClaimableIncome}</span>
         </button>
         <button
           type="button"
@@ -216,3 +277,5 @@ export const GameBoardPlaySection = ({
     </>
   );
 };
+
+

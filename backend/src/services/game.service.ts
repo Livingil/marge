@@ -11,6 +11,7 @@ import { getActiveGridSize, GRID_SIZE, MAX_OFFLINE_INCOME_SECONDS } from "./game
 import {
   getBaseUpgradeCost,
   getDeleteCost,
+  getDeleteCostWithProgression,
   getGoalReward,
   getItemTier,
   getSpawnCost as getDynamicSpawnCost
@@ -23,6 +24,7 @@ import type {
   DiscoveredRecipeDetailsDto,
   ItemDetails,
   MergeCellsInput,
+  UpdateOnboardingInput,
   UserStateDto
 } from "./game.types.js";
 import { MergeOutcome, merge } from "./merge.service.js";
@@ -90,7 +92,7 @@ const getOccupiedActiveCellsCount = (user: UserDocument): number => {
 };
 
 const getSpawnCost = (user: UserDocument): number => {
-  return getDynamicSpawnCost(getOccupiedActiveCellsCount(user), user.baseLevel);
+  return getDynamicSpawnCost(user.freeSpawnsUsed, user.baseLevel);
 };
 
 const getDiscoveredItemIdsFromGrid = (user: UserDocument): string[] => {
@@ -168,6 +170,42 @@ const normalizeRewardedGoals = async (user: UserDocument): Promise<void> => {
     user.rewardedGoals = normalized;
     await user.save();
   }
+};
+
+const normalizeOnboardingFlags = async (user: UserDocument): Promise<void> => {
+  let changed = false;
+
+  if (typeof user.onboardingHintDismissed !== "boolean") {
+    user.onboardingHintDismissed = false;
+    changed = true;
+  }
+
+  if (typeof user.onboardingGuideDismissed !== "boolean") {
+    user.onboardingGuideDismissed = false;
+    changed = true;
+  }
+
+  if (changed) {
+    await user.save();
+  }
+};
+
+const normalizeFreeSpawnsUsed = async (user: UserDocument): Promise<void> => {
+  if (typeof user.freeSpawnsUsed === "number" && Number.isFinite(user.freeSpawnsUsed) && user.freeSpawnsUsed >= 0) {
+    return;
+  }
+
+  user.freeSpawnsUsed = 0;
+  await user.save();
+};
+
+const normalizeDeleteActionsUsed = async (user: UserDocument): Promise<void> => {
+  if (typeof user.deleteActionsUsed === "number" && Number.isFinite(user.deleteActionsUsed) && user.deleteActionsUsed >= 0) {
+    return;
+  }
+
+  user.deleteActionsUsed = 0;
+  await user.save();
 };
 
 const addDiscoveredRecipe = (user: UserDocument, recipeKey: string): void => {
@@ -269,7 +307,7 @@ const buildDeleteCosts = (user: UserDocument): Array<number | null> => {
     }
 
     const tier = getItemTier(itemId);
-    return getDeleteCost(tier, occupiedActiveCells);
+    return getDeleteCostWithProgression(tier, occupiedActiveCells, user.deleteActionsUsed);
   });
 };
 
@@ -290,6 +328,8 @@ const toUserStateDto = (
   latestDiscovery: ItemDetails | null,
   lastActionMessage: string | null
 ): UserStateDto => {
+  const now = new Date();
+
   return {
     _id: user.id,
     gold: user.gold,
@@ -301,6 +341,7 @@ const toUserStateDto = (
       }))
     },
     incomePerMinute: calculateIncomeWithBase(user.grid, user.baseLevel),
+    claimableIncome: getClaimableIncomePreview(user, now),
     lastIncomeClaimAt: user.lastIncomeClaimAt,
     spawnCost: getSpawnCost(user),
     baseUpgradeCost: getBaseUpgradeCost(user.baseLevel),
@@ -311,7 +352,9 @@ const toUserStateDto = (
     itemCatalog: ITEM_CATALOG,
     deleteCosts: buildDeleteCosts(user),
     latestDiscovery,
-    lastActionMessage
+    lastActionMessage,
+    onboardingHintDismissed: user.onboardingHintDismissed,
+    onboardingGuideDismissed: user.onboardingGuideDismissed
   };
 };
 
@@ -327,6 +370,9 @@ const prepareUser = async (): Promise<UserDocument> => {
   await normalizeDiscoveredItems(user);
   await normalizeDiscoveredRecipes(user);
   await normalizeRewardedGoals(user);
+  await normalizeOnboardingFlags(user);
+  await normalizeFreeSpawnsUsed(user);
+  await normalizeDeleteActionsUsed(user);
 
   const rewardGold = applyGoalRewards(user);
   if (rewardGold > 0) {
@@ -341,6 +387,27 @@ const randomBaseItem = (): string => {
   return BASE_SPAWN_ITEM_IDS[randomIndex];
 };
 
+const settlePendingIncome = (user: UserDocument, now: Date): number => {
+  const elapsedSecondsRaw = Math.floor((now.getTime() - user.lastIncomeClaimAt.getTime()) / 1000);
+  const elapsedSeconds = Math.max(0, Math.min(elapsedSecondsRaw, MAX_OFFLINE_INCOME_SECONDS));
+  const incomePerSecond = calculateIncomeWithBase(user.grid, user.baseLevel) / 60;
+  const earnedGold = Math.floor(incomePerSecond * elapsedSeconds);
+
+  if (earnedGold > 0) {
+    user.gold += earnedGold;
+  }
+
+  user.lastIncomeClaimAt = now;
+  return earnedGold;
+};
+
+const getClaimableIncomePreview = (user: UserDocument, now: Date): number => {
+  const elapsedSecondsRaw = Math.floor((now.getTime() - user.lastIncomeClaimAt.getTime()) / 1000);
+  const elapsedSeconds = Math.max(0, Math.min(elapsedSecondsRaw, MAX_OFFLINE_INCOME_SECONDS));
+  const incomePerSecond = calculateIncomeWithBase(user.grid, user.baseLevel) / 60;
+  return Math.floor(incomePerSecond * elapsedSeconds);
+};
+
 export const getUserState = async (): Promise<UserStateDto> => {
   const user = await prepareUser();
   return toUserStateDto(user, null, null);
@@ -352,6 +419,7 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
   }
 
   const user = await prepareUser();
+  settlePendingIncome(user, new Date());
   const activeGridSize = getActiveGridSize(user.baseLevel);
   assertCellIndex(input.cellA, activeGridSize);
   assertCellIndex(input.cellB, activeGridSize);
@@ -390,6 +458,7 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
 
 export const spawnItem = async (): Promise<UserStateDto> => {
   const user = await prepareUser();
+  settlePendingIncome(user, new Date());
   const activeGridSize = getActiveGridSize(user.baseLevel);
   const emptyIndex = user.grid.cells
     .slice(0, activeGridSize)
@@ -405,6 +474,7 @@ export const spawnItem = async (): Promise<UserStateDto> => {
   }
 
   user.gold -= spawnCost;
+  user.freeSpawnsUsed += 1;
   const spawnedItemId = randomBaseItem();
   user.grid.cells[emptyIndex].itemId = spawnedItemId;
   user.grid.cells[emptyIndex].itemLevel = undefined;
@@ -422,6 +492,7 @@ export const spawnItem = async (): Promise<UserStateDto> => {
 
 export const deleteCell = async (input: DeleteCellInput): Promise<UserStateDto> => {
   const user = await prepareUser();
+  settlePendingIncome(user, new Date());
   const activeGridSize = getActiveGridSize(user.baseLevel);
   assertCellIndex(input.cellIndex, activeGridSize);
 
@@ -433,7 +504,7 @@ export const deleteCell = async (input: DeleteCellInput): Promise<UserStateDto> 
 
   const occupiedCells = getOccupiedActiveCellsCount(user);
   const itemTier = getItemTier(itemId);
-  const deleteCost = getDeleteCost(itemTier, occupiedCells);
+  const deleteCost = getDeleteCostWithProgression(itemTier, occupiedCells, user.deleteActionsUsed);
 
   if (user.gold < deleteCost) {
     throw new Error("Недостаточно энергии для утилизации");
@@ -442,6 +513,7 @@ export const deleteCell = async (input: DeleteCellInput): Promise<UserStateDto> 
   user.gold -= deleteCost;
   user.grid.cells[input.cellIndex].itemId = null;
   user.grid.cells[input.cellIndex].itemLevel = undefined;
+  user.deleteActionsUsed += 1;
   await user.save();
 
   return toUserStateDto(user, null, "♻️ Образец утилизирован");
@@ -449,20 +521,12 @@ export const deleteCell = async (input: DeleteCellInput): Promise<UserStateDto> 
 
 export const claimIncome = async (): Promise<UserStateDto> => {
   const user = await prepareUser();
-
-  const now = new Date();
-  const elapsedSecondsRaw = Math.floor((now.getTime() - user.lastIncomeClaimAt.getTime()) / 1000);
-  const elapsedSeconds = Math.max(0, Math.min(elapsedSecondsRaw, MAX_OFFLINE_INCOME_SECONDS));
-
-  const incomePerSecond = calculateIncomeWithBase(user.grid, user.baseLevel) / 60;
-  const earnedGold = Math.floor(incomePerSecond * elapsedSeconds);
+  const earnedGold = settlePendingIncome(user, new Date());
 
   if (earnedGold <= 0) {
+    await user.save();
     return toUserStateDto(user, null, "💰 Поток собран");
   }
-
-  user.gold += earnedGold;
-  user.lastIncomeClaimAt = now;
   await user.save();
 
   return toUserStateDto(user, null, "💰 Поток собран");
@@ -470,6 +534,7 @@ export const claimIncome = async (): Promise<UserStateDto> => {
 
 export const upgradeBase = async (): Promise<UserStateDto> => {
   const user = await prepareUser();
+  settlePendingIncome(user, new Date());
   const upgradeCost = getBaseUpgradeCost(user.baseLevel);
 
   if (user.gold < upgradeCost) {
@@ -481,4 +546,19 @@ export const upgradeBase = async (): Promise<UserStateDto> => {
   await user.save();
 
   return toUserStateDto(user, null, "🏛️ Лаборатория усилена");
+};
+
+export const updateOnboardingState = async (input: UpdateOnboardingInput): Promise<UserStateDto> => {
+  const user = await prepareUser();
+
+  if (typeof input.hintDismissed === "boolean") {
+    user.onboardingHintDismissed = input.hintDismissed;
+  }
+
+  if (typeof input.guideDismissed === "boolean") {
+    user.onboardingGuideDismissed = input.guideDismissed;
+  }
+
+  await user.save();
+  return toUserStateDto(user, null, null);
 };

@@ -10,3 +10,26 @@
 @import "./styles/chunk09b.css";
 @import "./styles/chunk09c.css";
 @import "./styles/chunk10.css";
+
+.mission-mainline {
+  justify-content: flex-start;
+}
+
+.mission-reward-line {
+  margin: 3px 0 0;
+  font-size: 11px;
+  line-height: 1.25;
+  color: #ffe6a1;
+  opacity: 0.92;
+  max-width: calc(100% - 56px);
+  white-space: normal;
+}
+
+@media (max-width: 640px) {
+  .mission-reward-line {
+    margin-top: 2px;
+    font-size: 10px;
+    line-height: 1.2;
+    max-width: calc(100% - 34px);
+  }
+}

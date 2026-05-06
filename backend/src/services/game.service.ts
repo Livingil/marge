@@ -601,13 +601,8 @@ export const claimIncome = async (): Promise<UserStateDto> => {
   const user = await prepareUser();
   const earnedGold = settlePendingIncome(user, new Date());
 
-  if (earnedGold <= 0) {
-    await user.save();
-    return toUserStateDto(user, null, "💰 Поток собран");
-  }
   await user.save();
-
-  return toUserStateDto(user, null, "💰 Поток собран");
+  return toUserStateDto(user, null, `💰 Поток собран: +${earnedGold} энергии`);
 };
 
 export const upgradeBase = async (): Promise<UserStateDto> => {

@@ -92,14 +92,13 @@ export const GameBoardPlaySection = ({
     availableExpansionModules.find((module) => user.baseLevel < module.unlockLevel) ??
     availableExpansionModules[0] ??
     null;
-  const goalPrimaryReward = `Награда: +${user.currentGoal.reward.energy} энергии`;
-  const goalSecondaryRewards: string[] = [];
-  if (user.currentGoal.reward.freeSpawns > 0) {
-    goalSecondaryRewards.push(`+${user.currentGoal.reward.freeSpawns} синтез`);
-  }
-  if (user.currentGoal.reward.freeDeletes > 0) {
-    goalSecondaryRewards.push(`+${user.currentGoal.reward.freeDeletes} утилизация`);
-  }
+  const goalRewardLine = [
+    `+${user.currentGoal.reward.energy} энергии`,
+    user.currentGoal.reward.freeSpawns > 0 ? `+${user.currentGoal.reward.freeSpawns} синтез` : null,
+    user.currentGoal.reward.freeDeletes > 0 ? `+${user.currentGoal.reward.freeDeletes} утилизация` : null
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <>
@@ -190,13 +189,8 @@ export const GameBoardPlaySection = ({
           </div>
           <div className="mission-mainline">
             <h1 className="mission-title">{user.currentGoal.title}</h1>
-            <div className="mission-reward-inline">
-              <p className="mission-reward-primary">{goalPrimaryReward}</p>
-              {goalSecondaryRewards.length > 0 ? (
-                <p className="mission-reward-secondary">{goalSecondaryRewards.join(" ")}</p>
-              ) : null}
-            </div>
           </div>
+          <p className="mission-reward-line">🎁 {goalRewardLine}</p>
         </div>
         <div className="target-core">
           <div className="target-core-icon-shell">

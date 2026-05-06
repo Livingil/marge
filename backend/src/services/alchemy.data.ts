@@ -65,9 +65,9 @@ export const getRecipeKey = (a: string, b: string): string => {
   return [a, b].sort().join("+");
 };
 
-const forbiddenRecipeKeys = new Set<string>([
-  getRecipeKey("ice", "spark"),
-  getRecipeKey("reactor", "spark")
+const forbiddenRecipeTokens = new Set<string>([
+  `${getRecipeKey("ice", "spark")}=>water`,
+  `${getRecipeKey("reactor", "spark")}=>science`
 ]);
 
 const baseSpawnSet = new Set<string>(["spark", "water", "seed", "stone", "fire"]);
@@ -77,7 +77,8 @@ const filteredRecipePairs: RecipePair[] = ALCHEMY_RECIPE_PLAN.filter(([leftId, r
     return false;
   }
 
-  if (forbiddenRecipeKeys.has(getRecipeKey(leftId, rightId))) {
+  const recipeToken = `${getRecipeKey(leftId, rightId)}=>${resultId}`;
+  if (forbiddenRecipeTokens.has(recipeToken)) {
     return false;
   }
 

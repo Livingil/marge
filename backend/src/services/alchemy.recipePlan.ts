@@ -19,8 +19,9 @@ const addRecipe = (leftId: string, rightId: string, resultId: string): void => {
   const key = keyOf(leftId, rightId);
   const existing = byKey.get(key);
   if (existing) {
-    // Keep first defined result for deterministic recipe keys.
-    return;
+    throw new Error(
+      `Duplicate recipe key '${key}': existing result '${existing}', new result '${resultId}'`
+    );
   }
 
   byKey.set(key, resultId);
@@ -101,15 +102,14 @@ addBulk([
   ["water", "sand", "clay"],
   ["fire", "clay", "ceramic"],
   ["fire", "sand", "glass"],
-  ["fire", "stone", "metal"],
-  ["fire", "metal", "ore"],
+  ["fire", "metal", "iron"],
   ["fire", "wind", "smoke"],
   ["ash", "stone", "coal"],
   ["ash", "water", "clay"],
   ["stone", "wind", "dust"],
   ["ice", "wind", "frost"],
   ["steam", "wind", "geyser"],
-  ["lava", "water", "stone"],
+  ["lava", "water", "obsidian"],
   ["lava", "sand", "glass"],
   ["lava", "ash", "obsidian"],
   ["stone", "crystal", "quake"],
@@ -121,7 +121,6 @@ addBulk([
 ]);
 
 addBulk([
-  ["seed", "water", "plant"],
   ["seed", "leaf", "plant"],
   ["seed", "root", "plant"],
   ["plant", "water", "vine"],
@@ -149,12 +148,10 @@ addBulk([
   ["copper", "wire", "circuit"],
   ["metal", "spark", "gear"],
   ["gear", "metal", "mechanism"],
-  ["metal", "charge", "magnet"],
   ["metal", "crystal", "lens"],
   ["glass", "metal", "mirror"],
   ["glass", "crystal", "prism"],
-  ["clay", "fire", "ceramic"],
-  ["coal", "ore", "graphite"],
+  ["coal", "crystal", "graphite"],
   ["graphite", "plasma", "gem"],
   ["obsidian", "mana", "mythril"],
   ["mythril", "powerCore", "adamant"],
@@ -191,7 +188,7 @@ addBulk([
   ["organism", "life", "beast"],
   ["life", "energyCell", "mind"],
   ["life", "stone", "bone"],
-  ["life", "water", "blood"],
+  ["life", "steam", "blood"],
   ["cell", "cell", "tissue"],
   ["tissue", "nerve", "brain"],
   ["brain", "scanner", "mind"],
@@ -224,7 +221,7 @@ addBulk([
   ["rune", "spell", "ritual"],
   ["oracle", "mana", "arcaneCore"],
   ["spirit", "curse", "ghost"],
-  ["science", "mana", "spell"]
+  ["science", "rune", "spell"]
 ]);
 
 addBulk([
@@ -313,10 +310,16 @@ const chainIds: string[][] = [
 
 for (const ids of chainIds) {
   for (let i = 0; i < ids.length - 2; i += 1) {
-    addRecipe(ids[i], ids[i + 1], ids[i + 2]);
+    const key = keyOf(ids[i], ids[i + 1]);
+    if (!byKey.has(key)) {
+      addRecipe(ids[i], ids[i + 1], ids[i + 2]);
+    }
   }
   for (let i = 0; i < ids.length - 3; i += 1) {
-    addRecipe(ids[i], ids[i + 2], ids[i + 3]);
+    const key = keyOf(ids[i], ids[i + 2]);
+    if (!byKey.has(key)) {
+      addRecipe(ids[i], ids[i + 2], ids[i + 3]);
+    }
   }
 }
 
@@ -343,7 +346,12 @@ const crossSeeds: Array<[string, string, string]> = [
   ["universe", "oracle", "universeHeart"]
 ];
 
-crossSeeds.forEach(([a, b, c]) => addRecipe(a, b, c));
+crossSeeds.forEach(([a, b, c]) => {
+  const key = keyOf(a, b);
+  if (!byKey.has(key)) {
+    addRecipe(a, b, c);
+  }
+});
 
 export const ALCHEMY_RECIPE_PLAN: RecipePlanPair[] = plan.slice(0, 320);
 

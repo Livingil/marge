@@ -2,6 +2,7 @@
 import { ALCHEMY_RECIPE_PLAN } from "../services/alchemy.recipePlan.js";
 
 const BASE_SPAWN = ["spark", "water", "seed", "stone", "fire"] as const;
+const ALLOWED_BASE_RESULT_RECIPES: Array<[string, string, string]> = [];
 const MILESTONES = ["science", "life", "powerCore", "world", "universe", "genesisCore", "omegaCore"] as const;
 const FORBIDDEN: Array<[string, string, string]> = [
   ["ice", "spark", "water"],
@@ -92,6 +93,22 @@ if (baseCovered < 12) {
   throw new Error(`Base pair coverage too low: ${baseCovered}/15`);
 }
 
+const allowedBaseResultKeys = new Set(
+  ALLOWED_BASE_RESULT_RECIPES.map(([left, right, result]) => `${keyOf(left, right)}=>${result}`)
+);
+
+const disallowedBaseResultRecipes = baseResultRecipes.filter(({ left, right, result }) => {
+  return !allowedBaseResultKeys.has(`${keyOf(left, right)}=>${result}`);
+});
+
+if (disallowedBaseResultRecipes.length > 0) {
+  throw new Error(
+    `Disallowed base-result recipes found: ${disallowedBaseResultRecipes
+      .map((recipe) => `${recipe.left}+${recipe.right}=${recipe.result}`)
+      .join(", ")}`
+  );
+}
+
 const chainCounts = ALCHEMY_EMOJI_PALETTE.reduce<Record<string, number>>((acc, item) => {
   acc[item.chain] = (acc[item.chain] ?? 0) + 1;
   return acc;
@@ -112,7 +129,7 @@ console.log("Count by stage:");
 console.table(stageCounts);
 console.log(`Base pair coverage: ${baseCovered}/15`);
 console.table(basePairs);
-console.log("Recipes producing base spawn items (warning):");
+console.log("Recipes producing base spawn items:");
 console.table(baseResultRecipes);
 console.log("Milestone recipes:");
 console.table(milestoneRecipes.map(([left, right, result]) => ({ left, right, result })));

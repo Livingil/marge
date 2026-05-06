@@ -282,25 +282,25 @@ const hasGoalRewardSummary = (summary: GoalRewardSummary): boolean => {
 const formatGoalRewardSummary = (summary: GoalRewardSummary): string => {
   const parts: string[] = [];
   if (summary.energy > 0) {
-    parts.push(`+${summary.energy} СЌРЅРµСЂРіРёРё`);
+    parts.push(`+${summary.energy} энергии`);
   }
   if (summary.freeSpawns > 0) {
-    parts.push(`+${summary.freeSpawns} СЃРёРЅС‚РµР·`);
+    parts.push(`+${summary.freeSpawns} синтез`);
   }
   if (summary.freeDeletes > 0) {
-    parts.push(`+${summary.freeDeletes} СѓС‚РёР»РёР·Р°С†РёСЏ`);
+    parts.push(`+${summary.freeDeletes} утилизация`);
   }
 
   return parts.join(", ");
 };
 
 const buildGoalRewardText = (reward: GoalRewardDto): string => {
-  const parts = [`РќР°РіСЂР°РґР°: +${reward.energy} СЌРЅРµСЂРіРёРё`];
+  const parts = [`Награда: +${reward.energy} энергии`];
   if (reward.freeSpawns > 0) {
-    parts.push(`+${reward.freeSpawns} СЃРёРЅС‚РµР·`);
+    parts.push(`+${reward.freeSpawns} синтез`);
   }
   if (reward.freeDeletes > 0) {
-    parts.push(`+${reward.freeDeletes} СѓС‚РёР»РёР·Р°С†РёСЏ`);
+    parts.push(`+${reward.freeDeletes} утилизация`);
   }
 
   return parts.join(", ");
@@ -380,14 +380,14 @@ const buildDeleteCosts = (user: UserDocument): Array<number | null> => {
 
 const buildMergeMessage = (outcome: MergeOutcome, item: ItemDetails | null): string => {
   if (outcome === "failed") {
-    return "Р­С‚Рё СЃРёРјРІРѕР»С‹ РїРѕРєР° РЅРµ СЃРѕРµРґРёРЅСЏСЋС‚СЃСЏ";
+    return "Эти символы пока не соединяются";
   }
 
   if (item) {
-    return `вњЁ РћС‚РєСЂС‹С‚Рѕ: ${item.icon} ${item.name}`;
+    return `✨ Открыто: ${item.icon} ${item.name}`;
   }
 
-  return "вњЁ РћС‚РєСЂС‹С‚Рѕ";
+  return "✨ Открыто";
 };
 
 const toUserStateDto = (
@@ -535,12 +535,12 @@ export const spawnItem = async (): Promise<UserStateDto> => {
     .findIndex((cell) => !normalizeGridCellItemId(cell));
 
   if (emptyIndex === -1) {
-    throw new Error("РќРµС‚ СЃРІРѕР±РѕРґРЅС‹С… РєР»РµС‚РѕРє");
+    throw new Error("Нет свободных клеток");
   }
 
   const spawnCost = getSpawnCost(user);
   if (user.goalFreeSpawns <= 0 && user.gold < spawnCost) {
-    throw new Error("РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ СЌРЅРµСЂРіРёРё");
+    throw new Error("Недостаточно энергии");
   }
 
   if (user.goalFreeSpawns > 0) {
@@ -561,7 +561,7 @@ export const spawnItem = async (): Promise<UserStateDto> => {
     return toUserStateDto(user, latestDiscovery, `🎯 Цель выполнена: ${formatGoalRewardSummary(rewardSummary)}`);
   }
 
-  return toUserStateDto(user, latestDiscovery, "вњЁ РЎРёРЅС‚РµР·РёСЂРѕРІР°РЅ РЅРѕРІС‹Р№ СЃРёРјРІРѕР»");
+  return toUserStateDto(user, latestDiscovery, "✨ Синтезирован новый символ");
 };
 
 export const deleteCell = async (input: DeleteCellInput): Promise<UserStateDto> => {
@@ -573,7 +573,7 @@ export const deleteCell = async (input: DeleteCellInput): Promise<UserStateDto> 
   const cell = user.grid.cells[input.cellIndex];
   const itemId = normalizeGridCellItemId(cell);
   if (!itemId) {
-    throw new Error("РљР»РµС‚РєР° СѓР¶Рµ РїСѓСЃС‚Р°");
+    throw new Error("Клетка уже пуста");
   }
 
   const occupiedCells = getOccupiedActiveCellsCount(user);
@@ -581,7 +581,7 @@ export const deleteCell = async (input: DeleteCellInput): Promise<UserStateDto> 
   const deleteCost = getDeleteCostWithProgression(itemTier, occupiedCells, user.deleteActionsUsed);
 
   if (user.goalFreeDeletes <= 0 && user.gold < deleteCost) {
-    throw new Error("РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ СЌРЅРµСЂРіРёРё РґР»СЏ СѓС‚РёР»РёР·Р°С†РёРё");
+    throw new Error("Недостаточно энергии для утилизации");
   }
 
   if (user.goalFreeDeletes > 0) {
@@ -594,7 +594,7 @@ export const deleteCell = async (input: DeleteCellInput): Promise<UserStateDto> 
   user.deleteActionsUsed += 1;
   await user.save();
 
-  return toUserStateDto(user, null, "в™»пёЏ РћР±СЂР°Р·РµС† СѓС‚РёР»РёР·РёСЂРѕРІР°РЅ");
+  return toUserStateDto(user, null, "♻️ Образец утилизирован");
 };
 
 export const claimIncome = async (): Promise<UserStateDto> => {
@@ -603,11 +603,11 @@ export const claimIncome = async (): Promise<UserStateDto> => {
 
   if (earnedGold <= 0) {
     await user.save();
-    return toUserStateDto(user, null, "рџ’° РџРѕС‚РѕРє СЃРѕР±СЂР°РЅ");
+    return toUserStateDto(user, null, "💰 Поток собран");
   }
   await user.save();
 
-  return toUserStateDto(user, null, "рџ’° РџРѕС‚РѕРє СЃРѕР±СЂР°РЅ");
+  return toUserStateDto(user, null, "💰 Поток собран");
 };
 
 export const upgradeBase = async (): Promise<UserStateDto> => {
@@ -616,14 +616,14 @@ export const upgradeBase = async (): Promise<UserStateDto> => {
   const upgradeCost = getBaseUpgradeCost(user.baseLevel);
 
   if (user.gold < upgradeCost) {
-    throw new Error("РќРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ СЌРЅРµСЂРіРёРё");
+    throw new Error("Недостаточно энергии");
   }
 
   user.gold -= upgradeCost;
   user.baseLevel += 1;
   await user.save();
 
-  return toUserStateDto(user, null, "рџЏ›пёЏ Р›Р°Р±РѕСЂР°С‚РѕСЂРёСЏ СѓСЃРёР»РµРЅР°");
+  return toUserStateDto(user, null, "🏛️ Лаборатория усилена");
 };
 
 export const updateOnboardingState = async (input: UpdateOnboardingInput): Promise<UserStateDto> => {

@@ -95,6 +95,19 @@
     gap: 6px;
   }
 
+  .mission-reward-inline {
+    max-width: 46%;
+  }
+
+  .mission-reward-primary {
+    font-size: 10px;
+  }
+
+  .mission-reward-secondary {
+    font-size: 9px;
+    margin-top: 1px;
+  }
+
   .mission-reward-chip {
     padding: 3px 7px;
     font-size: 10px;

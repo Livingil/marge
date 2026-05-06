@@ -43,6 +43,28 @@
   gap: 10px;
 }
 
+.mission-reward-inline {
+  margin: 0;
+  flex: 0 1 auto;
+  text-align: right;
+  color: var(--text-soft);
+}
+
+.mission-reward-primary,
+.mission-reward-secondary {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.mission-reward-primary {
+  font-size: 12px;
+}
+
+.mission-reward-secondary {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
 .mission-reward-chip {
   margin: 0;
   flex: 0 0 auto;

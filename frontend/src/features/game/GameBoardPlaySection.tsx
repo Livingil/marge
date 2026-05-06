@@ -92,6 +92,14 @@ export const GameBoardPlaySection = ({
     availableExpansionModules.find((module) => user.baseLevel < module.unlockLevel) ??
     availableExpansionModules[0] ??
     null;
+  const goalPrimaryReward = `Награда: +${user.currentGoal.reward.energy} энергии`;
+  const goalSecondaryRewards: string[] = [];
+  if (user.currentGoal.reward.freeSpawns > 0) {
+    goalSecondaryRewards.push(`+${user.currentGoal.reward.freeSpawns} синтез`);
+  }
+  if (user.currentGoal.reward.freeDeletes > 0) {
+    goalSecondaryRewards.push(`+${user.currentGoal.reward.freeDeletes} утилизация`);
+  }
 
   return (
     <>
@@ -182,6 +190,12 @@ export const GameBoardPlaySection = ({
           </div>
           <div className="mission-mainline">
             <h1 className="mission-title">{user.currentGoal.title}</h1>
+            <div className="mission-reward-inline">
+              <p className="mission-reward-primary">{goalPrimaryReward}</p>
+              {goalSecondaryRewards.length > 0 ? (
+                <p className="mission-reward-secondary">{goalSecondaryRewards.join(" ")}</p>
+              ) : null}
+            </div>
           </div>
         </div>
         <div className="target-core">
@@ -189,7 +203,6 @@ export const GameBoardPlaySection = ({
             <div className="target-core-icon">{targetItem?.icon ?? "☢️"}</div>
             <div className="target-core-ring" />
           </div>
-          <p className="mission-reward-chip target-reward-chip">+{user.currentGoal.reward.energy}</p>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { ALCHEMY_ITEM_TIERS } from "./alchemy.data.js";
+import type { GoalRewardDto } from "./game.types.js";
 import {
   BASE_DELETE_COST,
   BASE_SPAWN_COST,
@@ -55,4 +56,12 @@ export const getDeleteCostWithProgression = (
 
 export const getGoalReward = (goalIndex: number, itemTier: number): number => {
   return Math.floor(50 + goalIndex * 25 + itemTier * 40);
+};
+
+export const getGoalRewardBundle = (goalIndex: number, itemTier: number): GoalRewardDto => {
+  const energy = getGoalReward(goalIndex, itemTier);
+  const freeSpawns = goalIndex < 5 ? 0 : goalIndex < 12 ? 1 : 2;
+  const freeDeletes = goalIndex < 8 ? 0 : goalIndex < 15 ? 1 : 2;
+
+  return { energy, freeSpawns, freeDeletes };
 };

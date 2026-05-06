@@ -33,6 +33,11 @@ export type UserState = {
     title: string;
     targetItemId: string;
     rewardText: string;
+    reward: {
+      energy: number;
+      freeSpawns: number;
+      freeDeletes: number;
+    };
   };
   discoveredItems: string[];
   discoveredRecipes: string[];
@@ -43,6 +48,8 @@ export type UserState = {
   lastActionMessage: string | null;
   onboardingHintDismissed: boolean;
   onboardingGuideDismissed: boolean;
+  goalFreeSpawns: number;
+  goalFreeDeletes: number;
   grid: {
     cells: GridCell[];
   };

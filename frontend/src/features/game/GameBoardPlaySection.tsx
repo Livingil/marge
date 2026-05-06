@@ -189,7 +189,7 @@ export const GameBoardPlaySection = ({
             <div className="target-core-icon">{targetItem?.icon ?? "☢️"}</div>
             <div className="target-core-ring" />
           </div>
-          <p className="mission-reward-chip target-reward-chip">+{user.currentGoal.rewardText.match(/\d+/)?.[0] ?? "0"}</p>
+          <p className="mission-reward-chip target-reward-chip">+{user.currentGoal.reward.energy}</p>
         </div>
       </div>
 
@@ -224,14 +224,18 @@ export const GameBoardPlaySection = ({
           type="button"
           className="action-button action-button-primary"
           onClick={spawnItemAction}
-          disabled={isSpawning || user.gold < user.spawnCost}
+          disabled={isSpawning || (user.goalFreeSpawns <= 0 && user.gold < user.spawnCost)}
         >
           <span className="action-button-label">
             <span className="desktop-label">{isSpawning ? "Синтез..." : "Синтезировать ядро"}</span>
             <span className="mobile-label">{isSpawning ? "Синтез..." : "Синтезировать ядро"}</span>
           </span>
           <span className="action-button-meta">
-            {canSpawn ? `Стоимость: ${user.spawnCost}` : `Нужно энергии: ${user.spawnCost}`}
+            {user.goalFreeSpawns > 0
+              ? `Бесплатно: ${user.goalFreeSpawns}`
+              : canSpawn
+                ? `Стоимость: ${user.spawnCost}`
+                : `Нужно энергии: ${user.spawnCost}`}
           </span>
         </button>
         <button
@@ -264,13 +268,17 @@ export const GameBoardPlaySection = ({
           type="button"
           className="action-button action-button-tertiary action-button-delete"
           onClick={deleteCellAction}
-          disabled={isDeletingCell || !hasSelectedCellItem || !canDeleteSelectedCell}
+          disabled={isDeletingCell || !hasSelectedCellItem || (user.goalFreeDeletes <= 0 && !canDeleteSelectedCell)}
         >
           <span className="action-button-label">
             {isDeletingCell ? "Утилизация..." : hasSelectedCellItem ? "Утилизировать" : "Выбери образец"}
           </span>
           <span className="action-button-meta">
-            {selectedCellDeleteCost !== null ? `Стоимость: ${selectedCellDeleteCost}` : "Платная утилизация"}
+            {hasSelectedCellItem && user.goalFreeDeletes > 0
+              ? `Бесплатно: ${user.goalFreeDeletes}`
+              : selectedCellDeleteCost !== null
+                ? `Стоимость: ${selectedCellDeleteCost}`
+                : "Платная утилизация"}
           </span>
         </button>
       </div>

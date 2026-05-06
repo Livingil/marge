@@ -14,6 +14,8 @@ export interface IUser {
   onboardingGuideDismissed: boolean;
   freeSpawnsUsed: number;
   deleteActionsUsed: number;
+  goalFreeSpawns: number;
+  goalFreeDeletes: number;
 }
 
 type UserModel = Model<IUser>;
@@ -76,6 +78,18 @@ const userSchema = new Schema<IUser, UserModel>(
       default: 0
     },
     deleteActionsUsed: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0
+    },
+    goalFreeSpawns: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0
+    },
+    goalFreeDeletes: {
       type: Number,
       required: true,
       min: 0,

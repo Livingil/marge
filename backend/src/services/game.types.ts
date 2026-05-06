@@ -24,6 +24,13 @@ export interface CurrentGoalDto {
   title: string;
   targetItemId: string;
   rewardText: string;
+  reward: GoalRewardDto;
+}
+
+export interface GoalRewardDto {
+  energy: number;
+  freeSpawns: number;
+  freeDeletes: number;
 }
 
 export interface UserGridCellDto {
@@ -62,4 +69,6 @@ export interface UserStateDto {
   lastActionMessage: string | null;
   onboardingHintDismissed: boolean;
   onboardingGuideDismissed: boolean;
+  goalFreeSpawns: number;
+  goalFreeDeletes: number;
 }

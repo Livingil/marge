@@ -309,26 +309,26 @@ const buildGoalRewardText = (reward: GoalRewardDto): string => {
 const applyGoalRewards = (user: UserDocument): GoalRewardSummary => {
   const summary = emptyGoalRewardSummary();
 
-  GOAL_SEQUENCE.forEach((goalItemId, goalIndex) => {
-    const discovered = user.discoveredItems.includes(goalItemId);
-    const alreadyRewarded = user.rewardedGoals.includes(goalItemId);
-    if (!discovered || alreadyRewarded) {
-      return;
-    }
-
-    const tier = getItemTier(goalItemId);
-    const reward = getGoalRewardBundle(goalIndex, tier);
-    user.rewardedGoals = [...user.rewardedGoals, goalItemId].sort();
-    summary.energy += reward.energy;
-    summary.freeSpawns += reward.freeSpawns;
-    summary.freeDeletes += reward.freeDeletes;
-  });
-
-  if (hasGoalRewardSummary(summary)) {
-    user.gold += summary.energy;
-    user.goalFreeSpawns += summary.freeSpawns;
-    user.goalFreeDeletes += summary.freeDeletes;
+  const goalIndex = GOAL_SEQUENCE.findIndex((goalItemId) => !user.rewardedGoals.includes(goalItemId));
+  if (goalIndex === -1) {
+    return summary;
   }
+
+  const goalItemId = GOAL_SEQUENCE[goalIndex];
+  if (!user.discoveredItems.includes(goalItemId)) {
+    return summary;
+  }
+
+  const tier = getItemTier(goalItemId);
+  const reward = getGoalRewardBundle(goalIndex, tier);
+  user.rewardedGoals = [...user.rewardedGoals, goalItemId].sort();
+  summary.energy = reward.energy;
+  summary.freeSpawns = reward.freeSpawns;
+  summary.freeDeletes = reward.freeDeletes;
+
+  user.gold += summary.energy;
+  user.goalFreeSpawns += summary.freeSpawns;
+  user.goalFreeDeletes += summary.freeDeletes;
 
   return summary;
 };

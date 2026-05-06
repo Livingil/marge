@@ -35,6 +35,16 @@
   max-width: calc(100% - 84px);
 }
 
+.mission-target-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  font-size: 19px;
+  line-height: 1;
+}
+
 .mission-title-strong {
   margin: 0;
   font-size: 28px;
@@ -152,6 +162,12 @@
   .mission-title-row {
     gap: 6px;
     max-width: 100%;
+  }
+
+  .mission-target-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
   }
 
   .mission-title-strong {

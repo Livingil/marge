@@ -18,6 +18,7 @@ export const GameBoardPlaySection = ({
   handleCellClick,
   getCellTierClassName,
   user,
+  targetItem,
   isSpawning,
   isClaimingIncome,
   isUpgradingBase,
@@ -47,6 +48,7 @@ export const GameBoardPlaySection = ({
   | "handleCellClick"
   | "getCellTierClassName"
   | "user"
+  | "targetItem"
   | "isSpawning"
   | "isClaimingIncome"
   | "isUpgradingBase"
@@ -192,6 +194,7 @@ export const GameBoardPlaySection = ({
           <p className="eyebrow mission-kicker">Текущая цель</p>
           <div className="mission-mainline mission-mainline-stack">
             <div className="mission-title-row">
+              <span className="mission-target-icon" aria-hidden="true">{targetItem?.icon ?? "🎯"}</span>
               <h1 className="mission-title mission-title-strong">{user.currentGoal.title}</h1>
             </div>
             <div className="mission-reward-group">

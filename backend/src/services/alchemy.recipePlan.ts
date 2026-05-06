@@ -115,7 +115,7 @@ addBulk([
   ["stone", "crystal", "quake"],
   ["mist", "frost", "elementalCore"],
   ["lava", "frost", "elementalCore"],
-  ["acid", "metal", "ore"],
+  ["acid", "metal", "salt"],
   ["water", "salt", "acid"],
   ["steam", "ash", "salt"]
 ]);
@@ -292,69 +292,4 @@ addBulk([
   ["adamant", "arcaneCore", "colossus"],
   ["colossus", "genesisCore", "omegaCore"]
 ]);
-
-// Autogenerate additional recipes to reach target range without conflicts.
-const chainIds: string[][] = [
-  ["spark", "charge", "battery", "energyCell", "current", "coil", "lightning", "capacitor", "generator", "plasma", "ion", "pulse", "radiation", "overload", "powerCore", "reactor", "stormCore", "fusionCore", "quantumCore", "zeroPointCell", "solarFlare", "eternalReactor", "omegaCharge"],
-  ["fire", "water", "stone", "wind", "ice", "steam", "ash", "smoke", "clay", "mud", "sand", "dust", "lava", "glass", "crystal", "frost", "mist", "acid", "salt", "quake", "geyser", "elementalCore"],
-  ["seed", "root", "leaf", "plant", "moss", "algae", "flower", "mushroom", "vine", "tree", "fruit", "pollen", "resin", "bark", "thorn", "herb", "nectar", "forest", "garden", "worldTree"],
-  ["coal", "ore", "metal", "copper", "iron", "steel", "silver", "gold", "alloy", "wire", "magnet", "lens", "mirror", "prism", "ceramic", "graphite", "obsidian", "gem", "mythril", "adamant"],
-  ["gear", "mechanism", "circuit", "chip", "sensor", "terminal", "scanner", "processor", "machine", "engine", "pump", "drone", "robot", "automaton", "android", "factory", "serverCore", "labModule", "stabilizer", "replicator", "science", "transmitter"],
-  ["life", "cell", "tissue", "organism", "nerve", "brain", "mind", "bone", "blood", "beast", "shell", "dna", "mutation", "symbiote", "bioCore", "embryo", "hivemind"],
-  ["mana", "rune", "sigil", "scroll", "spell", "soul", "spirit", "ghost", "golem", "wand", "altar", "ritual", "relic", "aura", "curse", "blessing", "oracle", "arcaneCore"],
-  ["meteor", "comet", "moon", "star", "planet", "orbit", "gravity", "nebula", "galaxy", "portal", "gate", "dimension", "cosmos", "universe", "eclipse", "asteroid"],
-  ["shadow", "echo", "rift", "anomaly", "darkMatter", "void", "abyss", "entropy", "blackHole", "singularity"],
-  ["camp", "forge", "workshop", "library", "archive", "tower", "city", "guild", "market", "temple", "observatory", "colony"],
-  ["artificialSoul", "livingMachine", "world", "worldEngine", "genesisCore", "realitySeed", "creationMatrix", "cosmicMind", "universeHeart", "omegaCore", "colossus"]
-];
-
-for (const ids of chainIds) {
-  for (let i = 0; i < ids.length - 2; i += 1) {
-    const key = keyOf(ids[i], ids[i + 1]);
-    if (!byKey.has(key)) {
-      addRecipe(ids[i], ids[i + 1], ids[i + 2]);
-    }
-  }
-  for (let i = 0; i < ids.length - 3; i += 1) {
-    const key = keyOf(ids[i], ids[i + 2]);
-    if (!byKey.has(key)) {
-      addRecipe(ids[i], ids[i + 2], ids[i + 3]);
-    }
-  }
-}
-
-const crossSeeds: Array<[string, string, string]> = [
-  ["mana", "circuit", "science"],
-  ["science", "portal", "dimension"],
-  ["worldTree", "mana", "world"],
-  ["mind", "serverCore", "cosmicMind"],
-  ["fusionCore", "gate", "cosmos"],
-  ["bioCore", "arcaneCore", "realitySeed"],
-  ["replicator", "mythril", "adamant"],
-  ["factory", "arcaneCore", "artificialSoul"],
-  ["observatory", "galaxy", "universe"],
-  ["temple", "oracle", "arcaneCore"],
-  ["stormCore", "planet", "eclipse"],
-  ["hivemind", "android", "livingMachine"],
-  ["worldEngine", "cosmos", "creationMatrix"],
-  ["colony", "world", "worldEngine"],
-  ["omegaCharge", "void", "entropy"],
-  ["anomaly", "mana", "rift"],
-  ["crystal", "rune", "sigil"],
-  ["gold", "mana", "relic"],
-  ["mirror", "aura", "oracle"],
-  ["universe", "oracle", "universeHeart"]
-];
-
-crossSeeds.forEach(([a, b, c]) => {
-  const key = keyOf(a, b);
-  if (!byKey.has(key)) {
-    addRecipe(a, b, c);
-  }
-});
-
-export const ALCHEMY_RECIPE_PLAN: RecipePlanPair[] = plan.slice(0, 320);
-
-if (ALCHEMY_RECIPE_PLAN.length < 250 || ALCHEMY_RECIPE_PLAN.length > 350) {
-  throw new Error(`ALCHEMY_RECIPE_PLAN size ${ALCHEMY_RECIPE_PLAN.length} is outside 250..350`);
-}
+export const ALCHEMY_RECIPE_PLAN: RecipePlanPair[] = plan;

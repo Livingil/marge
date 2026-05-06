@@ -93,6 +93,13 @@ if (baseCovered < 12) {
   throw new Error(`Base pair coverage too low: ${baseCovered}/15`);
 }
 
+if (ALCHEMY_RECIPE_PLAN.length < 120) {
+  throw new Error(`Too few curated recipes: ${ALCHEMY_RECIPE_PLAN.length} (minimum is 120)`);
+}
+if (ALCHEMY_RECIPE_PLAN.length < 160) {
+  warnings.push(`Curated recipe count is low: ${ALCHEMY_RECIPE_PLAN.length} (<160)`);
+}
+
 const allowedBaseResultKeys = new Set(
   ALLOWED_BASE_RESULT_RECIPES.map(([left, right, result]) => `${keyOf(left, right)}=>${result}`)
 );

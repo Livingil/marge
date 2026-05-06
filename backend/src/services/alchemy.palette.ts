@@ -27,7 +27,7 @@ export const ALCHEMY_EMOJI_PALETTE: AlchemyPaletteItem[] = [
   { id: "charge", icon: "🔌", name: "Заряд", description: "Короткий накопленный импульс", chain: "energy", stage: "early" },
   { id: "battery", icon: "🔋", name: "Батарея", description: "Переносной накопитель энергии", chain: "energy", stage: "early" },
   { id: "energyCell", icon: "💠", name: "Энергоячейка", description: "Стабильная энергетическая ячейка", chain: "energy", stage: "early" },
-  { id: "current", icon: "〰️", name: "Ток", description: "Направленный поток заряда", chain: "energy", stage: "early" },
+  { id: "current", icon: "〰️", name: "Ток", description: "Направленный поток заряда", chain: "energy", stage: "mid" },
   { id: "coil", icon: "➰", name: "Катушка", description: "Свернутый проводящий контур", chain: "energy", stage: "early" },
   { id: "lightning", icon: "🌩️", name: "Молния", description: "Мощный импульсный разряд", chain: "energy", stage: "early" },
   { id: "capacitor", icon: "🧱", name: "Конденсатор", description: "Быстрый накопитель заряда", chain: "energy", stage: "mid" },

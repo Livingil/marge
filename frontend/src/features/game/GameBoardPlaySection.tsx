@@ -92,13 +92,20 @@ export const GameBoardPlaySection = ({
     availableExpansionModules.find((module) => user.baseLevel < module.unlockLevel) ??
     availableExpansionModules[0] ??
     null;
-  const goalRewardLine = [
-    `+${user.currentGoal.reward.energy} энергии`,
+  const goalRewardExtras = [
     user.currentGoal.reward.freeSpawns > 0 ? `+${user.currentGoal.reward.freeSpawns} синтез` : null,
     user.currentGoal.reward.freeDeletes > 0 ? `+${user.currentGoal.reward.freeDeletes} утилизация` : null
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  ].filter(Boolean);
+  const goalHintOverrides: Record<string, string> = {
+    battery: "Соедини две ⚡ Искры, чтобы открыть 🔋 Батарею.",
+    charge: "Соедини ⚡ Искру и 💧 Воду, чтобы открыть 🔌 Заряд.",
+    energyCell: "Попробуй соединить две 🔋 Батареи или 🔋 Батарею с 🔌 Зарядом."
+  };
+  const onboardingHintText =
+    goalHintOverrides[user.currentGoal.targetItemId] ??
+    "Ищи новые сочетания элементов, чтобы открыть текущую цель.";
+  const onboardingHintTitle =
+    user.currentGoal.targetItemId in goalHintOverrides ? "Подсказка по цели" : contextHint.title;
 
   return (
     <>
@@ -184,17 +191,23 @@ export const GameBoardPlaySection = ({
 
       <div className="mission-panel">
         <div className="mission-copy">
-          <div className="mission-topline">
-            <p className="eyebrow">Сектор синтеза</p>
-          </div>
-          <div className="mission-mainline">
-            <h1 className="mission-title">{user.currentGoal.title}</h1>
+          <p className="eyebrow mission-kicker">Текущая цель</p>
+          <div className="mission-mainline mission-mainline-stack">
+            <div className="mission-title-row">
+              <span className="mission-target-icon">{targetItem?.icon ?? "☢️"}</span>
+              <h1 className="mission-title mission-title-strong">{user.currentGoal.title}</h1>
+            </div>
+            <div className="mission-reward-group">
+              <p className="mission-reward-badge">Награда: +{user.currentGoal.reward.energy} энергии</p>
+              {goalRewardExtras.length > 0 ? (
+                <p className="mission-reward-line">{goalRewardExtras.join(" · ")}</p>
+              ) : null}
+            </div>
             <div className="target-core target-core-inline">
-              <div className="target-core-icon-shell">
+              <div className="target-core-icon-shell mission-target-core">
                 <div className="target-core-icon">{targetItem?.icon ?? "☢️"}</div>
-                <div className="target-core-ring" />
+                <div className="target-core-ring mission-target-core-ring" />
               </div>
-              <p className="mission-reward-badge">{goalRewardLine}</p>
             </div>
           </div>
         </div>
@@ -208,8 +221,8 @@ export const GameBoardPlaySection = ({
                 ✕
               </button>
               <p className="eyebrow">Подсказка лаборатории</p>
-              <p className="onboarding-title">{contextHint.title}</p>
-              <p className="onboarding-text">{contextHint.text}</p>
+              <p className="onboarding-title">{onboardingHintTitle}</p>
+              <p className="onboarding-text">{onboardingHintText}</p>
               <p className={`onboarding-selected ${selectedCellItem ? "" : "empty"}`}>
                 {selectedCellItem ? (
                   <>

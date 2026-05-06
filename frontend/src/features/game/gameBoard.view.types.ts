@@ -2,6 +2,11 @@
 import type { CatalogTab, ChainFilter, ContextHint, FlashTone, TierFilter } from "./gameBoard.helpers";
 
 export type GameBoardViewProps = {
+  goalCompletionToast: {
+    title: string;
+    discoveryLine: string;
+    rewardLine: string | null;
+  } | null;
   user: UserState;
   flashTone: FlashTone;
   cells: GridCell[];

@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import {
   type GridCell,
   useClaimIncomeMutation,
@@ -44,6 +44,13 @@ export const GameBoard = () => {
   const [catalogTab, setCatalogTab] = useState<CatalogTab>("items");
   const [tierFilter, setTierFilter] = useState<TierFilter>("all");
   const [chainFilter, setChainFilter] = useState<ChainFilter>("all");
+  const [goalCompletionToast, setGoalCompletionToast] = useState<{
+    title: string;
+    discoveryLine: string;
+    rewardLine: string | null;
+  } | null>(null);
+  const previousGoalTargetIdRef = useRef<string | null>(null);
+  const hasSeenFirstUserRef = useRef(false);
 
   const activeRows = useMemo(() => (user ? getActiveGridRows(user.baseLevel) : BASE_GRID_ROWS), [user]);
   const activeCellsCount = useMemo(
@@ -151,6 +158,50 @@ export const GameBoard = () => {
     }
   }, [isCatalogOpen, isHelpOpen]);
 
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const currentGoalTargetId = user.currentGoal.targetItemId;
+    if (!hasSeenFirstUserRef.current) {
+      hasSeenFirstUserRef.current = true;
+      previousGoalTargetIdRef.current = currentGoalTargetId;
+      return;
+    }
+
+    const previousGoalTargetId = previousGoalTargetIdRef.current;
+    const goalChanged =
+      typeof previousGoalTargetId === "string" &&
+      previousGoalTargetId.length > 0 &&
+      previousGoalTargetId !== currentGoalTargetId;
+    const hasGoalMessage = user.lastActionMessage?.includes("Цель выполнена");
+
+    if (goalChanged || hasGoalMessage) {
+      const previousGoalItem = user.itemCatalog.find((item) => item.id === previousGoalTargetId) ?? null;
+      const discoveryLine = previousGoalItem
+        ? `${previousGoalItem.icon} ${previousGoalItem.name} открыта`
+        : user.latestDiscovery
+          ? `${user.latestDiscovery.icon} ${user.latestDiscovery.name} открыта`
+          : "Цель открыта";
+
+      setGoalCompletionToast({
+        title: "Цель выполнена!",
+        discoveryLine,
+        rewardLine: user.lastActionMessage ?? null
+      });
+
+      const timeoutId = window.setTimeout(() => {
+        setGoalCompletionToast(null);
+      }, 3000);
+
+      previousGoalTargetIdRef.current = currentGoalTargetId;
+      return () => window.clearTimeout(timeoutId);
+    }
+
+    previousGoalTargetIdRef.current = currentGoalTargetId;
+  }, [user]);
+
   const getCellTierClassName = (cell: GridCell): string => {
     if (!cell.item) {
       return "tier-empty";
@@ -207,6 +258,7 @@ export const GameBoard = () => {
 
   return (
     <GameBoardView
+      goalCompletionToast={goalCompletionToast}
       user={user}
       flashTone={flashTone}
       cells={cells}

@@ -215,27 +215,25 @@ export const GameBoardPlaySection = ({
 
       {!isHintDismissed ? (
         <div className="onboarding-grid">
-          {!isHintDismissed ? (
-            <div className="onboarding-card">
-              <button type="button" className="onboarding-close" onClick={dismissHint}>
-                ✕
-              </button>
-              <p className="eyebrow">Подсказка лаборатории</p>
-              <p className="onboarding-title">{onboardingHintTitle}</p>
-              <p className="onboarding-text">{onboardingHintText}</p>
-              <p className={`onboarding-selected ${selectedCellItem ? "" : "empty"}`}>
-                {selectedCellItem ? (
-                  <>
-                    Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
-                    <br />
-                    Теперь выбери второй символ для реакции.
-                  </>
-                ) : (
-                  " "
-                )}
-              </p>
-            </div>
-          ) : null}
+          <div className="onboarding-card">
+            <button type="button" className="onboarding-close" onClick={dismissHint}>
+              ✕
+            </button>
+            <p className="eyebrow">Подсказка лаборатории</p>
+            <p className="onboarding-title">{onboardingHintTitle}</p>
+            <p className="onboarding-text">{onboardingHintText}</p>
+            <p className={`onboarding-selected ${selectedCellItem ? "" : "empty"}`}>
+              {selectedCellItem ? (
+                <>
+                  Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
+                  <br />
+                  Теперь выбери второй символ для реакции.
+                </>
+              ) : (
+                " "
+              )}
+            </p>
+          </div>
         </div>
       ) : null}
 

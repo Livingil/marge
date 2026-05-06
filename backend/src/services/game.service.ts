@@ -466,12 +466,19 @@ const randomBaseItem = (): string => {
 const GUARANTEED_SPARK_WINDOW = 8;
 const GUARANTEED_SPARK_COUNT = 2;
 const GUARANTEED_SPARK_ITEM_ID = "spark";
+const EARLY_SPARK_PITY_TARGET_ITEM_ID = "energyCell";
+const EARLY_SPARK_PITY_ITEM_ID = "spark";
+const EARLY_SPARK_PITY_MIN_FREE_SPAWNS_USED = 4;
 
 const countSpawnedSparkInGuaranteedWindow = (user: UserDocument): number => {
   return user.grid.cells
     .slice(0, getActiveGridSize(user.baseLevel))
     .filter((cell) => normalizeGridCellItemId(cell) === GUARANTEED_SPARK_ITEM_ID)
     .length;
+};
+
+const hasActiveItem = (user: UserDocument, itemId: string): boolean => {
+  return getActiveCells(user).some((cell) => normalizeGridCellItemId(cell) === itemId);
 };
 
 // Early onboarding safety net: ensures the player can craft battery during the
@@ -498,6 +505,24 @@ const getGuaranteedSpawnItemId = (user: UserDocument): string | null => {
   }
 
   return null;
+};
+
+// This pity only protects the first-session path to energyCell.
+// It must stop after energyCell is discovered.
+const getEarlySparkPitySpawnItemId = (user: UserDocument): string | null => {
+  if (user.discoveredItems.includes(EARLY_SPARK_PITY_TARGET_ITEM_ID)) {
+    return null;
+  }
+
+  if (user.freeSpawnsUsed < EARLY_SPARK_PITY_MIN_FREE_SPAWNS_USED) {
+    return null;
+  }
+
+  if (hasActiveItem(user, EARLY_SPARK_PITY_ITEM_ID)) {
+    return null;
+  }
+
+  return EARLY_SPARK_PITY_ITEM_ID;
 };
 
 const settlePendingIncome = (user: UserDocument, now: Date): number => {
@@ -591,9 +616,10 @@ export const spawnItem = async (): Promise<UserStateDto> => {
   }
 
   const guaranteedItemId = getGuaranteedSpawnItemId(user);
+  const pityItemId = guaranteedItemId ?? getEarlySparkPitySpawnItemId(user);
 
   user.freeSpawnsUsed += 1;
-  const spawnedItemId = guaranteedItemId ?? randomBaseItem();
+  const spawnedItemId = pityItemId ?? randomBaseItem();
   user.grid.cells[emptyIndex].itemId = spawnedItemId;
   user.grid.cells[emptyIndex].itemLevel = undefined;
 

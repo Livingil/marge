@@ -7,6 +7,7 @@ import {
   getSpawnCost
 } from "../services/game.economy.js";
 import { calculateIncomeMultiplier, calculateIncomeWithBase } from "../services/income.service.js";
+import { BASE_SPAWN_ITEM_IDS, RECIPES, getRecipeKey } from "../services/alchemy.data.js";
 
 type GridCell = { itemId: string | null };
 type Grid = { cells: GridCell[] };
@@ -164,3 +165,22 @@ console.table(
     midGoalReward_to_upgrade_percent: row.midGoalReward_to_upgrade_percent
   }))
 );
+
+const basePairs: Array<{ pair: string; result: string | null }> = [];
+for (let i = 0; i < BASE_SPAWN_ITEM_IDS.length; i += 1) {
+  for (let j = i; j < BASE_SPAWN_ITEM_IDS.length; j += 1) {
+    const left = BASE_SPAWN_ITEM_IDS[i];
+    const right = BASE_SPAWN_ITEM_IDS[j];
+    const key = getRecipeKey(left, right);
+    basePairs.push({
+      pair: `${left}+${right}`,
+      result: RECIPES[key] ?? null
+    });
+  }
+}
+
+const coveredBasePairs = basePairs.filter((pair) => pair.result !== null).length;
+console.log("Early game base pair coverage");
+console.log(`BASE_SPAWN_ITEM_IDS: ${BASE_SPAWN_ITEM_IDS.join(", ")}`);
+console.log(`Covered base pairs: ${coveredBasePairs}/${basePairs.length}`);
+console.table(basePairs);

@@ -189,13 +189,13 @@ export const GameBoardPlaySection = ({
           </div>
           <div className="mission-mainline">
             <h1 className="mission-title">{user.currentGoal.title}</h1>
-          </div>
-          <p className="mission-reward-line">🎁 {goalRewardLine}</p>
-        </div>
-        <div className="target-core">
-          <div className="target-core-icon-shell">
-            <div className="target-core-icon">{targetItem?.icon ?? "☢️"}</div>
-            <div className="target-core-ring" />
+            <div className="target-core target-core-inline">
+              <div className="target-core-icon-shell">
+                <div className="target-core-icon">{targetItem?.icon ?? "☢️"}</div>
+                <div className="target-core-ring" />
+              </div>
+              <p className="mission-reward-badge">{goalRewardLine}</p>
+            </div>
           </div>
         </div>
       </div>

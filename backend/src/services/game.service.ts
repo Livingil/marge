@@ -10,7 +10,6 @@ import {
 import { getActiveGridSize, GRID_SIZE, MAX_OFFLINE_INCOME_SECONDS } from "./game.constants.js";
 import {
   getBaseUpgradeCost,
-  getDeleteCost,
   getDeleteCostWithProgression,
   getGoalReward,
   getItemTier,

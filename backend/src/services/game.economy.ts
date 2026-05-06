@@ -2,8 +2,11 @@ import { ALCHEMY_ITEM_TIERS } from "./alchemy.data.js";
 import {
   BASE_DELETE_COST,
   BASE_SPAWN_COST,
+  DELETE_COST_PER_USED_ACTION,
   DELETE_COST_PER_OCCUPIED_CELL,
   DELETE_COST_PER_TIER,
+  FREE_SPAWNS_COUNT,
+  SPAWN_COST_PER_USED_SPAWN,
   SPAWN_COST_PER_BASE_LEVEL
 } from "./game.constants.js";
 
@@ -16,9 +19,7 @@ export const getItemTier = (itemId: string | null): number => {
 };
 
 export const getSpawnCost = (spawnsUsed: number, baseLevel: number): number => {
-  const FREE_SPAWNS_COUNT = 5;
-  const SPAWN_COST_PER_USED_SPAWN = 2;
-
+  // Clicker-style progression: each spawn after free starts increases future spawn cost.
   if (spawnsUsed < FREE_SPAWNS_COUNT) {
     return 0;
   }
@@ -36,14 +37,10 @@ export const getBaseUpgradeCost = (baseLevel: number): number => {
 };
 
 export const getDeleteCost = (itemTier: number, occupiedCells: number): number => {
-  const REDUCED_BASE_DELETE_COST = Math.floor(BASE_DELETE_COST * 0.4);
-  const REDUCED_DELETE_COST_PER_TIER = Math.floor(DELETE_COST_PER_TIER * 0.4);
-  const REDUCED_DELETE_COST_PER_OCCUPIED_CELL = Math.max(1, Math.floor(DELETE_COST_PER_OCCUPIED_CELL * 0.5));
-
   return (
-    REDUCED_BASE_DELETE_COST +
-    itemTier * REDUCED_DELETE_COST_PER_TIER +
-    occupiedCells * REDUCED_DELETE_COST_PER_OCCUPIED_CELL
+    BASE_DELETE_COST +
+    itemTier * DELETE_COST_PER_TIER +
+    occupiedCells * DELETE_COST_PER_OCCUPIED_CELL
   );
 };
 
@@ -52,7 +49,7 @@ export const getDeleteCostWithProgression = (
   occupiedCells: number,
   deleteActionsUsed: number
 ): number => {
-  const DELETE_COST_PER_USED_ACTION = 2;
+  // Deletion also scales by usage count to prevent free board cleanup loops.
   return getDeleteCost(itemTier, occupiedCells) + deleteActionsUsed * DELETE_COST_PER_USED_ACTION;
 };
 

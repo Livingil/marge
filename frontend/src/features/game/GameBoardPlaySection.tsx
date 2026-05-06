@@ -270,7 +270,7 @@ export const GameBoardPlaySection = ({
             {isDeletingCell ? "Утилизация..." : hasSelectedCellItem ? "Утилизировать" : "Выбери образец"}
           </span>
           <span className="action-button-meta">
-            {selectedCellDeleteCost !== null ? `Стоимость: ${selectedCellDeleteCost}` : "Платное удаление"}
+            {selectedCellDeleteCost !== null ? `Стоимость: ${selectedCellDeleteCost}` : "Платная утилизация"}
           </span>
         </button>
       </div>

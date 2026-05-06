@@ -9,7 +9,8 @@
     "start": "node dist/server.js",
     "economy:table": "tsx src/scripts/economy-table.ts",
     "palette:summary": "tsx src/scripts/palette-summary.ts",
-    "recipe-plan:audit": "tsx src/scripts/recipe-plan-audit.ts"
+    "recipe-plan:audit": "tsx src/scripts/recipe-plan-audit.ts",
+    "active-recipe:audit": "tsx src/scripts/active-recipe-audit.ts"
   },
   "dependencies": {
     "cors": "^2.8.6",

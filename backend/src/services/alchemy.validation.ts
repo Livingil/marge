@@ -9,6 +9,10 @@ type ValidateAlchemyDataInput = {
   goalSequence: string[];
   legacyLevelToItemId: Record<number, string>;
   getRecipeKey: (a: string, b: string) => string;
+  forbiddenRecipes?: RecipePair[];
+  minBasePairCoverage?: number;
+  disallowBaseResultRecipes?: boolean;
+  allowBaseResultRecipes?: RecipePair[];
 };
 
 const getReachableItemIds = (
@@ -38,7 +42,11 @@ export const validateAlchemyData = ({
   baseSpawnItemIds,
   goalSequence,
   legacyLevelToItemId,
-  getRecipeKey
+  getRecipeKey,
+  forbiddenRecipes = [],
+  minBasePairCoverage = 12,
+  disallowBaseResultRecipes = false,
+  allowBaseResultRecipes = []
 }: ValidateAlchemyDataInput): void => {
   const rawItemIds = items.map((item) => item.id);
   const uniqueItemIds = new Set(rawItemIds);
@@ -97,6 +105,10 @@ export const validateAlchemyData = ({
       throw new Error(`Recipe result item '${resultId}' is missing in ALCHEMY_ITEMS`);
     }
 
+    if (resultId === leftId || resultId === rightId) {
+      throw new Error(`Recipe '${leftId}+${rightId}' has result equal to ingredient '${resultId}'`);
+    }
+
     const key = getRecipeKey(leftId, rightId);
     const existingResult = recipeResultsByKey.get(key);
 
@@ -112,6 +124,44 @@ export const validateAlchemyData = ({
 
     recipeResultsByKey.set(key, resultId);
   });
+
+  forbiddenRecipes.forEach(([leftId, rightId, resultId]) => {
+    const key = getRecipeKey(leftId, rightId);
+    const actual = recipeResultsByKey.get(key);
+    if (actual === resultId) {
+      throw new Error(`Forbidden recipe exists: '${leftId}+${rightId}=${resultId}'`);
+    }
+  });
+
+  const baseResultAllowlist = new Set(
+    allowBaseResultRecipes.map(([leftId, rightId, resultId]) => `${getRecipeKey(leftId, rightId)}=>${resultId}`)
+  );
+  if (disallowBaseResultRecipes) {
+    recipePairs.forEach(([leftId, rightId, resultId]) => {
+      if (!baseSpawnItemIds.includes(resultId)) {
+        return;
+      }
+      const token = `${getRecipeKey(leftId, rightId)}=>${resultId}`;
+      if (!baseResultAllowlist.has(token)) {
+        throw new Error(`Recipe produces base spawn item and is not allowlisted: '${leftId}+${rightId}=${resultId}'`);
+      }
+    });
+  }
+
+  let coveredBasePairs = 0;
+  for (let i = 0; i < baseSpawnItemIds.length; i += 1) {
+    for (let j = i; j < baseSpawnItemIds.length; j += 1) {
+      const key = getRecipeKey(baseSpawnItemIds[i], baseSpawnItemIds[j]);
+      if (recipeResultsByKey.has(key)) {
+        coveredBasePairs += 1;
+      }
+    }
+  }
+  if (coveredBasePairs < minBasePairCoverage) {
+    throw new Error(
+      `Base pair coverage is too low: ${coveredBasePairs}/${(baseSpawnItemIds.length * (baseSpawnItemIds.length + 1)) / 2}`
+    );
+  }
 
   const reachable = getReachableItemIds(baseSpawnItemIds, recipePairs);
   goalSequence.forEach((goalId) => {

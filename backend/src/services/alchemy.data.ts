@@ -1,4 +1,7 @@
 ﻿import { validateAlchemyData } from "./alchemy.validation.js";
+import { ALCHEMY_EMOJI_PALETTE } from "./alchemy.palette.js";
+import { ALCHEMY_RECIPE_PLAN } from "./alchemy.recipePlan.js";
+
 export interface AlchemyItem {
   id: string;
   icon: string;
@@ -16,175 +19,99 @@ export interface RecipeDetails {
 
 const MAX_VISUAL_TIER = 5;
 
-export const ALCHEMY_ITEMS: AlchemyItem[] = [
-  { id: "spark", icon: "⚡", name: "Искра", description: "Малый источник нестабильной энергии" },
-  { id: "battery", icon: "🔋", name: "Батарея", description: "Стабильный переносной накопитель энергии" },
-  { id: "energyCell", icon: "💠", name: "Энергоячейка", description: "Усиленная ячейка для длительной работы" },
-  { id: "magnet", icon: "🧲", name: "Магнит", description: "Проводник для сложных энергетических связей" },
-  { id: "reactor", icon: "☢️", name: "Реактор", description: "Ядро генерации чистой энергии" },
-  { id: "science", icon: "🧪", name: "Наука", description: "Новая ветка лабораторных исследований" },
-  { id: "fire", icon: "🔥", name: "Огонь", description: "Горячая и агрессивная стихийная фаза" },
-  { id: "water", icon: "💧", name: "Вода", description: "Базовая текучая среда для реакций" },
-  { id: "ice", icon: "🧊", name: "Лёд", description: "Застывшая водная структура" },
-  { id: "steam", icon: "♨️", name: "Пар", description: "Горячая летучая среда" },
-  { id: "ash", icon: "🌫️", name: "Пепел", description: "Остаток сгоревшей материи" },
-  { id: "clay", icon: "🟫", name: "Глина", description: "Пластичная минеральная смесь" },
-  { id: "root", icon: "🫚", name: "Корень", description: "Опора будущего роста" },
-  { id: "charge", icon: "🔌", name: "Заряд", description: "Короткий накопленный импульс" },
-  { id: "glass", icon: "🪞", name: "Стекло", description: "Прозрачная застывшая поверхность" },
-  { id: "coal", icon: "⚫", name: "Уголь", description: "Плотное горючее вещество" },
-  { id: "seed", icon: "🌱", name: "Росток", description: "Зачаток живой биологической структуры" },
-  { id: "plant", icon: "🌿", name: "Растение", description: "Стабильная органическая форма роста" },
-  { id: "life", icon: "🧬", name: "Жизнь", description: "Комплексная самоподдерживающаяся система" },
-  { id: "stone", icon: "🪨", name: "Камень", description: "Твердая минеральная основа материи" },
-  { id: "metal", icon: "🔩", name: "Металл", description: "Прочный материал для техноузлов" },
-  { id: "mechanism", icon: "⚙️", name: "Механизм", description: "Согласованная система движущихся деталей" },
-  { id: "robot", icon: "🤖", name: "Робот", description: "Автономный исполнитель лабораторных задач" },
-  { id: "portal", icon: "🌀", name: "Портал", description: "Туннель между удаленными слоями пространства" },
-  { id: "world", icon: "🌍", name: "Мир", description: "Стабильный контур новой экосистемы" },
+const ACTIVE_ITEM_IDS = [
+  // energy early/mid
+  "spark", "charge", "battery", "energyCell", "current", "coil", "lightning", "capacitor", "generator", "plasma", "ion", "pulse", "radiation", "overload", "powerCore", "reactor",
+  // elemental early/mid
+  "fire", "water", "stone", "wind", "ice", "steam", "ash", "smoke", "clay", "mud", "sand", "dust", "lava", "glass", "crystal", "frost", "mist", "acid", "salt",
+  // nature early/mid
+  "seed", "root", "leaf", "plant", "moss", "algae", "flower", "mushroom", "vine", "tree", "fruit", "pollen", "resin", "bark", "thorn", "herb", "nectar",
+  // material early/mid
+  "coal", "ore", "metal", "copper", "iron", "steel", "silver", "gold", "alloy", "wire", "magnet", "lens", "mirror", "prism", "ceramic", "graphite",
+  // technology early/mid
+  "gear", "mechanism", "circuit", "chip", "sensor", "terminal", "scanner", "processor", "machine", "engine", "pump", "drone", "robot",
+  // biology early/mid
+  "life", "cell", "tissue", "organism", "nerve", "brain", "mind", "bone", "blood", "beast", "shell",
+  // magic mid
+  "mana", "rune", "sigil", "scroll", "spell", "soul", "spirit", "ghost", "golem", "wand",
+  // space mid
+  "meteor", "comet", "moon", "portal", "gate", "asteroid",
+  // civilization mid
+  "camp", "forge", "workshop", "library", "archive",
+  // milestone helper
+  "science"
+] as const;
 
-  { id: "lightning", icon: "🌩️", name: "Молния", description: "Импульсный разряд высокой плотности" },
-  { id: "plasma", icon: "🫧", name: "Плазма", description: "Перегретая ионизированная энергетическая среда" },
-  { id: "powerCore", icon: "🔶", name: "Силовое ядро", description: "Узел хранения и отдачи энергии" },
-  { id: "quantumCore", icon: "🧿", name: "Квантовое ядро", description: "Сверхплотный источник фазовой мощности" },
+const ACTIVE_ITEM_ID_SET = new Set<string>(ACTIVE_ITEM_IDS);
 
-  { id: "algae", icon: "🪸", name: "Водоросль", description: "Примитивная живая водная матрица" },
-  { id: "tree", icon: "🌳", name: "Дерево", description: "Крупная устойчивая биологическая структура" },
-  { id: "organism", icon: "🦠", name: "Организм", description: "Единая адаптивная живая система" },
-  { id: "beast", icon: "🐾", name: "Зверь", description: "Сложная и сильная форма жизни" },
-  { id: "mind", icon: "🧠", name: "Разум", description: "Осознанный когнитивный контур управления" },
+const paletteById = new Map(ALCHEMY_EMOJI_PALETTE.map((item) => [item.id, item]));
 
-  { id: "wire", icon: "🧵", name: "Проводник", description: "Гибкий канал передачи заряда" },
-  { id: "circuit", icon: "🖧", name: "Схема", description: "Замкнутая электрическая логическая сеть" },
-  { id: "machine", icon: "🛠️", name: "Машина", description: "Собранный техномодуль выполнения процессов" },
-  { id: "drone", icon: "🛸", name: "Дрон", description: "Мобильный автономный техноразведчик" },
-  { id: "android", icon: "🦾", name: "Андроид", description: "Искусственный носитель сложного поведения" },
-  { id: "factory", icon: "🏭", name: "Фабрика", description: "Комплекс массового техносинтеза" },
+export const ALCHEMY_ITEMS: AlchemyItem[] = ACTIVE_ITEM_IDS.map((id) => {
+  const item = paletteById.get(id);
+  if (!item) {
+    throw new Error(`Active item '${id}' is missing in ALCHEMY_EMOJI_PALETTE`);
+  }
 
-  { id: "crystal", icon: "💎", name: "Кристалл", description: "Фокусирующая решетка для тонкой энергии" },
-  { id: "mana", icon: "✨", name: "Мана", description: "Чистый поток управляемой аркан-энергии" },
-  { id: "soul", icon: "🫀", name: "Душа", description: "Ядро индивидуального жизненного импульса" },
-  { id: "golem", icon: "🗿", name: "Голем", description: "Материальный носитель связанной души" },
-  { id: "spirit", icon: "👻", name: "Дух", description: "Нестабильная форма вне телесной материи" },
-  { id: "spell", icon: "📜", name: "Заклинание", description: "Программируемый паттерн магического действия" },
-
-  { id: "gate", icon: "🚪", name: "Врата", description: "Контролируемая рамка межпространственного перехода" },
-  { id: "dimension", icon: "🧱", name: "Измерение", description: "Изолированный слой пространственных правил" },
-  { id: "meteor", icon: "☄️", name: "Метеор", description: "Разогретое тело космической материи" },
-  { id: "star", icon: "⭐", name: "Звезда", description: "Стабильный источник космического излучения" },
-  { id: "universe", icon: "🌌", name: "Вселенная", description: "Единый космический контур реальности" },
-  { id: "void", icon: "🕳️", name: "Пустота", description: "Безструктурное поле до формы мира" },
-
-  { id: "artificialSoul", icon: "🪫", name: "Искусственная душа", description: "Сконструированное сознательное внутреннее ядро" },
-  { id: "livingMachine", icon: "🦿", name: "Живая машина", description: "Гибрид биологии, души и механики" },
-  { id: "worldEngine", icon: "🌐", name: "Двигатель мира", description: "Система стабилизации планетарных процессов" },
-  { id: "genesisCore", icon: "🧬", name: "Ядро генезиса", description: "Финальный техно-магический источник творения" }
-];
+  return {
+    id: item.id,
+    icon: item.icon,
+    name: item.name,
+    description: item.description
+  };
+});
 
 export const getRecipeKey = (a: string, b: string): string => {
   return [a, b].sort().join("+");
 };
 
-const recipePairs: RecipePair[] = [
-  ["spark", "spark", "battery"],
-  ["battery", "battery", "energyCell"],
-  ["energyCell", "energyCell", "magnet"],
-  ["magnet", "magnet", "reactor"],
+const forbiddenRecipeKeys = new Set<string>([
+  getRecipeKey("ice", "spark"),
+  getRecipeKey("reactor", "spark")
+]);
+
+const baseSpawnSet = new Set<string>(["spark", "water", "seed", "stone", "fire"]);
+
+const filteredRecipePairs: RecipePair[] = ALCHEMY_RECIPE_PLAN.filter(([leftId, rightId, resultId]) => {
+  if (!ACTIVE_ITEM_ID_SET.has(leftId) || !ACTIVE_ITEM_ID_SET.has(rightId) || !ACTIVE_ITEM_ID_SET.has(resultId)) {
+    return false;
+  }
+
+  if (forbiddenRecipeKeys.has(getRecipeKey(leftId, rightId))) {
+    return false;
+  }
+
+  if (resultId === leftId || resultId === rightId) {
+    return false;
+  }
+
+  if (baseSpawnSet.has(resultId) && !baseSpawnSet.has(leftId) && !baseSpawnSet.has(rightId)) {
+    return false;
+  }
+
+  const resultStage = paletteById.get(resultId)?.stage;
+  return resultStage === "early" || resultStage === "mid";
+});
+
+const curatedExtraPairs: RecipePair[] = [
   ["spark", "battery", "energyCell"],
   ["spark", "energyCell", "magnet"],
   ["battery", "magnet", "reactor"],
-  ["reactor", "spark", "science"],
-  ["water", "water", "ice"],
-  ["fire", "fire", "ash"],
-  ["fire", "water", "steam"],
-  ["water", "stone", "clay"],
-  ["water", "seed", "plant"],
-  ["seed", "seed", "plant"],
-  ["stone", "stone", "crystal"],
-  ["fire", "seed", "ash"],
-  ["spark", "water", "charge"],
-  ["spark", "stone", "crystal"],
-  ["spark", "seed", "life"],
-  ["stone", "seed", "root"],
-  ["ice", "spark", "water"],
-  ["steam", "spark", "charge"],
-  ["clay", "fire", "glass"],
-  ["ash", "water", "clay"],
-  ["root", "water", "plant"],
-  ["charge", "battery", "energyCell"],
-  ["charge", "metal", "wire"],
-  ["glass", "spark", "crystal"],
-  ["coal", "fire", "energyCell"],
-  ["ash", "stone", "coal"],
-  ["plant", "spark", "life"],
-  ["stone", "fire", "metal"],
-  ["metal", "spark", "mechanism"],
-  ["mechanism", "energyCell", "robot"],
-  ["reactor", "magnet", "portal"],
-  ["portal", "life", "world"],
-
-  ["spark", "fire", "lightning"],
-  ["fire", "energyCell", "plasma"],
-  ["plasma", "magnet", "powerCore"],
-  ["powerCore", "reactor", "quantumCore"],
-  ["lightning", "battery", "plasma"],
-  ["lightning", "energyCell", "powerCore"],
-  ["plasma", "battery", "powerCore"],
-  ["quantumCore", "portal", "dimension"],
-
-  ["water", "plant", "algae"],
-  ["plant", "plant", "tree"],
-  ["life", "water", "organism"],
-  ["organism", "life", "beast"],
-  ["life", "energyCell", "mind"],
-  ["algae", "spark", "organism"],
-  ["tree", "life", "organism"],
-  ["beast", "energyCell", "mind"],
-  ["organism", "mind", "beast"],
-
-  ["metal", "energyCell", "wire"],
-  ["wire", "spark", "circuit"],
-  ["circuit", "mechanism", "machine"],
-  ["circuit", "robot", "drone"],
-  ["machine", "robot", "factory"],
-  ["robot", "mind", "android"],
-  ["drone", "mind", "android"],
-  ["machine", "mind", "android"],
-  ["factory", "mind", "android"],
-  ["wire", "mechanism", "machine"],
-  ["drone", "factory", "android"],
-
   ["stone", "energyCell", "crystal"],
-  ["spark", "crystal", "mana"],
-  ["life", "spark", "soul"],
-  ["soul", "metal", "golem"],
-  ["soul", "portal", "spirit"],
-  ["mana", "science", "spell"],
-  ["mana", "mind", "spell"],
-  ["crystal", "science", "mana"],
-  ["spell", "life", "spirit"],
-  ["spell", "robot", "android"],
-
-  ["portal", "reactor", "gate"],
-  ["portal", "world", "dimension"],
-  ["stone", "reactor", "meteor"],
-  ["meteor", "fire", "star"],
-  ["star", "world", "universe"],
-  ["dimension", "universe", "void"],
-  ["gate", "science", "dimension"],
-  ["gate", "star", "universe"],
-  ["void", "life", "spirit"],
-
-  ["android", "soul", "artificialSoul"],
-  ["artificialSoul", "machine", "livingMachine"],
-  ["world", "reactor", "worldEngine"],
-  ["worldEngine", "artificialSoul", "genesisCore"],
-  ["livingMachine", "worldEngine", "genesisCore"],
-  ["quantumCore", "mind", "artificialSoul"],
-  ["worldEngine", "mind", "livingMachine"],
-  ["universe", "reactor", "worldEngine"],
-  ["spirit", "machine", "artificialSoul"]
+  ["metal", "energyCell", "wire"],
+  ["charge", "charge", "coil"],
+  ["magnet", "magnet", "reactor"],
+  ["reactor", "magnet", "portal"]
 ];
+
+const recipePairMap = new Map<string, RecipePair>();
+[...filteredRecipePairs, ...curatedExtraPairs].forEach(([leftId, rightId, resultId]) => {
+  const key = getRecipeKey(leftId, rightId);
+  if (!recipePairMap.has(key)) {
+    recipePairMap.set(key, [leftId, rightId, resultId]);
+  }
+});
+
+const recipePairs: RecipePair[] = Array.from(recipePairMap.values());
 
 export const BASE_SPAWN_ITEM_IDS = ["spark", "water", "seed", "stone", "fire"];
 
@@ -198,25 +125,20 @@ export const LEGACY_LEVEL_TO_ITEM_ID: Record<number, string> = {
 
 export const GOAL_SEQUENCE = [
   "battery",
+  "charge",
   "energyCell",
-  "magnet",
-  "reactor",
-  "science",
-  "plant",
+  "crystal",
   "life",
+  "metal",
   "mechanism",
+  "science",
+  "powerCore",
   "robot",
-  "portal",
-  "world",
+  "mana",
+  "spell",
+  "organism",
   "mind",
-  "soul",
-  "android",
-  "golem",
-  "star",
-  "universe",
-  "artificialSoul",
-  "worldEngine",
-  "genesisCore"
+  "portal"
 ];
 
 validateAlchemyData({
@@ -225,7 +147,14 @@ validateAlchemyData({
   baseSpawnItemIds: BASE_SPAWN_ITEM_IDS,
   goalSequence: GOAL_SEQUENCE,
   legacyLevelToItemId: LEGACY_LEVEL_TO_ITEM_ID,
-  getRecipeKey
+  getRecipeKey,
+  forbiddenRecipes: [
+    ["ice", "spark", "water"],
+    ["reactor", "spark", "science"]
+  ],
+  minBasePairCoverage: 12,
+  disallowBaseResultRecipes: true,
+  allowBaseResultRecipes: []
 });
 
 export const ALCHEMY_ITEMS_BY_ID: Record<string, AlchemyItem> = Object.fromEntries(
@@ -292,4 +221,3 @@ const computeAlchemyItemTiers = (): Record<string, number> => {
 };
 
 export const ALCHEMY_ITEM_TIERS = computeAlchemyItemTiers();
-

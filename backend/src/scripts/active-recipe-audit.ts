@@ -28,6 +28,7 @@ const recipeMap = new Map<string, string>();
 const selfResult: string[] = [];
 const baseResultRecipes: string[] = [];
 const warnings: string[] = [];
+const activeIconMap = new Map<string, Array<{ id: string; name: string }>>();
 
 if (ACTIVE_ALCHEMY_ITEM_IDS.length < 60) {
   throw new Error(`Too few active items: ${ACTIVE_ALCHEMY_ITEM_IDS.length} (< 60)`);
@@ -40,6 +41,20 @@ for (const itemId of ACTIVE_ALCHEMY_ITEM_IDS) {
   if (!itemIds.has(itemId)) {
     throw new Error(`ACTIVE_ALCHEMY_ITEM_IDS contains unknown item '${itemId}'`);
   }
+}
+
+for (const item of ALCHEMY_ITEMS) {
+  const list = activeIconMap.get(item.icon) ?? [];
+  list.push({ id: item.id, name: item.name });
+  activeIconMap.set(item.icon, list);
+}
+
+const activeEmojiDuplicates = Array.from(activeIconMap.entries())
+  .filter(([, items]) => items.length > 1)
+  .map(([icon, items]) => `${icon}: ${items.map((item) => `${item.id}(${item.name})`).join(", ")}`);
+
+if (activeEmojiDuplicates.length > 0) {
+  throw new Error(`Active emoji duplicates found:\n${activeEmojiDuplicates.join("\n")}`);
 }
 
 for (const [left, right, result] of ACTIVE_RECIPE_PAIRS) {
@@ -141,6 +156,7 @@ console.log(`Total active items: ${ACTIVE_ALCHEMY_ITEM_IDS.length}`);
 console.log(`Total active recipes: ${ACTIVE_RECIPE_PAIRS.length}`);
 console.log(`Total filtered plan recipes: ${ACTIVE_FILTERED_RECIPE_PAIRS.length}`);
 console.log(`Total curated extra recipes: ${ACTIVE_CURATED_EXTRA_PAIRS.length}`);
+console.log("Active emoji duplicates: none");
 console.log(`Base pair coverage: ${baseCovered}/15`);
 console.log("GOAL_SEQUENCE:");
 console.table(GOAL_SEQUENCE.map((goal, index) => ({ index: index + 1, goal, reachable: reachable.has(goal) })));

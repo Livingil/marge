@@ -14,11 +14,23 @@ const keyOf = (a: string, b: string): string => [a, b].sort().join("+");
 const paletteById = new Map(ALCHEMY_EMOJI_PALETTE.map((item) => [item.id, item]));
 
 const seenItemIds = new Set<string>();
+const iconMap = new Map<string, Array<{ id: string; name: string }>>();
 for (const item of ALCHEMY_EMOJI_PALETTE) {
   if (seenItemIds.has(item.id)) {
     throw new Error(`Duplicate item id in palette: ${item.id}`);
   }
   seenItemIds.add(item.id);
+  const list = iconMap.get(item.icon) ?? [];
+  list.push({ id: item.id, name: item.name });
+  iconMap.set(item.icon, list);
+}
+
+const paletteEmojiDuplicates = Array.from(iconMap.entries())
+  .filter(([, items]) => items.length > 1)
+  .map(([icon, items]) => `${icon}: ${items.map((item) => `${item.id}(${item.name})`).join(", ")}`);
+
+if (paletteEmojiDuplicates.length > 0) {
+  throw new Error(`Palette emoji duplicates found:\n${paletteEmojiDuplicates.join("\n")}`);
 }
 
 const byKey = new Map<string, string>();
@@ -130,6 +142,7 @@ const milestoneRecipes = ALCHEMY_RECIPE_PLAN.filter(([, , result]) => MILESTONES
 
 console.log(`Total items: ${ALCHEMY_EMOJI_PALETTE.length}`);
 console.log(`Total recipes: ${ALCHEMY_RECIPE_PLAN.length}`);
+console.log("Palette emoji duplicates: none");
 console.log("Count by chain:");
 console.table(chainCounts);
 console.log("Count by stage:");

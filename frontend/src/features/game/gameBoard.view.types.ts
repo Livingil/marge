@@ -10,7 +10,6 @@ export type GameBoardViewProps = {
   user: UserState;
   flashTone: FlashTone;
   cells: GridCell[];
-  targetItem: GridItem | null;
   contextHint: ContextHint;
   selectedCellItem: GridItem | null;
   isHintDismissed: boolean;

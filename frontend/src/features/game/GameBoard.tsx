@@ -59,14 +59,6 @@ export const GameBoard = () => {
   );
   const cells = useMemo(() => (user?.grid.cells ?? []).slice(0, activeCellsCount), [activeCellsCount, user]);
 
-  const targetItem = useMemo(() => {
-    if (!user) {
-      return null;
-    }
-
-    return user.itemCatalog.find((item) => item.id === user.currentGoal.targetItemId) ?? null;
-  }, [user]);
-
   const filledCellsCount = useMemo(() => cells.filter((cell) => Boolean(cell.itemId)).length, [cells]);
   const emptyCellsCount = activeCellsCount - filledCellsCount;
   const hasSelectedCell = selectedCell !== null;
@@ -262,7 +254,6 @@ export const GameBoard = () => {
       user={user}
       flashTone={flashTone}
       cells={cells}
-      targetItem={targetItem}
       contextHint={contextHint}
       selectedCellItem={selectedCellItem}
       isHintDismissed={user.onboardingHintDismissed}

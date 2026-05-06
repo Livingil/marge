@@ -18,7 +18,6 @@ export const GameBoardPlaySection = ({
   handleCellClick,
   getCellTierClassName,
   user,
-  targetItem,
   isSpawning,
   isClaimingIncome,
   isUpgradingBase,
@@ -48,7 +47,6 @@ export const GameBoardPlaySection = ({
   | "handleCellClick"
   | "getCellTierClassName"
   | "user"
-  | "targetItem"
   | "isSpawning"
   | "isClaimingIncome"
   | "isUpgradingBase"
@@ -194,7 +192,6 @@ export const GameBoardPlaySection = ({
           <p className="eyebrow mission-kicker">Текущая цель</p>
           <div className="mission-mainline mission-mainline-stack">
             <div className="mission-title-row">
-              <span className="mission-target-icon">{targetItem?.icon ?? "☢️"}</span>
               <h1 className="mission-title mission-title-strong">{user.currentGoal.title}</h1>
             </div>
             <div className="mission-reward-group">
@@ -202,12 +199,6 @@ export const GameBoardPlaySection = ({
               {goalRewardExtras.length > 0 ? (
                 <p className="mission-reward-line">{goalRewardExtras.join(" · ")}</p>
               ) : null}
-            </div>
-            <div className="target-core target-core-inline">
-              <div className="target-core-icon-shell mission-target-core">
-                <div className="target-core-icon">{targetItem?.icon ?? "☢️"}</div>
-                <div className="target-core-ring mission-target-core-ring" />
-              </div>
             </div>
           </div>
         </div>

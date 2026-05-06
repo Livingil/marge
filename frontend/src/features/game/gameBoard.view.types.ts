@@ -2,6 +2,12 @@
 import type { CatalogTab, ChainFilter, ContextHint, FlashTone, TierFilter } from "./gameBoard.helpers";
 
 export type GameBoardViewProps = {
+  mergeFeedback: {
+    cellIndex: number;
+    message: string;
+    tone: "success" | "new";
+    nonce: number;
+  } | null;
   goalCompletionToast: {
     title: string;
     discoveryLine: string;

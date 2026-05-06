@@ -49,6 +49,13 @@ export const GameBoard = () => {
     discoveryLine: string;
     rewardLine: string | null;
   } | null>(null);
+  const [mergeFeedback, setMergeFeedback] = useState<{
+    cellIndex: number;
+    message: string;
+    tone: "success" | "new";
+    nonce: number;
+  } | null>(null);
+  const mergeFeedbackTimeoutRef = useRef<number | null>(null);
   const previousGoalTargetIdRef = useRef<string | null>(null);
   const hasSeenFirstUserRef = useRef(false);
 
@@ -201,12 +208,59 @@ export const GameBoard = () => {
     previousGoalTargetIdRef.current = currentGoalTargetId;
   }, [user]);
 
+  useEffect(() => {
+    return () => {
+      if (mergeFeedbackTimeoutRef.current !== null) {
+        window.clearTimeout(mergeFeedbackTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const getCellTierClassName = (cell: GridCell): string => {
     if (!cell.item) {
       return "tier-empty";
     }
 
     return `tier-${cell.item.tier}`;
+  };
+
+  const resolveMergeResultCellIndex = (
+    updatedUserCells: Array<{ itemId: string | null }>,
+    firstIndex: number,
+    secondIndex: number
+  ): number | null => {
+    const beforeFirst = cells[firstIndex]?.itemId ?? null;
+    const beforeSecond = cells[secondIndex]?.itemId ?? null;
+    const afterFirst = updatedUserCells[firstIndex]?.itemId ?? null;
+    const afterSecond = updatedUserCells[secondIndex]?.itemId ?? null;
+
+    if (afterFirst !== null && afterFirst !== beforeFirst) {
+      return firstIndex;
+    }
+
+    if (afterSecond !== null && afterSecond !== beforeSecond) {
+      return secondIndex;
+    }
+
+    return null;
+  };
+
+  const triggerMergeFeedback = (resultCellIndex: number, isNewDiscovery: boolean): void => {
+    if (mergeFeedbackTimeoutRef.current !== null) {
+      window.clearTimeout(mergeFeedbackTimeoutRef.current);
+    }
+
+    setMergeFeedback({
+      cellIndex: resultCellIndex,
+      message: isNewDiscovery ? "Открыто!" : "Слияние!",
+      tone: isNewDiscovery ? "new" : "success",
+      nonce: Date.now()
+    });
+
+    mergeFeedbackTimeoutRef.current = window.setTimeout(() => {
+      setMergeFeedback(null);
+      mergeFeedbackTimeoutRef.current = null;
+    }, 800);
   };
 
   const onDropCell = async (toIndex: number) => {
@@ -216,7 +270,11 @@ export const GameBoard = () => {
     }
 
     try {
-      await mergeCells({ cellA: dragFrom, cellB: toIndex }).unwrap();
+      const updatedUser = await mergeCells({ cellA: dragFrom, cellB: toIndex }).unwrap();
+      const resultCellIndex = resolveMergeResultCellIndex(updatedUser.grid.cells, dragFrom, toIndex);
+      if (resultCellIndex !== null) {
+        triggerMergeFeedback(resultCellIndex, Boolean(updatedUser.latestDiscovery));
+      }
     } finally {
       setDragFrom(null);
       setSelectedCell(null);
@@ -241,7 +299,11 @@ export const GameBoard = () => {
     }
 
     try {
-      await mergeCells({ cellA: selectedCell, cellB: index }).unwrap();
+      const updatedUser = await mergeCells({ cellA: selectedCell, cellB: index }).unwrap();
+      const resultCellIndex = resolveMergeResultCellIndex(updatedUser.grid.cells, selectedCell, index);
+      if (resultCellIndex !== null) {
+        triggerMergeFeedback(resultCellIndex, Boolean(updatedUser.latestDiscovery));
+      }
     } finally {
       setSelectedCell(null);
     }
@@ -257,6 +319,7 @@ export const GameBoard = () => {
 
   return (
     <GameBoardView
+      mergeFeedback={mergeFeedback}
       goalCompletionToast={goalCompletionToast}
       user={user}
       flashTone={flashTone}

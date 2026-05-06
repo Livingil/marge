@@ -11,6 +11,7 @@ export const GameBoardPlaySection = ({
   activeRows,
   filledCellsCount,
   selectedCell,
+  mergeFeedback,
   dragFrom,
   isMerging,
   onDropCell,
@@ -41,6 +42,7 @@ export const GameBoardPlaySection = ({
   | "activeRows"
   | "filledCellsCount"
   | "selectedCell"
+  | "mergeFeedback"
   | "dragFrom"
   | "isMerging"
   | "onDropCell"
@@ -92,9 +94,10 @@ export const GameBoardPlaySection = ({
     availableExpansionModules.find((module) => user.baseLevel < module.unlockLevel) ??
     availableExpansionModules[0] ??
     null;
+  const isBoardFull = filledCellsCount >= cells.length;
   const goalRewardExtras = [
-    user.currentGoal.reward.freeSpawns > 0 ? `+${user.currentGoal.reward.freeSpawns} синтез` : null,
-    user.currentGoal.reward.freeDeletes > 0 ? `+${user.currentGoal.reward.freeDeletes} утилизация` : null
+    user.currentGoal.reward.freeSpawns > 0 ? `+${user.currentGoal.reward.freeSpawns} синтез бесплатно` : null,
+    user.currentGoal.reward.freeDeletes > 0 ? `+${user.currentGoal.reward.freeDeletes} утилизация бесплатно` : null
   ].filter(Boolean);
   const goalHintOverrides: Record<string, string> = {
     battery: "Соедини две ⚡ Искры, чтобы открыть 🔋 Батарею.",
@@ -157,12 +160,15 @@ export const GameBoardPlaySection = ({
               className={[
                 "cell",
                 cell.itemId ? "filled" : "empty",
+                mergeFeedback?.cellIndex === index ? "merge-feedback" : "",
+                mergeFeedback?.cellIndex === index ? `merge-feedback-${mergeFeedback.tone}` : "",
                 selectedCell === index ? "selected" : "",
                 dragFrom === index ? "dragging" : "",
                 getCellTierClassName(cell)
               ]
                 .filter(Boolean)
                 .join(" ")}
+              data-feedback-nonce={mergeFeedback?.cellIndex === index ? mergeFeedback.nonce : undefined}
               draggable={Boolean(cell.itemId) && !isMerging}
               onDragStart={() => setDragFrom(index)}
               onDragOver={(event) => event.preventDefault()}
@@ -177,6 +183,11 @@ export const GameBoardPlaySection = ({
                   <div className="cell-icon">{cell.item.icon}</div>
                   <div className="cell-name">{cell.item.name}</div>
                   <div className="cell-level">{cell.item.description}</div>
+                  {mergeFeedback?.cellIndex === index ? (
+                    <span className={`merge-floating-text merge-floating-text-${mergeFeedback.tone}`}>
+                      {mergeFeedback.message}
+                    </span>
+                  ) : null}
                 </>
               ) : (
                 <div className="cell-placeholder">
@@ -236,14 +247,16 @@ export const GameBoardPlaySection = ({
           type="button"
           className="action-button action-button-primary"
           onClick={spawnItemAction}
-          disabled={isSpawning || (user.goalFreeSpawns <= 0 && user.gold < user.spawnCost)}
+          disabled={isSpawning || isBoardFull || (user.goalFreeSpawns <= 0 && user.gold < user.spawnCost)}
         >
           <span className="action-button-label">
             <span className="desktop-label">{isSpawning ? "Синтез..." : "Синтезировать ядро"}</span>
             <span className="mobile-label">{isSpawning ? "Синтез..." : "Синтезировать ядро"}</span>
           </span>
           <span className="action-button-meta">
-            {user.goalFreeSpawns > 0
+            {isBoardFull
+              ? "Нет свободных ячеек"
+              : user.goalFreeSpawns > 0
               ? `Бесплатно: ${user.goalFreeSpawns}`
               : canSpawn
                 ? `Стоимость: ${user.spawnCost}`

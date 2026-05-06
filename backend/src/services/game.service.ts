@@ -294,6 +294,15 @@ const formatGoalRewardSummary = (summary: GoalRewardSummary): string => {
   return parts.join(", ");
 };
 
+const applyGoalRewardsAndBuildMessage = (user: UserDocument): string | null => {
+  const rewardSummary = applyGoalRewards(user);
+  if (!hasGoalRewardSummary(rewardSummary)) {
+    return null;
+  }
+
+  return `🎯 Цель выполнена: ${formatGoalRewardSummary(rewardSummary)}`;
+};
+
 const buildGoalRewardText = (reward: GoalRewardDto): string => {
   const parts = [`Награда: +${reward.energy} энергии`];
   if (reward.freeSpawns > 0) {
@@ -434,6 +443,8 @@ const assertCellIndex = (index: number, maxSize: number): void => {
 };
 
 const prepareUser = async (): Promise<UserDocument> => {
+  // prepareUser must not grant rewards or claim idle income.
+  // It only normalizes persisted user state.
   const user = await ensureUser();
   await normalizeGridFromLegacy(user);
   await normalizeDiscoveredItems(user);
@@ -443,11 +454,6 @@ const prepareUser = async (): Promise<UserDocument> => {
   await normalizeFreeSpawnsUsed(user);
   await normalizeDeleteActionsUsed(user);
   await normalizeGoalRewardCounters(user);
-
-  const rewardSummary = applyGoalRewards(user);
-  if (hasGoalRewardSummary(rewardSummary)) {
-    await user.save();
-  }
 
   return user;
 };
@@ -526,7 +532,6 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
   }
 
   const user = await prepareUser();
-  settlePendingIncome(user, new Date());
   const activeGridSize = getActiveGridSize(user.baseLevel);
   assertCellIndex(input.cellA, activeGridSize);
   assertCellIndex(input.cellB, activeGridSize);
@@ -548,16 +553,16 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
 
   const mergedItem = getItemDetails(result.cellA.itemId ?? null);
   const latestDiscovery = addDiscovery(user, result.cellA.itemId ?? null);
-  const rewardSummary = applyGoalRewards(user);
 
   if (firstItemId && secondItemId) {
     addDiscoveredRecipe(user, getRecipeKey(firstItemId, secondItemId));
   }
 
+  const goalRewardMessage = applyGoalRewardsAndBuildMessage(user);
   await user.save();
 
-  if (hasGoalRewardSummary(rewardSummary)) {
-    return toUserStateDto(user, latestDiscovery, `🎯 Цель выполнена: ${formatGoalRewardSummary(rewardSummary)}`);
+  if (goalRewardMessage) {
+    return toUserStateDto(user, latestDiscovery, goalRewardMessage);
   }
 
   return toUserStateDto(user, latestDiscovery, buildMergeMessage(result.outcome, mergedItem));
@@ -565,7 +570,6 @@ export const mergeCells = async (input: MergeCellsInput): Promise<UserStateDto> 
 
 export const spawnItem = async (): Promise<UserStateDto> => {
   const user = await prepareUser();
-  settlePendingIncome(user, new Date());
   const activeGridSize = getActiveGridSize(user.baseLevel);
   const emptyIndex = user.grid.cells
     .slice(0, activeGridSize)
@@ -594,11 +598,11 @@ export const spawnItem = async (): Promise<UserStateDto> => {
   user.grid.cells[emptyIndex].itemLevel = undefined;
 
   const latestDiscovery = addDiscovery(user, spawnedItemId);
-  const rewardSummary = applyGoalRewards(user);
+  const goalRewardMessage = applyGoalRewardsAndBuildMessage(user);
   await user.save();
 
-  if (hasGoalRewardSummary(rewardSummary)) {
-    return toUserStateDto(user, latestDiscovery, `🎯 Цель выполнена: ${formatGoalRewardSummary(rewardSummary)}`);
+  if (goalRewardMessage) {
+    return toUserStateDto(user, latestDiscovery, goalRewardMessage);
   }
 
   return toUserStateDto(user, latestDiscovery, "✨ Синтезирован новый символ");
@@ -606,7 +610,6 @@ export const spawnItem = async (): Promise<UserStateDto> => {
 
 export const deleteCell = async (input: DeleteCellInput): Promise<UserStateDto> => {
   const user = await prepareUser();
-  settlePendingIncome(user, new Date());
   const activeGridSize = getActiveGridSize(user.baseLevel);
   assertCellIndex(input.cellIndex, activeGridSize);
 
@@ -647,7 +650,6 @@ export const claimIncome = async (): Promise<UserStateDto> => {
 
 export const upgradeBase = async (): Promise<UserStateDto> => {
   const user = await prepareUser();
-  settlePendingIncome(user, new Date());
   const upgradeCost = getBaseUpgradeCost(user.baseLevel);
 
   if (user.gold < upgradeCost) {

@@ -8,7 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "economy:table": "tsx src/scripts/economy-table.ts",
-    "palette:summary": "tsx src/scripts/palette-summary.ts"
+    "palette:summary": "tsx src/scripts/palette-summary.ts",
+    "recipe-plan:audit": "tsx src/scripts/recipe-plan-audit.ts"
   },
   "dependencies": {
     "cors": "^2.8.6",

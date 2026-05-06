@@ -77,6 +77,13 @@ addBulk([
 addBulk([
   ["battery", "battery", "energyCell"],
   ["charge", "battery", "energyCell"],
+  ["charge", "charge", "energyCell"],
+  ["spark", "energyCell", "magnet"],
+  ["battery", "magnet", "reactor"],
+  ["stone", "energyCell", "crystal"],
+  ["charge", "magnet", "coil"],
+  ["magnet", "magnet", "reactor"],
+  ["reactor", "magnet", "portal"],
   ["energyCell", "energyCell", "magnet"],
   ["energyCell", "metal", "wire"],
   ["energyCell", "fire", "plasma"],

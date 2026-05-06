@@ -1,6 +1,5 @@
 import {
   ACTIVE_ALCHEMY_ITEM_IDS,
-  ACTIVE_CURATED_EXTRA_PAIRS,
   ACTIVE_FILTERED_RECIPE_PAIRS,
   ACTIVE_RECIPE_PAIRS,
   ALCHEMY_ITEMS,
@@ -155,7 +154,6 @@ if (detailPairCount !== ACTIVE_RECIPE_PAIRS.length) {
 console.log(`Total active items: ${ACTIVE_ALCHEMY_ITEM_IDS.length}`);
 console.log(`Total active recipes: ${ACTIVE_RECIPE_PAIRS.length}`);
 console.log(`Total filtered plan recipes: ${ACTIVE_FILTERED_RECIPE_PAIRS.length}`);
-console.log(`Total curated extra recipes: ${ACTIVE_CURATED_EXTRA_PAIRS.length}`);
 console.log("Active emoji duplicates: none");
 console.log(`Base pair coverage: ${baseCovered}/15`);
 console.log("GOAL_SEQUENCE:");

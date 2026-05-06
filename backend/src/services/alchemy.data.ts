@@ -95,19 +95,8 @@ const filteredRecipePairs: RecipePair[] = ALCHEMY_RECIPE_PLAN.filter(([leftId, r
 });
 export const ACTIVE_FILTERED_RECIPE_PAIRS = filteredRecipePairs;
 
-const curatedExtraPairs: RecipePair[] = [
-  ["spark", "battery", "energyCell"],
-  ["spark", "energyCell", "magnet"],
-  ["battery", "magnet", "reactor"],
-  ["stone", "energyCell", "crystal"],
-  ["charge", "charge", "coil"],
-  ["magnet", "magnet", "reactor"],
-  ["reactor", "magnet", "portal"]
-];
-export const ACTIVE_CURATED_EXTRA_PAIRS = curatedExtraPairs;
-
 const recipePairMap = new Map<string, RecipePair>();
-[...filteredRecipePairs, ...curatedExtraPairs].forEach(([leftId, rightId, resultId]) => {
+filteredRecipePairs.forEach(([leftId, rightId, resultId]) => {
   const key = getRecipeKey(leftId, rightId);
   const existing = recipePairMap.get(key);
   if (existing) {

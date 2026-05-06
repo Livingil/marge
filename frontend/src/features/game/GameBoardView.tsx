@@ -8,6 +8,15 @@ export const GameBoardView = (props: GameBoardViewProps) => {
   return (
     <section className={`lab-screen flash-${props.flashTone}`}>
       <div className="lab-chrome" />
+      {props.goalCompletionToast ? (
+        <div className="goal-completion-toast" role="status" aria-live="polite">
+          <p className="goal-completion-toast-kicker">{props.goalCompletionToast.title}</p>
+          <p className="goal-completion-toast-title">{props.goalCompletionToast.discoveryLine}</p>
+          {props.goalCompletionToast.rewardLine ? (
+            <p className="goal-completion-toast-reward">{props.goalCompletionToast.rewardLine}</p>
+          ) : null}
+        </div>
+      ) : null}
 
       <header className="resource-bar">
         <div className="resource-pill resource-pill-energy">

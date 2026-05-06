@@ -457,6 +457,43 @@ const randomBaseItem = (): string => {
   return BASE_SPAWN_ITEM_IDS[randomIndex];
 };
 
+const GUARANTEED_SPARK_WINDOW = 8;
+const GUARANTEED_SPARK_COUNT = 2;
+const GUARANTEED_SPARK_ITEM_ID = "spark";
+
+const countSpawnedSparkInGuaranteedWindow = (user: UserDocument): number => {
+  return user.grid.cells
+    .slice(0, getActiveGridSize(user.baseLevel))
+    .filter((cell) => normalizeGridCellItemId(cell) === GUARANTEED_SPARK_ITEM_ID)
+    .length;
+};
+
+// Early onboarding safety net: ensures the player can craft battery during the
+// initial free spawn window without changing normal spawn randomness afterwards.
+const getGuaranteedSpawnItemId = (user: UserDocument): string | null => {
+  if (user.freeSpawnsUsed >= GUARANTEED_SPARK_WINDOW) {
+    return null;
+  }
+
+  if (user.discoveredItems.includes("battery")) {
+    return null;
+  }
+
+  const sparkOnBoard = countSpawnedSparkInGuaranteedWindow(user);
+  const remainingGuaranteedSpawns = GUARANTEED_SPARK_WINDOW - user.freeSpawnsUsed;
+  const missingSpark = GUARANTEED_SPARK_COUNT - sparkOnBoard;
+
+  if (missingSpark <= 0) {
+    return null;
+  }
+
+  if (remainingGuaranteedSpawns <= missingSpark) {
+    return GUARANTEED_SPARK_ITEM_ID;
+  }
+
+  return null;
+};
+
 const settlePendingIncome = (user: UserDocument, now: Date): number => {
   const elapsedSecondsRaw = Math.floor((now.getTime() - user.lastIncomeClaimAt.getTime()) / 1000);
   const elapsedSeconds = Math.max(0, Math.min(elapsedSecondsRaw, MAX_OFFLINE_INCOME_SECONDS));
@@ -548,8 +585,11 @@ export const spawnItem = async (): Promise<UserStateDto> => {
   } else {
     user.gold -= spawnCost;
   }
+
+  const guaranteedItemId = getGuaranteedSpawnItemId(user);
+
   user.freeSpawnsUsed += 1;
-  const spawnedItemId = randomBaseItem();
+  const spawnedItemId = guaranteedItemId ?? randomBaseItem();
   user.grid.cells[emptyIndex].itemId = spawnedItemId;
   user.grid.cells[emptyIndex].itemLevel = undefined;
 

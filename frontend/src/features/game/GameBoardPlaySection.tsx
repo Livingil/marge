@@ -99,6 +99,7 @@ export const GameBoardPlaySection = ({
     user.currentGoal.reward.freeSpawns > 0 ? `+${user.currentGoal.reward.freeSpawns} синтез бесплатно` : null,
     user.currentGoal.reward.freeDeletes > 0 ? `+${user.currentGoal.reward.freeDeletes} утилизация бесплатно` : null
   ].filter(Boolean);
+  const goalRewardInlineText = [`Награда: +${user.currentGoal.reward.energy} энергии`, ...goalRewardExtras].join(" · ");
   const goalHintOverrides: Record<string, string> = {
     battery: "Соедини две ⚡ Искры, чтобы открыть 🔋 Батарею.",
     charge: "Соедини ⚡ Искру и 💧 Воду, чтобы открыть 🔌 Заряд.",
@@ -209,10 +210,7 @@ export const GameBoardPlaySection = ({
               <h1 className="mission-title mission-title-strong">{user.currentGoal.title}</h1>
             </div>
             <div className="mission-reward-group">
-              <p className="mission-reward-badge">Награда: +{user.currentGoal.reward.energy} энергии</p>
-              {goalRewardExtras.length > 0 ? (
-                <p className="mission-reward-line">{goalRewardExtras.join(" · ")}</p>
-              ) : null}
+              <p className="mission-reward-badge">{goalRewardInlineText}</p>
             </div>
           </div>
         </div>

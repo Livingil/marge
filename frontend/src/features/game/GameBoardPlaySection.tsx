@@ -21,7 +21,6 @@ export const GameBoardPlaySection = ({
   user,
   targetItem,
   setIsCatalogOpen,
-  isSpawnCelebrating,
   isSpawning,
   isClaimingIncome,
   isUpgradingBase,
@@ -34,8 +33,9 @@ export const GameBoardPlaySection = ({
   spawnItemAction,
   claimIncomeAction,
   upgradeBaseAction,
-  deleteCellAction
-}: Pick<GameBoardViewProps,
+  deleteCellAction,
+}: Pick<
+  GameBoardViewProps,
   | "contextHint"
   | "selectedCellItem"
   | "isHintDismissed"
@@ -54,7 +54,6 @@ export const GameBoardPlaySection = ({
   | "user"
   | "targetItem"
   | "setIsCatalogOpen"
-  | "isSpawnCelebrating"
   | "isSpawning"
   | "isClaimingIncome"
   | "isUpgradingBase"
@@ -86,65 +85,85 @@ export const GameBoardPlaySection = ({
     }
 
     const elapsedSecondsRaw = Math.floor((nowMs - lastClaimMs) / 1000);
-    const elapsedSeconds = Math.max(0, Math.min(elapsedSecondsRaw, 2 * 60 * 60));
+    const elapsedSeconds = Math.max(
+      0,
+      Math.min(elapsedSecondsRaw, 2 * 60 * 60),
+    );
     const incomePerSecond = user.incomePerMinute / 60;
     const computed = Math.floor(incomePerSecond * elapsedSeconds);
     return Math.max(user.claimableIncome, computed);
-  }, [nowMs, user.claimableIncome, user.incomePerMinute, user.lastIncomeClaimAt]);
+  }, [
+    nowMs,
+    user.claimableIncome,
+    user.incomePerMinute,
+    user.lastIncomeClaimAt,
+  ]);
   const availableExpansionModules = expansionModules.filter(
-    (module) => !(module.hideWhenReached && user.baseLevel >= module.unlockLevel)
+    (module) =>
+      !(module.hideWhenReached && user.baseLevel >= module.unlockLevel),
   );
   const nextExpansionModule =
-    availableExpansionModules.find((module) => user.baseLevel < module.unlockLevel) ??
+    availableExpansionModules.find(
+      (module) => user.baseLevel < module.unlockLevel,
+    ) ??
     availableExpansionModules[0] ??
     null;
+  const discoveredCount = Array.isArray(user.discoveredItems) ? user.discoveredItems.length : 0;
+  const catalogCount = Array.isArray(user.itemCatalog) ? user.itemCatalog.length : 0;
+  const progressPercent = catalogCount > 0 ? Math.round((discoveredCount / catalogCount) * 100) : 0;
+  const remaining = Math.max(0, catalogCount - discoveredCount);
   const isBoardFull = filledCellsCount >= cells.length;
   const goalRewardExtras = [
-    user.currentGoal.reward.freeSpawns > 0 ? `+${user.currentGoal.reward.freeSpawns} синтез бесплатно` : null,
-    user.currentGoal.reward.freeDeletes > 0 ? `+${user.currentGoal.reward.freeDeletes} утилизация бесплатно` : null
+    user.currentGoal.reward.freeSpawns > 0
+      ? `+${user.currentGoal.reward.freeSpawns} синтез бесплатно`
+      : null,
+    user.currentGoal.reward.freeDeletes > 0
+      ? `+${user.currentGoal.reward.freeDeletes} утилизация бесплатно`
+      : null,
   ].filter(Boolean);
-  const goalRewardInlineText = [`Награда: +${user.currentGoal.reward.energy} энергии`, ...goalRewardExtras].join(" · ");
+  const goalRewardInlineText = [
+    `Награда: +${user.currentGoal.reward.energy} энергии`,
+    ...goalRewardExtras,
+  ].join(" · ");
   const goalHintOverrides: Record<string, string> = {
     battery: "Соедини две ⚡ Искры, чтобы открыть 🔋 Батарею.",
     charge: "Соедини ⚡ Искру и 💧 Воду, чтобы открыть 🔌 Заряд.",
-    energyCell: "Попробуй соединить две 🔋 Батареи или 🔋 Батарею с 🔌 Зарядом."
+    energyCell:
+      "Попробуй соединить две 🔋 Батареи или 🔋 Батарею с 🔌 Зарядом.",
   };
   const onboardingHintText =
     goalHintOverrides[user.currentGoal.targetItemId] ??
     "Ищи новые сочетания элементов, чтобы открыть текущую цель.";
   const onboardingHintTitle =
-    user.currentGoal.targetItemId in goalHintOverrides ? "Подсказка по цели" : contextHint.title;
+    user.currentGoal.targetItemId in goalHintOverrides
+      ? "Подсказка по цели"
+      : contextHint.title;
 
   return (
     <>
       <section className="lab-expansion-preview lab-expansion-preview-flat">
         <div className="expansion-header">
-          <span>Следующая модернизация</span>
+          <span className="expansion-mobile-summary">
+            Следующая модернизация лаборатории:{" "}
+            {nextExpansionModule
+              ? `${nextExpansionModule.title} · Ур. ${nextExpansionModule.unlockLevel}`
+              : "все модули открыты"}
+          </span>
         </div>
-        <div className="expansion-modules expansion-modules-single">
-          {nextExpansionModule ? (
-            <article
-              key={nextExpansionModule.id}
-              className={`expansion-module ${user.baseLevel >= nextExpansionModule.unlockLevel ? "ready" : "locked"}`}
-            >
-              <p className="expansion-module-title">{nextExpansionModule.title}</p>
-              <p className="expansion-module-unlock">
-                {user.baseLevel >= nextExpansionModule.unlockLevel
-                  ? "Запланировано"
-                  : `🔒 Ур. ${nextExpansionModule.unlockLevel}`}
-              </p>
-              <p className="expansion-module-description">{nextExpansionModule.description}</p>
-            </article>
-          ) : (
-            <article className="expansion-module ready">
-              <p className="expansion-module-title">Все модули открыты</p>
-              <p className="expansion-module-unlock">Лаборатория стабилизирована</p>
-              <p className="expansion-module-description">
-                Базовая программа расширения завершена.
-              </p>
-            </article>
-          )}
+      </section>
+      <section className="sector-progress-card" aria-label="Прогресс сектора">
+        <div className="sector-progress-head">
+          <p className="sector-progress-title">Сектор 1 · Открытия</p>
+          <p className="sector-progress-count">
+            {discoveredCount}/{catalogCount || "—"}
+          </p>
         </div>
+        <div className="sector-progress-track" role="presentation">
+          <span className="sector-progress-fill" style={{ width: `${progressPercent}%` }} />
+        </div>
+        <p className="sector-progress-foot">
+          До стабилизации: {catalogCount > 0 ? remaining : "—"}
+        </p>
       </section>
 
       <div className="board-shell">
@@ -153,6 +172,7 @@ export const GameBoardPlaySection = ({
             <p className="board-kicker">Реакторное поле</p>
             <h2>{`Камера слияния 5x${activeRows}`}</h2>
           </div>
+
           <div className="board-header-actions">
             <button
               type="button"
@@ -169,24 +189,19 @@ export const GameBoardPlaySection = ({
               </span>
             </button>
           </div>
-          <p className="board-hint">Перетащи один символ на другой или выбери две клетки по очереди.</p>
-        </div>
-        <div className={`reactor-core-card ${isSpawnCelebrating ? "reactor-core-card-boost" : ""}`} aria-hidden="true">
-          <div className="reactor-core-visual">
-            <span className="reactor-core-ring reactor-core-ring-outer" />
-            <span className="reactor-core-ring reactor-core-ring-mid" />
-            <span className="reactor-core-ring reactor-core-ring-inner" />
-            <span className="reactor-core-node">⚛️</span>
-          </div>
-          <div className="reactor-core-copy">
-            <p className="reactor-core-kicker">Реактор синтеза</p>
-            <p className="reactor-core-title">Ядро лаборатории активно</p>
-          </div>
+          <p className="board-hint">
+            Перетащи один символ на другой или выбери две клетки по очереди.
+          </p>
         </div>
         {filledCellsCount === 0 ? (
-          <p className="board-empty-state">Поле пустое. Синтезируй первое ядро.</p>
+          <p className="board-empty-state">
+            Поле пустое. Синтезируй первое ядро.
+          </p>
         ) : null}
-        <div className="grid" style={{ gridTemplateColumns: `repeat(${GRID_COLUMNS}, 1fr)` }}>
+        <div
+          className="grid"
+          style={{ gridTemplateColumns: `repeat(${GRID_COLUMNS}, 1fr)` }}
+        >
           {cells.map((cell, index) => (
             <div
               key={index}
@@ -194,14 +209,20 @@ export const GameBoardPlaySection = ({
                 "cell",
                 cell.itemId ? "filled" : "empty",
                 mergeFeedback?.cellIndex === index ? "merge-feedback" : "",
-                mergeFeedback?.cellIndex === index ? `merge-feedback-${mergeFeedback.tone}` : "",
+                mergeFeedback?.cellIndex === index
+                  ? `merge-feedback-${mergeFeedback.tone}`
+                  : "",
                 selectedCell === index ? "selected" : "",
                 dragFrom === index ? "dragging" : "",
-                getCellTierClassName(cell)
+                getCellTierClassName(cell),
               ]
                 .filter(Boolean)
                 .join(" ")}
-              data-feedback-nonce={mergeFeedback?.cellIndex === index ? mergeFeedback.nonce : undefined}
+              data-feedback-nonce={
+                mergeFeedback?.cellIndex === index
+                  ? mergeFeedback.nonce
+                  : undefined
+              }
               draggable={Boolean(cell.itemId) && !isMerging}
               onDragStart={() => setDragFrom(index)}
               onDragOver={(event) => event.preventDefault()}
@@ -217,7 +238,9 @@ export const GameBoardPlaySection = ({
                   <div className="cell-name">{cell.item.name}</div>
                   <div className="cell-level">{cell.item.description}</div>
                   {mergeFeedback?.cellIndex === index ? (
-                    <span className={`merge-floating-text merge-floating-text-${mergeFeedback.tone}`}>
+                    <span
+                      className={`merge-floating-text merge-floating-text-${mergeFeedback.tone}`}
+                    >
                       {mergeFeedback.message}
                     </span>
                   ) : null}
@@ -238,8 +261,12 @@ export const GameBoardPlaySection = ({
           <p className="eyebrow mission-kicker">Текущая цель</p>
           <div className="mission-mainline mission-mainline-stack">
             <div className="mission-title-row">
-              <span className="mission-target-icon" aria-hidden="true">{targetItem?.icon ?? "🎯"}</span>
-              <h1 className="mission-title mission-title-strong">{user.currentGoal.title}</h1>
+              <span className="mission-target-icon" aria-hidden="true">
+                {targetItem?.icon ?? "🎯"}
+              </span>
+              <h1 className="mission-title mission-title-strong">
+                {user.currentGoal.title}
+              </h1>
             </div>
             <div className="mission-reward-group">
               <p className="mission-reward-badge">{goalRewardInlineText}</p>
@@ -251,13 +278,19 @@ export const GameBoardPlaySection = ({
       {!isHintDismissed ? (
         <div className="onboarding-grid">
           <div className="onboarding-card">
-            <button type="button" className="onboarding-close" onClick={dismissHint}>
+            <button
+              type="button"
+              className="onboarding-close"
+              onClick={dismissHint}
+            >
               ✕
             </button>
             <p className="eyebrow">Подсказка лаборатории</p>
             <p className="onboarding-title">{onboardingHintTitle}</p>
             <p className="onboarding-text">{onboardingHintText}</p>
-            <p className={`onboarding-selected ${selectedCellItem ? "" : "empty"}`}>
+            <p
+              className={`onboarding-selected ${selectedCellItem ? "" : "empty"}`}
+            >
               {selectedCellItem ? (
                 <>
                   Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
@@ -275,22 +308,30 @@ export const GameBoardPlaySection = ({
       <div className="control-deck">
         <button
           type="button"
-          className={`action-button action-button-primary ${isSpawnCelebrating ? "action-button-spawn-boost" : ""}`}
+          className="action-button action-button-primary"
           onClick={spawnItemAction}
-          disabled={isSpawning || isBoardFull || (user.goalFreeSpawns <= 0 && user.gold < user.spawnCost)}
+          disabled={
+            isSpawning ||
+            isBoardFull ||
+            (user.goalFreeSpawns <= 0 && user.gold < user.spawnCost)
+          }
         >
           <span className="action-button-label">
-            <span className="desktop-label">{isSpawning ? "Синтез..." : "Синтезировать ядро"}</span>
-            <span className="mobile-label">{isSpawning ? "Синтез..." : "Синтезировать ядро"}</span>
+            <span className="desktop-label">
+              {isSpawning ? "Синтез..." : "Синтезировать ядро"}
+            </span>
+            <span className="mobile-label">
+              {isSpawning ? "Синтез..." : "Синтезировать ядро"}
+            </span>
           </span>
           <span className="action-button-meta">
             {isBoardFull
               ? "Нет свободных ячеек"
               : user.goalFreeSpawns > 0
-              ? `Бесплатно: ${user.goalFreeSpawns}`
-              : canSpawn
-                ? `Стоимость: ${user.spawnCost}`
-                : `Нужно энергии: ${user.spawnCost}`}
+                ? `Бесплатно: ${user.goalFreeSpawns}`
+                : canSpawn
+                  ? `Стоимость: ${user.spawnCost}`
+                  : `Нужно энергии: ${user.spawnCost}`}
           </span>
         </button>
         <button
@@ -300,11 +341,17 @@ export const GameBoardPlaySection = ({
           disabled={isUpgradingBase || user.gold < user.baseUpgradeCost}
         >
           <span className="action-button-label">
-            <span className="desktop-label">{isUpgradingBase ? "Усиление..." : "Усилить лабораторию"}</span>
-            <span className="mobile-label">{isUpgradingBase ? "Усиление..." : "Усилить"}</span>
+            <span className="desktop-label">
+              {isUpgradingBase ? "Усиление..." : "Усилить лабораторию"}
+            </span>
+            <span className="mobile-label">
+              {isUpgradingBase ? "Усиление..." : "Усилить"}
+            </span>
           </span>
           <span className="action-button-meta">
-            {canUpgradeBase ? `Стоимость: ${user.baseUpgradeCost}` : `Нужно энергии: ${user.baseUpgradeCost}`}
+            {canUpgradeBase
+              ? `Стоимость: ${user.baseUpgradeCost}`
+              : `Нужно энергии: ${user.baseUpgradeCost}`}
           </span>
         </button>
         <button
@@ -314,19 +361,33 @@ export const GameBoardPlaySection = ({
           disabled={isClaimingIncome}
         >
           <span className="action-button-label">
-            <span className="desktop-label">{isClaimingIncome ? "Сбор..." : "Собрать поток"}</span>
-            <span className="mobile-label">{isClaimingIncome ? "Сбор..." : "Собрать"}</span>
+            <span className="desktop-label">
+              {isClaimingIncome ? "Сбор..." : "Собрать поток"}
+            </span>
+            <span className="mobile-label">
+              {isClaimingIncome ? "Сбор..." : "Собрать"}
+            </span>
           </span>
-          <span className="action-button-meta">К сбору: {liveClaimableIncome}</span>
+          <span className="action-button-meta">
+            К сбору: {liveClaimableIncome}
+          </span>
         </button>
         <button
           type="button"
           className="action-button action-button-tertiary action-button-delete"
           onClick={deleteCellAction}
-          disabled={isDeletingCell || !hasSelectedCellItem || (user.goalFreeDeletes <= 0 && !canDeleteSelectedCell)}
+          disabled={
+            isDeletingCell ||
+            !hasSelectedCellItem ||
+            (user.goalFreeDeletes <= 0 && !canDeleteSelectedCell)
+          }
         >
           <span className="action-button-label">
-            {isDeletingCell ? "Утилизация..." : hasSelectedCellItem ? "Утилизировать" : "Выбери образец"}
+            {isDeletingCell
+              ? "Утилизация..."
+              : hasSelectedCellItem
+                ? "Утилизировать"
+                : "Выбери образец"}
           </span>
           <span className="action-button-meta">
             {hasSelectedCellItem && user.goalFreeDeletes > 0
@@ -340,5 +401,3 @@ export const GameBoardPlaySection = ({
     </>
   );
 };
-
-

@@ -23,7 +23,11 @@
   border-radius: 14px;
   border: 1px solid rgba(88, 222, 255, 0.2);
   background:
-    radial-gradient(circle at 12% 25%, rgba(97, 247, 190, 0.12), transparent 35%),
+    radial-gradient(
+      circle at 12% 25%,
+      rgba(97, 247, 190, 0.12),
+      transparent 35%
+    ),
     linear-gradient(140deg, rgba(8, 27, 44, 0.92), rgba(5, 18, 32, 0.92));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
@@ -69,8 +73,11 @@
   height: 100%;
   min-width: 0;
   border-radius: inherit;
-  background:
-    linear-gradient(90deg, rgba(97, 247, 190, 0.92), rgba(88, 222, 255, 0.9));
+  background: linear-gradient(
+    90deg,
+    rgba(97, 247, 190, 0.92),
+    rgba(88, 222, 255, 0.9)
+  );
   box-shadow:
     0 0 0 1px rgba(97, 247, 190, 0.24),
     0 0 14px rgba(97, 247, 190, 0.38);
@@ -121,23 +128,64 @@
 
 .board-header {
   position: relative;
-  padding-right: 146px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 4px;
 }
 
 .board-header-actions {
-  position: absolute;
-  top: 0;
-  right: 0;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-end;
-  z-index: 3;
+  gap: 8px;
+  margin-left: 0;
+  align-self: center;
+  justify-self: end;
+}
+
+.reactor-core-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(88, 222, 255, 0.26);
+  background: linear-gradient(
+    140deg,
+    rgba(8, 27, 44, 0.86),
+    rgba(5, 18, 32, 0.88)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 16px rgba(88, 222, 255, 0.16);
+}
+
+.reactor-core-inline .reactor-core-visual {
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
+}
+
+.reactor-core-inline .reactor-core-node {
+  font-size: 13px;
+}
+
+.reactor-core-inline-boost {
+  animation: reactorCoreBoost 520ms ease-out both;
+}
+
+.board-hint {
+  grid-column: 1 / -1;
+  margin: 0;
 }
 
 .board-catalog-button {
   display: inline-flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   min-width: 132px;
   min-height: 44px;
@@ -156,6 +204,7 @@
     transform 140ms ease,
     border-color 140ms ease,
     box-shadow 140ms ease;
+  text-align: center;
 }
 
 .board-catalog-button:hover {
@@ -186,6 +235,8 @@
 
 .board-catalog-button-progress-mobile {
   display: none;
+  width: 100%;
+  text-align: center;
 }
 
 .resource-pill {
@@ -198,7 +249,11 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(120deg, rgba(255, 255, 255, 0.08), transparent 40%);
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.08),
+    transparent 40%
+  );
 }
 
 .resource-pill-energy {
@@ -233,7 +288,11 @@
   border-radius: 16px;
   border: 1px solid rgba(88, 222, 255, 0.22);
   background:
-    radial-gradient(circle at 10% 30%, rgba(97, 247, 190, 0.14), transparent 40%),
+    radial-gradient(
+      circle at 10% 30%,
+      rgba(97, 247, 190, 0.14),
+      transparent 40%
+    ),
     linear-gradient(125deg, rgba(8, 27, 44, 0.96), rgba(5, 18, 32, 0.95));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
@@ -327,7 +386,11 @@
   bottom: 4px;
   width: 3px;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(97, 247, 190, 0.95), rgba(88, 222, 255, 0.95));
+  background: linear-gradient(
+    180deg,
+    rgba(97, 247, 190, 0.95),
+    rgba(88, 222, 255, 0.95)
+  );
   box-shadow: 0 0 14px rgba(97, 247, 190, 0.45);
 }
 
@@ -651,9 +714,41 @@
   color: #9ec6d8;
 }
 
+.expansion-mobile-summary {
+  display: block;
+  width: 100%;
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.1;
+  color: #c5e8f7;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lab-expansion-preview-flat .expansion-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.lab-expansion-preview-flat {
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+}
+
 .action-button-secondary {
   border-color: rgba(133, 218, 255, 0.2);
-  background: linear-gradient(180deg, rgba(11, 30, 46, 0.94), rgba(8, 22, 36, 0.95));
+  background: linear-gradient(
+    180deg,
+    rgba(11, 30, 46, 0.94),
+    rgba(8, 22, 36, 0.95)
+  );
 }
 
 .action-button-income {
@@ -696,8 +791,8 @@
   }
 
   .sector-progress-card {
-    padding: 8px 10px;
-    border-radius: 12px;
+    padding: 6px 8px;
+    border-radius: 10px;
   }
 
   .sector-progress-title,
@@ -706,13 +801,12 @@
   }
 
   .sector-progress-track {
-    margin-top: 6px;
-    height: 6px;
+    margin-top: 4px;
+    height: 5px;
   }
 
   .sector-progress-foot {
-    margin-top: 5px;
-    font-size: 9px;
+    display: none;
   }
 
   .mission-reward-line {
@@ -727,8 +821,7 @@
   }
 
   .board-header-actions {
-    top: 0;
-    right: 0;
+    margin-left: auto;
   }
 
   .board-catalog-button {
@@ -739,30 +832,22 @@
   }
 
   .board-header {
-    padding-right: 88px;
+    margin-bottom: 4px;
   }
 
-  .reactor-core-card {
-    padding: 8px 10px;
-    margin-bottom: 8px;
-    gap: 10px;
+  .reactor-core-inline {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
   }
 
-  .reactor-core-visual {
-    width: 44px;
-    height: 44px;
-    flex-basis: 44px;
+  .reactor-core-inline .reactor-core-visual {
+    width: 16px;
+    height: 16px;
+    flex-basis: 16px;
   }
 
-  .reactor-core-node {
-    font-size: 20px;
-  }
-
-  .reactor-core-kicker {
-    font-size: 9px;
-  }
-
-  .reactor-core-title {
+  .reactor-core-inline .reactor-core-node {
     font-size: 11px;
   }
 
@@ -791,13 +876,14 @@
   }
 
   .mission-title-strong {
-    font-size: 21px;
+    font-size: 18px;
+    line-height: 1.02;
   }
 
   .mission-reward-badge {
-    font-size: 10px;
-    padding: 3px 8px;
-    max-width: 66vw;
+    font-size: 9px;
+    padding: 2px 7px;
+    max-width: 68vw;
   }
 
   .action-button-primary {
@@ -821,6 +907,13 @@
   .goal-completion-toast-title,
   .goal-completion-toast-reward {
     font-size: 11px;
+  }
+
+  .expansion-mobile-summary {
+    margin: 0 0 2px;
+    font-size: 10px;
+    line-height: 1.15;
+    color: #aed3e5;
   }
 }
 

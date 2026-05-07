@@ -20,8 +20,8 @@
   }
 
   .lab-expansion-preview {
-    min-height: 102px;
-    padding: 7px;
+    min-height: auto;
+    padding: 4px 0 0;
     border-radius: 12px;
     overflow: hidden;
     display: flex;
@@ -64,8 +64,8 @@
   .expansion-module {
     flex: 0 0 auto;
     min-width: 0;
-    padding: 6px;
-    border-radius: 10px;
+    padding: 5px 6px;
+    border-radius: 9px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -90,17 +90,12 @@
   }
 
   .expansion-module-description {
-    margin-top: 3px;
-    line-height: 1.2;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    display: none;
   }
 
   .board-header {
     gap: 4px;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
 
   .board-kicker {

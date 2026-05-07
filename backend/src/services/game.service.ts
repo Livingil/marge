@@ -342,6 +342,10 @@ const applyGoalRewards = (user: UserDocument): GoalRewardSummary => {
   return summary;
 };
 
+export const __internal = {
+  applyGoalRewards
+};
+
 const getCurrentGoal = (discoveredItems: string[]): CurrentGoalDto => {
   const nextTargetIndex = GOAL_SEQUENCE.findIndex((itemId) => !discoveredItems.includes(itemId));
   const allGoalsCompleted = nextTargetIndex === -1;

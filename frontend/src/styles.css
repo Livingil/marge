@@ -51,6 +51,75 @@
   line-height: 1.05;
 }
 
+.board-header {
+  position: relative;
+  padding-right: 146px;
+}
+
+.board-header-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  z-index: 3;
+}
+
+.board-catalog-button {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 132px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(88, 222, 255, 0.34);
+  background:
+    linear-gradient(180deg, rgba(12, 31, 49, 0.95), rgba(8, 22, 36, 0.96)),
+    rgba(8, 22, 36, 0.95);
+  color: #def6ff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(88, 222, 255, 0.08),
+    0 10px 20px rgba(0, 0, 0, 0.22);
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.board-catalog-button:hover {
+  border-color: rgba(97, 247, 190, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(97, 247, 190, 0.12),
+    0 0 20px rgba(88, 222, 255, 0.16);
+}
+
+.board-catalog-button:active {
+  transform: translate3d(0, 1px, 0) scale(0.985);
+}
+
+.board-catalog-button-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #e9fbff;
+}
+
+.board-catalog-button-progress {
+  margin-top: 2px;
+  font-size: 10px;
+  line-height: 1.2;
+  color: #9fdaf0;
+}
+
+.board-catalog-button-progress-mobile {
+  display: none;
+}
+
 .mission-reward-group {
   display: flex;
   flex-direction: column;
@@ -236,6 +305,35 @@
 
   .mission-mainline {
     gap: 6px;
+  }
+
+  .board-header-actions {
+    top: 0;
+    right: 0;
+  }
+
+  .board-catalog-button {
+    min-width: 84px;
+    min-height: 34px;
+    padding: 5px 8px;
+    border-radius: 10px;
+  }
+
+  .board-header {
+    padding-right: 96px;
+  }
+
+  .board-catalog-button-title,
+  .board-catalog-button-progress {
+    display: none;
+  }
+
+  .board-catalog-button-progress-mobile {
+    display: inline;
+    font-size: 11px;
+    font-weight: 800;
+    color: #dff8ff;
+    line-height: 1;
   }
 
   .mission-title-row {

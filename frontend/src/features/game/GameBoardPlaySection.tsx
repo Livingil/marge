@@ -20,6 +20,7 @@ export const GameBoardPlaySection = ({
   getCellTierClassName,
   user,
   targetItem,
+  setIsCatalogOpen,
   isSpawning,
   isClaimingIncome,
   isUpgradingBase,
@@ -51,6 +52,7 @@ export const GameBoardPlaySection = ({
   | "getCellTierClassName"
   | "user"
   | "targetItem"
+  | "setIsCatalogOpen"
   | "isSpawning"
   | "isClaimingIncome"
   | "isUpgradingBase"
@@ -148,6 +150,22 @@ export const GameBoardPlaySection = ({
           <div>
             <p className="board-kicker">Реакторное поле</p>
             <h2>{`Камера слияния 5x${activeRows}`}</h2>
+          </div>
+          <div className="board-header-actions">
+            <button
+              type="button"
+              className="board-catalog-button"
+              onClick={() => setIsCatalogOpen(true)}
+              aria-label="Открыть каталог элементов"
+            >
+              <span className="board-catalog-button-title">📚 Каталог</span>
+              <span className="board-catalog-button-progress">
+                Открыто: {user.discoveredItems.length}/{user.itemCatalog.length}
+              </span>
+              <span className="board-catalog-button-progress-mobile">
+                📚 {user.discoveredItems.length}/{user.itemCatalog.length}
+              </span>
+            </button>
           </div>
           <p className="board-hint">Перетащи один символ на другой или выбери две клетки по очереди.</p>
         </div>

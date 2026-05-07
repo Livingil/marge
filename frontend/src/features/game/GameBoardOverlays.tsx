@@ -36,6 +36,10 @@ export const GameBoardOverlays = ({
   | "filteredCatalogItems"
   | "user"
 >) => {
+  const discoveredCount = user.discoveredItems.length;
+  const catalogCount = user.itemCatalog.length;
+  const progressPercent = catalogCount > 0 ? Math.round((discoveredCount / catalogCount) * 100) : 0;
+
   return (
     <>
       {!isGuideDismissed ? (
@@ -95,7 +99,13 @@ export const GameBoardOverlays = ({
         <div className="fullscreen-overlay mobile-only" role="dialog" aria-modal="true">
           <div className="fullscreen-sheet">
             <div className="fullscreen-header">
-              <h3>Каталог</h3>
+              <div className="catalog-header-copy">
+                <h3>Каталог</h3>
+                <p className="catalog-header-progress">Открыто {discoveredCount}/{catalogCount}</p>
+                <div className="catalog-header-progress-track" role="presentation">
+                  <span className="catalog-header-progress-fill" style={{ width: `${progressPercent}%` }} />
+                </div>
+              </div>
               <button type="button" className="fullscreen-close" onClick={() => setIsCatalogOpen(false)}>
                 Закрыть
               </button>

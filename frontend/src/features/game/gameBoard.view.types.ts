@@ -5,9 +5,10 @@ export type GameBoardViewProps = {
   mergeFeedback: {
     cellIndex: number;
     message: string;
-    tone: "success" | "new";
+    tone: "success" | "new" | "spawn";
     nonce: number;
   } | null;
+  isSpawnCelebrating: boolean;
   goalCompletionToast: {
     title: string;
     discoveryLine: string;

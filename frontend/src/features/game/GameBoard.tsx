@@ -52,10 +52,12 @@ export const GameBoard = () => {
   const [mergeFeedback, setMergeFeedback] = useState<{
     cellIndex: number;
     message: string;
-    tone: "success" | "new";
+    tone: "success" | "new" | "spawn";
     nonce: number;
   } | null>(null);
+  const [isSpawnCelebrating, setIsSpawnCelebrating] = useState(false);
   const mergeFeedbackTimeoutRef = useRef<number | null>(null);
+  const spawnCelebrationTimeoutRef = useRef<number | null>(null);
   const previousGoalTargetIdRef = useRef<string | null>(null);
   const hasSeenFirstUserRef = useRef(false);
 
@@ -213,6 +215,9 @@ export const GameBoard = () => {
       if (mergeFeedbackTimeoutRef.current !== null) {
         window.clearTimeout(mergeFeedbackTimeoutRef.current);
       }
+      if (spawnCelebrationTimeoutRef.current !== null) {
+        window.clearTimeout(spawnCelebrationTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -252,7 +257,7 @@ export const GameBoard = () => {
 
     setMergeFeedback({
       cellIndex: resultCellIndex,
-      message: isNewDiscovery ? "Открыто!" : "Слияние!",
+      message: isNewDiscovery ? "Новое открытие!" : "Слияние!",
       tone: isNewDiscovery ? "new" : "success",
       nonce: Date.now()
     });
@@ -261,6 +266,31 @@ export const GameBoard = () => {
       setMergeFeedback(null);
       mergeFeedbackTimeoutRef.current = null;
     }, 800);
+  };
+
+  const triggerSpawnCelebration = (): void => {
+    if (spawnCelebrationTimeoutRef.current !== null) {
+      window.clearTimeout(spawnCelebrationTimeoutRef.current);
+    }
+
+    setIsSpawnCelebrating(true);
+    spawnCelebrationTimeoutRef.current = window.setTimeout(() => {
+      setIsSpawnCelebrating(false);
+      spawnCelebrationTimeoutRef.current = null;
+    }, 720);
+  };
+
+  const resolveSpawnResultCellIndex = (updatedUserCells: Array<{ itemId: string | null }>): number | null => {
+    for (let i = 0; i < cells.length; i += 1) {
+      const before = cells[i]?.itemId ?? null;
+      const after = updatedUserCells[i]?.itemId ?? null;
+
+      if (before === null && after !== null) {
+        return i;
+      }
+    }
+
+    return null;
   };
 
   const onDropCell = async (toIndex: number) => {
@@ -320,6 +350,7 @@ export const GameBoard = () => {
   return (
     <GameBoardView
       mergeFeedback={mergeFeedback}
+      isSpawnCelebrating={isSpawnCelebrating}
       goalCompletionToast={goalCompletionToast}
       user={user}
       flashTone={flashTone}
@@ -349,7 +380,31 @@ export const GameBoard = () => {
       canDeleteSelectedCell={canDeleteSelectedCell}
       selectedCellDeleteCost={selectedCellDeleteCost}
       spawnItemAction={() => {
-        void spawnItem();
+        void spawnItem()
+          .unwrap()
+          .then((updatedUser) => {
+            triggerSpawnCelebration();
+            const spawnedCellIndex = resolveSpawnResultCellIndex(updatedUser.grid.cells);
+            if (spawnedCellIndex === null) {
+              return;
+            }
+
+            if (mergeFeedbackTimeoutRef.current !== null) {
+              window.clearTimeout(mergeFeedbackTimeoutRef.current);
+            }
+
+            setMergeFeedback({
+              cellIndex: spawnedCellIndex,
+              message: "Синтез!",
+              tone: "spawn",
+              nonce: Date.now()
+            });
+
+            mergeFeedbackTimeoutRef.current = window.setTimeout(() => {
+              setMergeFeedback(null);
+              mergeFeedbackTimeoutRef.current = null;
+            }, 680);
+          });
       }}
       claimIncomeAction={() => {
         void claimIncome();

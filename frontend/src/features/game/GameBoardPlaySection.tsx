@@ -21,6 +21,7 @@ export const GameBoardPlaySection = ({
   user,
   targetItem,
   setIsCatalogOpen,
+  isSpawnCelebrating,
   isSpawning,
   isClaimingIncome,
   isUpgradingBase,
@@ -53,6 +54,7 @@ export const GameBoardPlaySection = ({
   | "user"
   | "targetItem"
   | "setIsCatalogOpen"
+  | "isSpawnCelebrating"
   | "isSpawning"
   | "isClaimingIncome"
   | "isUpgradingBase"
@@ -169,6 +171,18 @@ export const GameBoardPlaySection = ({
           </div>
           <p className="board-hint">Перетащи один символ на другой или выбери две клетки по очереди.</p>
         </div>
+        <div className={`reactor-core-card ${isSpawnCelebrating ? "reactor-core-card-boost" : ""}`} aria-hidden="true">
+          <div className="reactor-core-visual">
+            <span className="reactor-core-ring reactor-core-ring-outer" />
+            <span className="reactor-core-ring reactor-core-ring-mid" />
+            <span className="reactor-core-ring reactor-core-ring-inner" />
+            <span className="reactor-core-node">⚛️</span>
+          </div>
+          <div className="reactor-core-copy">
+            <p className="reactor-core-kicker">Реактор синтеза</p>
+            <p className="reactor-core-title">Ядро лаборатории активно</p>
+          </div>
+        </div>
         {filledCellsCount === 0 ? (
           <p className="board-empty-state">Поле пустое. Синтезируй первое ядро.</p>
         ) : null}
@@ -261,7 +275,7 @@ export const GameBoardPlaySection = ({
       <div className="control-deck">
         <button
           type="button"
-          className="action-button action-button-primary"
+          className={`action-button action-button-primary ${isSpawnCelebrating ? "action-button-spawn-boost" : ""}`}
           onClick={spawnItemAction}
           disabled={isSpawning || isBoardFull || (user.goalFreeSpawns <= 0 && user.gold < user.spawnCost)}
         >

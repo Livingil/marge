@@ -1,4 +1,26 @@
-﻿@media (max-width: 640px) {
+@media (max-width: 640px) {
+  .catalog-filter-bar {
+    gap: 6px;
+    align-items: flex-start;
+    padding-bottom: 0;
+  }
+
+  .catalog-filter-sort {
+    gap: 4px;
+    margin-left: 0;
+  }
+
+  .catalog-sort-label {
+    display: none;
+  }
+
+  .catalog-sort-select {
+    min-height: 28px;
+    font-size: 10px;
+    padding: 3px 6px;
+    max-width: 112px;
+  }
+
   .cell-name {
     font-size: 8px;
     -webkit-line-clamp: 1;
@@ -74,7 +96,7 @@
 
   .fullscreen-content .collection-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    gap: 7px;
   }
 
   .catalog-search {
@@ -113,6 +135,15 @@
 
   .reaction-empty {
     font-size: 11px;
+  }
+
+  .catalog-header-progress {
+    font-size: 10px;
+  }
+
+  .catalog-header-progress-track {
+    margin-top: 4px;
+    height: 5px;
   }
 
   .collection-sheet {

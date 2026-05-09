@@ -96,7 +96,7 @@ export const GameBoardOverlays = ({
       ) : null}
 
       {isCatalogOpen ? (
-        <div className="fullscreen-overlay mobile-only" role="dialog" aria-modal="true">
+        <div className="fullscreen-overlay fullscreen-overlay-catalog" role="dialog" aria-modal="true">
           <div className="fullscreen-sheet">
             <div className="fullscreen-header">
               <div className="catalog-header-copy">

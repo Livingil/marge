@@ -168,7 +168,7 @@ export const GameBoardPlaySection = ({
 
       <div className="board-shell">
         <div className="board-header">
-          <div>
+          <div className="board-header-copy">
             <p className="board-kicker">Реакторное поле</p>
             <h2>{`Камера слияния 5x${activeRows}`}</h2>
           </div>
@@ -189,9 +189,6 @@ export const GameBoardPlaySection = ({
               </span>
             </button>
           </div>
-          <p className="board-hint">
-            Перетащи один символ на другой или выбери две клетки по очереди.
-          </p>
         </div>
         {filledCellsCount === 0 ? (
           <p className="board-empty-state">
@@ -256,7 +253,7 @@ export const GameBoardPlaySection = ({
         </div>
       </div>
 
-      <div className="mission-panel">
+      <div className="mission-panel play-main-mission">
         <div className="mission-copy">
           <p className="eyebrow mission-kicker">Текущая цель</p>
           <div className="mission-mainline mission-mainline-stack">
@@ -276,7 +273,7 @@ export const GameBoardPlaySection = ({
       </div>
 
       {!isHintDismissed ? (
-        <div className="onboarding-grid">
+        <div className="onboarding-grid play-main-onboarding">
           <div className="onboarding-card">
             <button
               type="button"

@@ -2,10 +2,12 @@
 
 export const GameBoardSidePanel = ({
   user,
-  isCollectionOpen,
-  setIsCollectionOpen
-}: Pick<GameBoardViewProps, "user" | "isCollectionOpen" | "setIsCollectionOpen">) => {
-  const previewItems = user.itemCatalog.slice(0, 9);
+  setIsCatalogOpen
+}: Pick<GameBoardViewProps, "user" | "setIsCatalogOpen">) => {
+  const discoveredIds = new Set(user.discoveredItems);
+  const discoveredCatalogItems = user.itemCatalog.filter((item) => discoveredIds.has(item.id));
+  const undiscoveredCatalogItems = user.itemCatalog.filter((item) => !discoveredIds.has(item.id));
+  const previewItems = [...discoveredCatalogItems, ...undiscoveredCatalogItems].slice(0, 9);
   const totalReactions = user.discoveredRecipeDetails.length;
 
   return (
@@ -44,15 +46,15 @@ export const GameBoardSidePanel = ({
       <div className="meta-card collection-preview-card desktop-only">
         <div className="progress-head">
           <div>
-            <p className="meta-kicker">Последние образцы</p>
+            <p className="meta-kicker">Образцы сектора</p>
             <p className="meta-text">Краткий обзор каталога</p>
           </div>
           <button
             type="button"
             className="collection-toggle"
-            onClick={() => setIsCollectionOpen(!isCollectionOpen)}
+            onClick={() => setIsCatalogOpen(true)}
           >
-            {isCollectionOpen ? "Скрыть каталог" : "Открыть каталог"}
+            Открыть каталог
           </button>
         </div>
         <div className="collection-preview-grid">

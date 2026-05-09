@@ -5,6 +5,19 @@ import { GameBoardTopSection } from "./GameBoardTopSection";
 import type { GameBoardViewProps } from "./gameBoard.view.types";
 
 export const GameBoardView = (props: GameBoardViewProps) => {
+  const goalRewardExtras = [
+    props.user.currentGoal.reward.freeSpawns > 0
+      ? `+${props.user.currentGoal.reward.freeSpawns} синтез бесплатно`
+      : null,
+    props.user.currentGoal.reward.freeDeletes > 0
+      ? `+${props.user.currentGoal.reward.freeDeletes} утилизация бесплатно`
+      : null,
+  ].filter(Boolean);
+  const goalRewardInlineText = [
+    `Награда: +${props.user.currentGoal.reward.energy} энергии`,
+    ...goalRewardExtras,
+  ].join(" · ");
+
   return (
     <section className={`lab-screen flash-${props.flashTone}`}>
       <div className="lab-chrome" />
@@ -83,11 +96,61 @@ export const GameBoardView = (props: GameBoardViewProps) => {
           <GameBoardPlaySection {...props} />
         </div>
 
-        <GameBoardSidePanel
-          user={props.user}
-          isCollectionOpen={props.isCollectionOpen}
-          setIsCollectionOpen={props.setIsCollectionOpen}
-        />
+        <div className="lab-right-column">
+          <GameBoardSidePanel
+            user={props.user}
+            setIsCatalogOpen={props.setIsCatalogOpen}
+          />
+          <div className="mission-panel desktop-only right-mission-panel">
+            <div className="mission-copy">
+              <p className="eyebrow mission-kicker">Текущая цель</p>
+              <div className="mission-mainline mission-mainline-stack">
+                <div className="mission-title-row">
+                  <span className="mission-target-icon" aria-hidden="true">
+                    {props.targetItem?.icon ?? "🎯"}
+                  </span>
+                  <h1 className="mission-title mission-title-strong">
+                    {props.user.currentGoal.title}
+                  </h1>
+                </div>
+                <div className="mission-reward-group">
+                  <p className="mission-reward-badge">{goalRewardInlineText}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          {!props.isHintDismissed ? (
+            <div className="onboarding-grid desktop-only right-onboarding-grid">
+              <div className="onboarding-card">
+                <button
+                  type="button"
+                  className="onboarding-close"
+                  onClick={props.dismissHint}
+                >
+                  ✕
+                </button>
+                <p className="eyebrow">Подсказка лаборатории</p>
+                <p className="onboarding-title">
+                  {props.contextHint.title}
+                </p>
+                <p className="onboarding-text">{props.contextHint.text}</p>
+                <p
+                  className={`onboarding-selected ${props.selectedCellItem ? "" : "empty"}`}
+                >
+                  {props.selectedCellItem ? (
+                    <>
+                      Выбран символ: {props.selectedCellItem.icon} {props.selectedCellItem.name}
+                      <br />
+                      Теперь выбери второй символ для реакции.
+                    </>
+                  ) : (
+                    " "
+                  )}
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <GameBoardOverlays

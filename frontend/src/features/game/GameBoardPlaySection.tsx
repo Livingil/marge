@@ -1,5 +1,10 @@
 ﻿import { useEffect, useMemo, useState } from "react";
-import { GRID_COLUMNS, expansionModules } from "./gameBoard.helpers";
+import {
+  GRID_COLUMNS,
+  expansionModules,
+  getGoalRewardInlineText,
+  getOnboardingHintCopy,
+} from "./gameBoard.helpers";
 import type { GameBoardViewProps } from "./gameBoard.view.types";
 
 export const GameBoardPlaySection = ({
@@ -113,31 +118,8 @@ export const GameBoardPlaySection = ({
   const progressPercent = catalogCount > 0 ? Math.round((discoveredCount / catalogCount) * 100) : 0;
   const remaining = Math.max(0, catalogCount - discoveredCount);
   const isBoardFull = filledCellsCount >= cells.length;
-  const goalRewardExtras = [
-    user.currentGoal.reward.freeSpawns > 0
-      ? `+${user.currentGoal.reward.freeSpawns} синтез бесплатно`
-      : null,
-    user.currentGoal.reward.freeDeletes > 0
-      ? `+${user.currentGoal.reward.freeDeletes} утилизация бесплатно`
-      : null,
-  ].filter(Boolean);
-  const goalRewardInlineText = [
-    `Награда: +${user.currentGoal.reward.energy} энергии`,
-    ...goalRewardExtras,
-  ].join(" · ");
-  const goalHintOverrides: Record<string, string> = {
-    battery: "Соедини две ⚡ Искры, чтобы открыть 🔋 Батарею.",
-    charge: "Соедини ⚡ Искру и 💧 Воду, чтобы открыть 🔌 Заряд.",
-    energyCell:
-      "Попробуй соединить две 🔋 Батареи или 🔋 Батарею с 🔌 Зарядом.",
-  };
-  const onboardingHintText =
-    goalHintOverrides[user.currentGoal.targetItemId] ??
-    "Ищи новые сочетания элементов, чтобы открыть текущую цель.";
-  const onboardingHintTitle =
-    user.currentGoal.targetItemId in goalHintOverrides
-      ? "Подсказка по цели"
-      : contextHint.title;
+  const goalRewardInlineText = getGoalRewardInlineText(user.currentGoal.reward);
+  const onboardingHint = getOnboardingHintCopy(user.currentGoal.targetItemId, contextHint);
 
   return (
     <>
@@ -283,8 +265,8 @@ export const GameBoardPlaySection = ({
               ✕
             </button>
             <p className="eyebrow">Подсказка лаборатории</p>
-            <p className="onboarding-title">{onboardingHintTitle}</p>
-            <p className="onboarding-text">{onboardingHintText}</p>
+            <p className="onboarding-title">{onboardingHint.title}</p>
+            <p className="onboarding-text">{onboardingHint.text}</p>
             <p
               className={`onboarding-selected ${selectedCellItem ? "" : "empty"}`}
             >

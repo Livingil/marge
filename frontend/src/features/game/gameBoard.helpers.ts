@@ -21,6 +21,11 @@ export type ContextHint = {
   text: string;
 };
 
+export type OnboardingHintCopy = {
+  title: string;
+  text: string;
+};
+
 export type ExpansionModule = {
   id: string;
   title: string;
@@ -210,4 +215,34 @@ export const getContextHint = (
     title: "Продолжай исследование",
     text: "Следуй цели смены и открывай новые ветки каталога."
   };
+};
+
+export const getOnboardingHintCopy = (
+  targetItemId: string,
+  contextHint: ContextHint
+): OnboardingHintCopy => {
+  const goalHintOverrides: Record<string, string> = {
+    battery: "Соедини две ⚡ Искры, чтобы открыть 🔋 Батарею.",
+    charge: "Соедини ⚡ Искру и 💧 Воду, чтобы открыть 🔌 Заряд.",
+    energyCell: "Попробуй соединить две 🔋 Батареи или 🔋 Батарею с 🔌 Зарядом.",
+  };
+
+  const hasOverride = targetItemId in goalHintOverrides;
+  return {
+    title: hasOverride ? "Подсказка по цели" : contextHint.title,
+    text: goalHintOverrides[targetItemId] ?? contextHint.text,
+  };
+};
+
+export const getGoalRewardInlineText = (reward: {
+  energy: number;
+  freeSpawns: number;
+  freeDeletes: number;
+}): string => {
+  const rewardExtras = [
+    reward.freeSpawns > 0 ? `+${reward.freeSpawns} синтез бесплатно` : null,
+    reward.freeDeletes > 0 ? `+${reward.freeDeletes} утилизация бесплатно` : null,
+  ].filter(Boolean);
+
+  return [`Награда: +${reward.energy} энергии`, ...rewardExtras].join(" · ");
 };

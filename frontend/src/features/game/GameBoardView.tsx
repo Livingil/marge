@@ -1,22 +1,13 @@
-﻿import { GameBoardOverlays } from "./GameBoardOverlays";
+import { GameBoardOverlays } from "./GameBoardOverlays";
 import { GameBoardPlaySection } from "./GameBoardPlaySection";
 import { GameBoardSidePanel } from "./GameBoardSidePanel";
 import { GameBoardTopSection } from "./GameBoardTopSection";
+import { getGoalRewardInlineText, getOnboardingHintCopy } from "./gameBoard.helpers";
 import type { GameBoardViewProps } from "./gameBoard.view.types";
 
 export const GameBoardView = (props: GameBoardViewProps) => {
-  const goalRewardExtras = [
-    props.user.currentGoal.reward.freeSpawns > 0
-      ? `+${props.user.currentGoal.reward.freeSpawns} синтез бесплатно`
-      : null,
-    props.user.currentGoal.reward.freeDeletes > 0
-      ? `+${props.user.currentGoal.reward.freeDeletes} утилизация бесплатно`
-      : null,
-  ].filter(Boolean);
-  const goalRewardInlineText = [
-    `Награда: +${props.user.currentGoal.reward.energy} энергии`,
-    ...goalRewardExtras,
-  ].join(" · ");
+  const goalRewardInlineText = getGoalRewardInlineText(props.user.currentGoal.reward);
+  const onboardingHint = getOnboardingHintCopy(props.user.currentGoal.targetItemId, props.contextHint);
 
   return (
     <section className={`lab-screen flash-${props.flashTone}`}>
@@ -131,9 +122,9 @@ export const GameBoardView = (props: GameBoardViewProps) => {
                 </button>
                 <p className="eyebrow">Подсказка лаборатории</p>
                 <p className="onboarding-title">
-                  {props.contextHint.title}
+                  {onboardingHint.title}
                 </p>
-                <p className="onboarding-text">{props.contextHint.text}</p>
+                <p className="onboarding-text">{onboardingHint.text}</p>
                 <p
                   className={`onboarding-selected ${props.selectedCellItem ? "" : "empty"}`}
                 >

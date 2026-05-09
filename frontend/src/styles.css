@@ -928,6 +928,13 @@
   }
 }
 
+@media (max-width: 1100px) {
+  .right-mission-panel,
+  .right-onboarding-grid {
+    display: none;
+  }
+}
+
 @media (min-width: 1101px) {
   .play-main-mission,
   .play-main-onboarding {

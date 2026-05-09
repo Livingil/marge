@@ -5,39 +5,21 @@ export const GameBoardSidePanel = ({
   isCollectionOpen,
   setIsCollectionOpen
 }: Pick<GameBoardViewProps, "user" | "isCollectionOpen" | "setIsCollectionOpen">) => {
-  const discoveredProgress =
-    user.itemCatalog.length > 0
-      ? Math.round((user.discoveredItems.length / user.itemCatalog.length) * 100)
-      : 0;
+  const previewItems = user.itemCatalog.slice(0, 9);
+  const totalReactions = user.discoveredRecipeDetails.length;
 
   return (
     <aside className="lab-sidepanel">
-      <div className="meta-card progress-card desktop-only">
-        <div className="progress-head">
-          <div>
-            <p className="meta-kicker">Каталог образцов</p>
-            <h3>
-              {user.discoveredItems.length} / {user.itemCatalog.length}
-            </h3>
-          </div>
-          <button
-            type="button"
-            className="collection-toggle"
-            onClick={() => setIsCollectionOpen(!isCollectionOpen)}
-          >
-            {isCollectionOpen ? "Свернуть" : "Открыть"}
-          </button>
-        </div>
-        <div className="progress-bar">
-          <div className="progress-bar-fill" style={{ width: `${discoveredProgress}%` }} />
-        </div>
-        <p className="meta-text">Новые образцы дают прогресс каталога и открывают следующую ветку.</p>
-      </div>
-
       <div className="meta-card reactions-card desktop-only">
-        <p className="meta-kicker">Открытые реакции</p>
-        {user.discoveredRecipeDetails.length === 0 ? (
-          <p className="reaction-empty">Первые реакции появятся здесь после успешных слияний.</p>
+        <div className="reactions-head">
+          <p className="meta-kicker">Открытые реакции</p>
+          <span className="reactions-count">{totalReactions}</span>
+        </div>
+        {totalReactions === 0 ? (
+          <div className="reaction-empty-state">
+            <p className="reaction-empty-title">Реакции не найдены</p>
+            <p className="reaction-empty">Проведи первые слияния на поле, чтобы журнал реакций заполнился.</p>
+          </div>
         ) : (
           <div className="reaction-list">
             {user.discoveredRecipeDetails.map((reaction) => (
@@ -59,30 +41,31 @@ export const GameBoardSidePanel = ({
         )}
       </div>
 
-      <div className={`collection-sheet ${isCollectionOpen ? "open" : ""}`}>
-        <div className="collection-grid">
-          {user.itemCatalog.map((item) => {
+      <div className="meta-card collection-preview-card desktop-only">
+        <div className="progress-head">
+          <div>
+            <p className="meta-kicker">Последние образцы</p>
+            <p className="meta-text">Краткий обзор каталога</p>
+          </div>
+          <button
+            type="button"
+            className="collection-toggle"
+            onClick={() => setIsCollectionOpen(!isCollectionOpen)}
+          >
+            {isCollectionOpen ? "Скрыть каталог" : "Открыть каталог"}
+          </button>
+        </div>
+        <div className="collection-preview-grid">
+          {previewItems.map((item) => {
             const discovered = user.discoveredItems.includes(item.id);
 
             return (
               <div
                 key={item.id}
-                className={`collection-card ${discovered ? "open" : "closed"} tier-${item.tier}`}
+                className={`collection-preview-tile ${discovered ? "open" : "closed"} tier-${item.tier}`}
               >
-                <div className="collection-level-badge">T{item.tier}</div>
-                {discovered ? (
-                  <>
-                    <div className="collection-icon">{item.icon}</div>
-                    <div className="collection-name">{item.name}</div>
-                    <div className="collection-level">{item.description}</div>
-                  </>
-                ) : (
-                  <>
-                    <div className="collection-icon">?</div>
-                    <div className="collection-name">Не открыто</div>
-                    <div className="collection-level">Неизвестный образец</div>
-                  </>
-                )}
+                <span className="collection-preview-icon">{discovered ? item.icon : "?"}</span>
+                <span className="collection-preview-name">{discovered ? item.name : "Не открыто"}</span>
               </div>
             );
           })}

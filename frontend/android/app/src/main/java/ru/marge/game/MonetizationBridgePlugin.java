@@ -5,39 +5,159 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.my.target.ads.Reward;
+import com.my.target.ads.RewardedAd;
+import com.my.target.common.models.IAdLoadingError;
 
 @CapacitorPlugin(name = "MonetizationBridge")
-public class MonetizationBridgePlugin extends Plugin {
+public class MonetizationBridgePlugin extends Plugin implements RewardedAd.RewardedAdListener {
     private static final String REWARDED_PROVIDER = "mock";
     private static final String PURCHASE_PROVIDER = "mock";
     private static final String REWARDED_PLACEMENT = "gameboard_utility";
+    private RewardedAd rewardedAd = null;
+    private PluginCall pendingRewardedCall = null;
+    private boolean rewardedGranted = false;
 
     @PluginMethod
     public void getCapabilities(PluginCall call) {
         boolean consoleAppConfigured = !BuildConfig.RUSTORE_CONSOLE_APP_ID.isEmpty();
         boolean billingReady = BuildConfig.RUSTORE_BILLING_ENABLED && consoleAppConfigured;
+        boolean rewardedReady = BuildConfig.VK_REWARDED_ENABLED && BuildConfig.VK_REWARDED_SLOT_ID > 0;
+        String rewardedPlacement = BuildConfig.VK_REWARDED_PLACEMENT.isEmpty()
+            ? REWARDED_PLACEMENT
+            : BuildConfig.VK_REWARDED_PLACEMENT;
 
         JSObject result = new JSObject();
         result.put("platform", "android");
         result.put("nativeAvailable", true);
         result.put("billingReady", billingReady);
-        result.put("rewardedReady", false);
+        result.put("rewardedReady", rewardedReady);
         result.put("environment", billingReady ? BuildConfig.RUSTORE_BILLING_ENVIRONMENT : "mock");
-        result.put("rewardedProvider", billingReady ? "vkads" : REWARDED_PROVIDER);
+        result.put("rewardedProvider", rewardedReady ? "vkads" : REWARDED_PROVIDER);
         result.put("purchaseProvider", billingReady ? "rustore" : PURCHASE_PROVIDER);
-        result.put("rewardedPlacement", REWARDED_PLACEMENT);
+        result.put("rewardedPlacement", rewardedPlacement);
         call.resolve(result);
     }
 
     @PluginMethod
     public void launchRewardedAd(PluginCall call) {
-        String placement = call.getString("placement", REWARDED_PLACEMENT);
+        String requestedPlacement = call.getString("placement", REWARDED_PLACEMENT);
+        String placement = BuildConfig.VK_REWARDED_PLACEMENT.isEmpty()
+            ? requestedPlacement
+            : BuildConfig.VK_REWARDED_PLACEMENT;
 
-        JSObject result = new JSObject();
-        result.put("provider", REWARDED_PROVIDER);
-        result.put("completed", true);
-        result.put("placement", placement);
-        call.resolve(result);
+        boolean rewardedReady = BuildConfig.VK_REWARDED_ENABLED && BuildConfig.VK_REWARDED_SLOT_ID > 0;
+        if (!rewardedReady) {
+            JSObject result = new JSObject();
+            result.put("provider", REWARDED_PROVIDER);
+            result.put("completed", true);
+            result.put("placement", placement);
+            call.resolve(result);
+            return;
+        }
+        if (pendingRewardedCall != null) {
+            call.reject("Rewarded ad flow is already in progress");
+            return;
+        }
+
+        try {
+            pendingRewardedCall = call;
+            rewardedGranted = false;
+            if (rewardedAd != null) {
+                rewardedAd.setListener(null);
+                rewardedAd.destroy();
+                rewardedAd = null;
+            }
+            rewardedAd = new RewardedAd(BuildConfig.VK_REWARDED_SLOT_ID, getContext());
+            rewardedAd.setListener(this);
+            rewardedAd.load();
+        } catch (Exception error) {
+            pendingRewardedCall = null;
+            rewardedGranted = false;
+            call.reject("Failed to start VK rewarded ad", error);
+        }
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        if (rewardedAd != null) {
+            rewardedAd.setListener(null);
+            rewardedAd.destroy();
+            rewardedAd = null;
+        }
+        pendingRewardedCall = null;
+        rewardedGranted = false;
+        super.handleOnDestroy();
+    }
+
+    @Override
+    public void onLoad(RewardedAd ad) {
+        if (rewardedAd == null) {
+            return;
+        }
+        rewardedAd.show();
+    }
+
+    @Override
+    public void onNoAd(IAdLoadingError adLoadingError, RewardedAd ad) {
+        if (pendingRewardedCall != null) {
+            String errorMessage = adLoadingError != null ? adLoadingError.getMessage() : "no ad";
+            pendingRewardedCall.reject("VK rewarded ad not available: " + errorMessage);
+            pendingRewardedCall = null;
+        }
+        rewardedGranted = false;
+        if (rewardedAd != null) {
+            rewardedAd.setListener(null);
+            rewardedAd.destroy();
+            rewardedAd = null;
+        }
+    }
+
+    @Override
+    public void onClick(RewardedAd ad) {
+        // no-op
+    }
+
+    @Override
+    public void onDismiss(RewardedAd ad) {
+        if (pendingRewardedCall != null) {
+            JSObject result = new JSObject();
+            result.put("provider", "vkads");
+            result.put("completed", rewardedGranted);
+            result.put("placement", BuildConfig.VK_REWARDED_PLACEMENT.isEmpty() ? REWARDED_PLACEMENT : BuildConfig.VK_REWARDED_PLACEMENT);
+            pendingRewardedCall.resolve(result);
+            pendingRewardedCall = null;
+        }
+        rewardedGranted = false;
+        if (rewardedAd != null) {
+            rewardedAd.setListener(null);
+            rewardedAd.destroy();
+            rewardedAd = null;
+        }
+    }
+
+    @Override
+    public void onReward(Reward reward, RewardedAd ad) {
+        rewardedGranted = true;
+    }
+
+    @Override
+    public void onDisplay(RewardedAd ad) {
+        // no-op
+    }
+
+    @Override
+    public void onFailedToShow(RewardedAd ad) {
+        if (pendingRewardedCall != null) {
+            pendingRewardedCall.reject("VK rewarded ad failed to show");
+            pendingRewardedCall = null;
+        }
+        rewardedGranted = false;
+        if (rewardedAd != null) {
+            rewardedAd.setListener(null);
+            rewardedAd.destroy();
+            rewardedAd = null;
+        }
     }
 
     @PluginMethod

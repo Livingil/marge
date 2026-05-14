@@ -30,6 +30,28 @@ Current state:
   - `sdk_pay_scheme_value`
 - Android app now declares official Pay SDK dependency coordinates in Gradle
 
+## When rewarded ads are triggered in the current game flow
+
+Rewarded ads are triggered only from ad-boost actions (`Бонусы` panel):
+
+- `+1 синтез` (`rewarded_free_spawn`)
+- `+1 утилизация` (`rewarded_free_delete`)
+- `x2 поток на 30 мин` (`rewarded_flow_boost`)
+
+Not triggered:
+
+- `x2 офлайн-сбор` (`rewarded_double_offline_income`) is visible but disabled in logic.
+- Daily bonus claim is not ad-based.
+- Spawn, merge, delete, income claim, and base upgrades do not auto-show ads.
+
+Flow per click:
+
+1. Frontend creates ad session: `POST /ad-boosts/session`
+2. Native layer opens rewarded flow (`MonetizationBridge.launchRewardedAd`)
+3. If completed, frontend finalizes reward: `POST /ad-boosts/session/complete`
+
+If ad flow is canceled/failed, step 3 is not called and no reward is granted.
+
 ## What is not connected yet
 
 - Real RuStore Billing SDK dependency
@@ -59,6 +81,24 @@ Current state:
    - `provider = "rustore"`
    - `transactionId`
 5. Keep backend completion on `/purchases/session/complete`.
+
+## VK rewarded quick setup (current implementation)
+
+The Android plugin now supports real myTarget/VK rewarded flow when enabled.
+
+Required Gradle properties (project `android/gradle.properties` or global `~/.gradle/gradle.properties`):
+
+- `VK_REWARDED_ENABLED=true`
+- `VK_REWARDED_SLOT_ID=<your rewarded slot id>`
+- `VK_REWARDED_PLACEMENT=gameboard_utility` (or your placement label)
+
+Backend gate for temporary client-trust mode (until server-side VK verification is added):
+
+- `REWARDED_VKADS_TRUST_CLIENT=true`
+
+Important:
+
+- Keep `REWARDED_VKADS_TRUST_CLIENT=false` in production unless you implement provider-side verification callback/signature checks.
 
 ## Safety rule
 

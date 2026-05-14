@@ -5,6 +5,9 @@ def rustoreBillingEnvironment = project.findProperty("RUSTORE_BILLING_ENVIRONMEN
 def rustoreConsoleAppId = project.findProperty("RUSTORE_CONSOLE_APP_ID") ?: ""
 def rustorePaymentCallbackHost = project.findProperty("RUSTORE_PAYMENT_CALLBACK_HOST") ?: "payment"
 def rustorePaymentScheme = project.findProperty("RUSTORE_PAYMENT_SCHEME") ?: "ru.marge.game"
+def vkRewardedEnabled = (project.findProperty("VK_REWARDED_ENABLED") ?: "false").toBoolean()
+def vkRewardedPlacement = project.findProperty("VK_REWARDED_PLACEMENT") ?: "gameboard_utility"
+def vkRewardedSlotId = (project.findProperty("VK_REWARDED_SLOT_ID") ?: "0").toInteger()
 
 android {
     namespace = "ru.marge.game"
@@ -23,6 +26,9 @@ android {
         buildConfigField "String", "RUSTORE_PAYMENT_CALLBACK_HOST", "\"${rustorePaymentCallbackHost}\""
         buildConfigField "String", "RUSTORE_PAYMENT_SCHEME", "\"${rustorePaymentScheme}\""
         buildConfigField "String", "RUSTORE_CONSOLE_APP_ID", "\"${rustoreConsoleAppId}\""
+        buildConfigField "boolean", "VK_REWARDED_ENABLED", vkRewardedEnabled.toString()
+        buildConfigField "String", "VK_REWARDED_PLACEMENT", "\"${vkRewardedPlacement}\""
+        buildConfigField "int", "VK_REWARDED_SLOT_ID", vkRewardedSlotId.toString()
         resValue "string", "rustore_payment_callback_host", rustorePaymentCallbackHost
         resValue "string", "rustore_payment_scheme", rustorePaymentScheme
         resValue "string", "rustore_console_app_id", rustoreConsoleAppId
@@ -49,6 +55,7 @@ repositories {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "com.my.target:mytarget-sdk:5.45.2"
     implementation platform("ru.rustore.sdk:bom:$ruStoreSdkBomVersion")
     implementation "ru.rustore.sdk:pay"
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"

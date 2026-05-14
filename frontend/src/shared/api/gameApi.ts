@@ -311,12 +311,22 @@ export const gameApi = createApi({
         }
 
         const session = sessionResult.data as RewardedAdSession;
-        const rewardedResult = await launchRewardedAdFlow({
-          sessionId: session.sessionId,
-          boostType: body.boostType,
-          provider: session.provider,
-          placement: session.placement
-        });
+        let rewardedResult;
+        try {
+          rewardedResult = await launchRewardedAdFlow({
+            sessionId: session.sessionId,
+            boostType: body.boostType,
+            provider: session.provider,
+            placement: session.placement
+          });
+        } catch (error) {
+          return {
+            error: {
+              status: "CUSTOM_ERROR",
+              error: error instanceof Error ? error.message : "Rewarded ad launch failed"
+            }
+          };
+        }
 
         if (!rewardedResult.completed) {
           return {

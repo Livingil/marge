@@ -1,4 +1,4 @@
-import type { AdBoostType, RewardedAdProvider } from "./game.types.js";
+﻿import type { AdBoostType, RewardedAdProvider } from "./game.types.js";
 
 export type VerifiedRewardedAdProof = {
   provider: RewardedAdProvider;
@@ -12,6 +12,8 @@ export const verifyRewardedAdCompletion = async (input: {
   boostType: AdBoostType;
   sessionId: string;
 }): Promise<VerifiedRewardedAdProof> => {
+  const allowUnverifiedVkAds = (process.env.REWARDED_VKADS_TRUST_CLIENT ?? "false").toLowerCase() === "true";
+
   switch (input.provider) {
     case "mock":
       return {
@@ -21,8 +23,16 @@ export const verifyRewardedAdCompletion = async (input: {
         verifiedAt: new Date()
       };
     case "vkads":
-      throw new Error("VK Ads rewarded verification еще не подключена");
+      if (!allowUnverifiedVkAds) {
+        throw new Error("VK Ads rewarded verification is not connected yet");
+      }
+      return {
+        provider: "vkads",
+        boostType: input.boostType,
+        sessionId: input.sessionId,
+        verifiedAt: new Date()
+      };
     case "rustore":
-      throw new Error("RuStore rewarded verification еще не подключена");
+      throw new Error("RuStore rewarded verification is not connected yet");
   }
 };

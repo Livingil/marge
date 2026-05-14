@@ -6,6 +6,8 @@ import { getGoalRewardInlineText, getOnboardingHintCopy } from "./gameBoard.help
 import type { GameBoardViewProps } from "./gameBoard.view.types";
 
 export const GameBoardView = (props: GameBoardViewProps) => {
+  const isShopMenuEnabled = false;
+  const isPaymentsInfoMenuEnabled = false;
   const goalRewardInlineText = getGoalRewardInlineText(props.user.currentGoal.reward);
   const onboardingHint = getOnboardingHintCopy(props.user.currentGoal.targetItemId, props.contextHint);
 
@@ -59,13 +61,55 @@ export const GameBoardView = (props: GameBoardViewProps) => {
                 type="button"
                 className="utility-menu-item"
                 onClick={() => {
-                  props.setCatalogTab("items");
-                  props.setIsCatalogOpen(true);
+                  props.setIsAuthOpen(true);
                   props.setIsUtilityMenuOpen(false);
                 }}
               >
-                Каталог {props.user.discoveredItems.length}/{props.user.itemCatalog.length}
+                Вход / регистрация
               </button>
+              {props.user.account.isLinked ? (
+                <button
+                  type="button"
+                  className="utility-menu-item"
+                  onClick={() => {
+                    props.setIsProfileOpen(true);
+                    props.setIsUtilityMenuOpen(false);
+                  }}
+                >
+                  Профиль
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className="utility-menu-item"
+                onClick={() => {
+                  props.setIsBonusesOpen(true);
+                  props.setIsUtilityMenuOpen(false);
+                }}
+              >
+                Бонусы
+              </button>
+              {isShopMenuEnabled ? (
+                <button
+                  type="button"
+                  className="utility-menu-item"
+                  disabled
+                >
+                  Магазин (в разработке)
+                </button>
+              ) : null}
+              {isPaymentsInfoMenuEnabled ? (
+                <button
+                  type="button"
+                  className="utility-menu-item"
+                  onClick={() => {
+                    props.setIsPaymentsInfoOpen(true);
+                    props.setIsUtilityMenuOpen(false);
+                  }}
+                >
+                  Оплата и документы
+                </button>
+              ) : null}
               <button
                 type="button"
                 className="utility-menu-item"
@@ -91,6 +135,12 @@ export const GameBoardView = (props: GameBoardViewProps) => {
           <GameBoardSidePanel
             user={props.user}
             setIsCatalogOpen={props.setIsCatalogOpen}
+            claimDailyRewardAction={props.claimDailyRewardAction}
+            claimAdBoostAction={props.claimAdBoostAction}
+            purchaseProductAction={props.purchaseProductAction}
+            isClaimingDailyReward={props.isClaimingDailyReward}
+            claimingAdBoostType={props.claimingAdBoostType}
+            purchasingProductId={props.purchasingProductId}
           />
           <div className="mission-panel desktop-only right-mission-panel">
             <div className="mission-copy">
@@ -149,6 +199,14 @@ export const GameBoardView = (props: GameBoardViewProps) => {
         dismissGuide={props.dismissGuide}
         isHelpOpen={props.isHelpOpen}
         setIsHelpOpen={props.setIsHelpOpen}
+        isBonusesOpen={props.isBonusesOpen}
+        setIsBonusesOpen={props.setIsBonusesOpen}
+        isPaymentsInfoOpen={props.isPaymentsInfoOpen}
+        setIsPaymentsInfoOpen={props.setIsPaymentsInfoOpen}
+        isAuthOpen={props.isAuthOpen}
+        setIsAuthOpen={props.setIsAuthOpen}
+        isProfileOpen={props.isProfileOpen}
+        setIsProfileOpen={props.setIsProfileOpen}
         contextHint={props.contextHint}
         selectedCellItem={props.selectedCellItem}
         isCatalogOpen={props.isCatalogOpen}
@@ -161,6 +219,10 @@ export const GameBoardView = (props: GameBoardViewProps) => {
         setChainFilter={props.setChainFilter}
         filteredCatalogItems={props.filteredCatalogItems}
         user={props.user}
+        claimDailyRewardAction={props.claimDailyRewardAction}
+        claimAdBoostAction={props.claimAdBoostAction}
+        isClaimingDailyReward={props.isClaimingDailyReward}
+        claimingAdBoostType={props.claimingAdBoostType}
       />
     </section>
   );

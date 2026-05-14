@@ -180,6 +180,69 @@
   text-align: left;
 }
 
+.commerce-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.commerce-head {
+  align-items: flex-start;
+}
+
+.commerce-offers-list {
+  display: grid;
+  gap: 10px;
+}
+
+.commerce-offer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(133, 218, 255, 0.12);
+  background: rgba(8, 20, 32, 0.72);
+}
+
+.commerce-offer-row.kind-non_consumable {
+  background:
+    linear-gradient(135deg, rgba(255, 211, 107, 0.08), transparent 40%),
+    rgba(8, 20, 32, 0.78);
+}
+
+.commerce-offer-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.commerce-price-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 211, 107, 0.18);
+  background: rgba(53, 38, 16, 0.72);
+  color: #ffe8a6;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.commerce-description {
+  margin-top: 4px;
+}
+
+.commerce-buy-button {
+  min-width: 86px;
+}
+
 .fullscreen-overlay {
   position: fixed;
   inset: 0;
@@ -187,11 +250,13 @@
   background: rgba(2, 10, 18, 0.88);
   display: flex;
   align-items: stretch;
+  overflow: hidden;
 }
 
 .fullscreen-sheet {
   width: 100%;
-  height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
   min-height: 0;
   display: flex;
   flex-direction: column;

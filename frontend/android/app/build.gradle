@@ -1,0 +1,73 @@
+apply plugin: 'com.android.application'
+
+def rustoreBillingEnabled = (project.findProperty("RUSTORE_BILLING_ENABLED") ?: "false").toBoolean()
+def rustoreBillingEnvironment = project.findProperty("RUSTORE_BILLING_ENVIRONMENT") ?: "sandbox"
+def rustoreConsoleAppId = project.findProperty("RUSTORE_CONSOLE_APP_ID") ?: ""
+def rustorePaymentCallbackHost = project.findProperty("RUSTORE_PAYMENT_CALLBACK_HOST") ?: "payment"
+def rustorePaymentScheme = project.findProperty("RUSTORE_PAYMENT_SCHEME") ?: "ru.marge.game"
+
+android {
+    namespace = "ru.marge.game"
+    compileSdk = rootProject.ext.compileSdkVersion
+    buildFeatures {
+        buildConfig true
+    }
+    defaultConfig {
+        applicationId "ru.marge.game"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+        buildConfigField "boolean", "RUSTORE_BILLING_ENABLED", rustoreBillingEnabled.toString()
+        buildConfigField "String", "RUSTORE_BILLING_ENVIRONMENT", "\"${rustoreBillingEnvironment}\""
+        buildConfigField "String", "RUSTORE_PAYMENT_CALLBACK_HOST", "\"${rustorePaymentCallbackHost}\""
+        buildConfigField "String", "RUSTORE_PAYMENT_SCHEME", "\"${rustorePaymentScheme}\""
+        buildConfigField "String", "RUSTORE_CONSOLE_APP_ID", "\"${rustoreConsoleAppId}\""
+        resValue "string", "rustore_payment_callback_host", rustorePaymentCallbackHost
+        resValue "string", "rustore_payment_scheme", rustorePaymentScheme
+        resValue "string", "rustore_console_app_id", rustoreConsoleAppId
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation platform("ru.rustore.sdk:bom:$ruStoreSdkBomVersion")
+    implementation "ru.rustore.sdk:pay"
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

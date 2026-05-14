@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Лаборатория Синтеза</string>
+    <string name="title_activity_main">Лаборатория Синтеза</string>
+    <string name="package_name">ru.marge.game</string>
+    <string name="custom_url_scheme">ru.marge.game</string>
+    <string name="rustore_payment_callback_host">payment</string>
+    <string name="rustore_payment_scheme">ru.marge.game</string>
+    <string name="rustore_console_app_id"></string>
+</resources>

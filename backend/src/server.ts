@@ -6,6 +6,10 @@ import { connectDatabase } from "./services/database.service.js";
 
 const port = Number(process.env.PORT ?? 4000);
 const mongoUri = process.env.MONGODB_URI ?? "mongodb://localhost:27017/marge";
+const clientOrigins = (process.env.CLIENT_ORIGINS ?? "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter((origin) => origin.length > 0);
 
 const start = async (): Promise<void> => {
   await connectDatabase(mongoUri);
@@ -13,7 +17,14 @@ const start = async (): Promise<void> => {
   const app = express();
   app.use(
     cors({
-      origin: "http://localhost:5173",
+      origin: (origin, callback) => {
+        if (!origin || clientOrigins.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(new Error("CORS origin is not allowed"));
+      },
       methods: ["GET", "POST", "PATCH"],
       credentials: false
     })

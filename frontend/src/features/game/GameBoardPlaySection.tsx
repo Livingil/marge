@@ -172,11 +172,6 @@ export const GameBoardPlaySection = ({
             </button>
           </div>
         </div>
-        {filledCellsCount === 0 ? (
-          <p className="board-empty-state">
-            Поле пустое. Синтезируй первое ядро.
-          </p>
-        ) : null}
         <div
           className="grid"
           style={{ gridTemplateColumns: `repeat(${GRID_COLUMNS}, 1fr)` }}

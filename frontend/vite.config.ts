@@ -7,20 +7,37 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.svg"],
+      includeAssets: [
+        "android/launchericon-192x192.png",
+        "android/launchericon-512x512.png",
+        "ios/180.png",
+        "ios/152.png"
+      ],
       manifest: {
-        name: "Marge",
-        short_name: "Marge",
-        description: "Merge + idle game MVP",
+        name: "Лаборатория Синтеза",
+        short_name: "ЛабСинтез",
+        description: "Лаборатория синтеза: merge + idle",
         theme_color: "#0f172a",
         background_color: "#f8fafc",
         display: "standalone",
         icons: [
           {
-            src: "/icons.svg",
-            sizes: "any",
-            type: "image/svg+xml",
+            src: "/android/launchericon-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
             purpose: "any"
+          },
+          {
+            src: "/android/launchericon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any"
+          },
+          {
+            src: "/android/launchericon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable"
           }
         ]
       }

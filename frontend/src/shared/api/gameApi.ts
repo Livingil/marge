@@ -1,4 +1,13 @@
-﻿import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
+import { getOrCreatePlayerId, setPlayerId } from "./playerSession";
+import {
+  getMonetizationCapabilities,
+  launchPurchaseFlow,
+  launchRewardedAdFlow
+} from "../monetization/monetizationBridge";
+
+const apiBaseUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || "http://localhost:4000";
 
 export type GridItem = {
   id: string;
@@ -22,6 +31,26 @@ export type DiscoveredRecipeDto = {
 
 export type UserState = {
   _id: string;
+  player: {
+    id: string;
+    mode: "guest" | "linked";
+  };
+  character: {
+    isRegistered: boolean;
+    name: string | null;
+    codename: string | null;
+    archetype: "alchemist" | "engineer" | "scout" | "keeper" | null;
+    avatarSeed: string | null;
+    registeredAt: string | null;
+    updatedAt: string | null;
+  };
+  account: {
+    isLinked: boolean;
+    provider: "vkid" | "telegram" | "email" | null;
+    displayName: string | null;
+    linkedAt: string | null;
+    suggestedProviders: Array<"vkid" | "telegram" | "email">;
+  };
   gold: number;
   baseLevel: number;
   incomePerMinute: number;
@@ -50,6 +79,65 @@ export type UserState = {
   onboardingGuideDismissed: boolean;
   goalFreeSpawns: number;
   goalFreeDeletes: number;
+  dailyReward: {
+    canClaim: boolean;
+    streak: number;
+    bestStreak: number;
+    totalClaims: number;
+    nextClaimAt: string | null;
+    todayReward: {
+      energy: number;
+      freeSpawns: number;
+      freeDeletes: number;
+    };
+    weekRewards: Array<{
+      day: number;
+      energy: number;
+      freeSpawns: number;
+      freeDeletes: number;
+      isToday: boolean;
+      claimed: boolean;
+    }>;
+  };
+  adBoosts: {
+    dateKey: string;
+    supportedProviders: Array<"mock" | "vkads" | "rustore">;
+    options: Array<{
+      type: "rewarded_free_spawn" | "rewarded_free_delete" | "rewarded_flow_boost" | "rewarded_double_offline_income";
+      title: string;
+      description: string;
+      rewardText: string;
+      claimsUsed: number;
+      dailyLimit: number;
+      canClaim: boolean;
+    }>;
+    active: {
+      flowMultiplier: number;
+      flowMultiplierUntil: string | null;
+    };
+  };
+  commerce: {
+    supportedProviders: PurchaseProvider[];
+    offers: Array<{
+      productId: PurchaseProductId;
+      title: string;
+      description: string;
+      priceLabel: string;
+      kind: "consumable" | "non_consumable";
+      isActive: boolean;
+      purchaseLimit: 1 | null;
+      rewards: {
+        energy: number;
+        freeSpawns: number;
+        freeDeletes: number;
+        removeAds: boolean;
+      };
+    }>;
+    entitlements: {
+      removeAds: boolean;
+      starterPackPurchased: boolean;
+    };
+  };
   grid: {
     cells: GridCell[];
   };
@@ -69,9 +157,92 @@ export type UpdateOnboardingPayload = {
   guideDismissed?: boolean;
 };
 
+export type ClaimAdBoostPayload = {
+  boostType: "rewarded_free_spawn" | "rewarded_free_delete" | "rewarded_flow_boost" | "rewarded_double_offline_income";
+};
+
+export type RewardedAdProvider = "mock" | "vkads" | "rustore";
+
+export type RewardedAdSession = {
+  sessionId: string;
+  boostType: ClaimAdBoostPayload["boostType"];
+  provider: RewardedAdProvider;
+  placement: string;
+  status: "started" | "completed" | "rewarded" | "expired";
+  expiresAt: string;
+};
+
+export type PurchaseProductId = "starter_pack" | "energy_pack_small" | "premium_no_ads";
+
+export type PurchaseProvider = "mock" | "rustore";
+
+export type PurchaseSession = {
+  sessionId: string;
+  productId: PurchaseProductId;
+  provider: PurchaseProvider;
+  status: "started" | "completed" | "granted" | "expired";
+  expiresAt: string;
+};
+
+export type PurchaseProductPayload = {
+  productId: PurchaseProductId;
+};
+
+export type RegisterCharacterPayload = {
+  name: string;
+  codename?: string;
+  archetype: "alchemist" | "engineer" | "scout" | "keeper";
+  avatarSeed?: string;
+};
+
+export type UpdateCharacterProfilePayload = {
+  name?: string;
+  codename?: string;
+  archetype?: "alchemist" | "engineer" | "scout" | "keeper";
+  avatarSeed?: string;
+};
+
+export type AuthRegisterPayload = {
+  email: string;
+  password: string;
+};
+
+export type AuthVerifyEmailPayload = {
+  email: string;
+  token: string;
+};
+
+export type AuthLoginPayload = {
+  email: string;
+  password: string;
+};
+
+export type AuthRequestResetPayload = {
+  email: string;
+};
+
+export type AuthResetPayload = {
+  email: string;
+  token: string;
+  newPassword: string;
+};
+
+export type AuthLoginResult = {
+  accessToken: string;
+  playerId: string;
+  email: string;
+  emailVerified: boolean;
+};
+
 export const gameApi = createApi({
   reducerPath: "gameApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:3001" }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: apiBaseUrl.replace(/\/+$/, ""),
+    prepareHeaders: (headers) => {
+      headers.set("x-player-id", getOrCreatePlayerId());
+      return headers;
+    }
+  }),
   tagTypes: ["User"],
   endpoints: (builder) => ({
     getUser: builder.query<UserState, void>({
@@ -115,6 +286,113 @@ export const gameApi = createApi({
       }),
       invalidatesTags: ["User"]
     }),
+    claimDailyReward: builder.mutation<UserState, void>({
+      query: () => ({
+        url: "/daily-reward/claim",
+        method: "POST"
+      }),
+      invalidatesTags: ["User"]
+    }),
+    claimAdBoost: builder.mutation<UserState, ClaimAdBoostPayload>({
+      async queryFn(body, _api, _extraOptions, baseQuery) {
+        const capabilities = await getMonetizationCapabilities();
+        const sessionResult = await baseQuery({
+          url: "/ad-boosts/session",
+          method: "POST",
+          body: {
+            ...body,
+            provider: capabilities.rewardedProvider,
+            placement: capabilities.rewardedPlacement
+          }
+        });
+
+        if (sessionResult.error) {
+          return { error: sessionResult.error };
+        }
+
+        const session = sessionResult.data as RewardedAdSession;
+        const rewardedResult = await launchRewardedAdFlow({
+          sessionId: session.sessionId,
+          boostType: body.boostType,
+          provider: session.provider,
+          placement: session.placement
+        });
+
+        if (!rewardedResult.completed) {
+          return {
+            error: {
+              status: "CUSTOM_ERROR",
+              error: "Rewarded ad was not completed"
+            }
+          };
+        }
+
+        const rewardResult = await baseQuery({
+          url: "/ad-boosts/session/complete",
+          method: "POST",
+          body: {
+            boostType: body.boostType,
+            sessionId: session.sessionId
+          }
+        });
+
+        if (rewardResult.error) {
+          return { error: rewardResult.error };
+        }
+
+        return { data: rewardResult.data as UserState };
+      },
+      invalidatesTags: ["User"]
+    }),
+    purchaseProduct: builder.mutation<UserState, PurchaseProductPayload>({
+      async queryFn(body, _api, _extraOptions, baseQuery) {
+        const capabilities = await getMonetizationCapabilities();
+        const sessionResult = await baseQuery({
+          url: "/purchases/session",
+          method: "POST",
+          body: {
+            ...body,
+            provider: capabilities.purchaseProvider
+          }
+        });
+
+        if (sessionResult.error) {
+          return { error: sessionResult.error };
+        }
+
+        const session = sessionResult.data as PurchaseSession;
+        const purchaseResult = await launchPurchaseFlow({
+          sessionId: session.sessionId,
+          productId: body.productId,
+          provider: session.provider
+        });
+
+        if (!purchaseResult.completed) {
+          return {
+            error: {
+              status: "CUSTOM_ERROR",
+              error: "Purchase flow was not completed"
+            }
+          };
+        }
+
+        const rewardResult = await baseQuery({
+          url: "/purchases/session/complete",
+          method: "POST",
+          body: {
+            sessionId: session.sessionId,
+            transactionId: purchaseResult.transactionId
+          }
+        });
+
+        if (rewardResult.error) {
+          return { error: rewardResult.error };
+        }
+
+        return { data: rewardResult.data as UserState };
+      },
+      invalidatesTags: ["User"]
+    }),
     updateOnboarding: builder.mutation<UserState, UpdateOnboardingPayload>({
       query: (body) => ({
         url: "/user/onboarding",
@@ -122,6 +400,75 @@ export const gameApi = createApi({
         body
       }),
       invalidatesTags: ["User"]
+    }),
+    registerCharacter: builder.mutation<UserState, RegisterCharacterPayload>({
+      query: (body) => ({
+        url: "/character/register",
+        method: "POST",
+        body
+      }),
+      invalidatesTags: ["User"]
+    }),
+    updateCharacterProfile: builder.mutation<UserState, UpdateCharacterProfilePayload>({
+      query: (body) => ({
+        url: "/character/profile",
+        method: "PATCH",
+        body
+      }),
+      invalidatesTags: ["User"]
+    }),
+    authRegister: builder.mutation<{ email: string; verificationRequired: true }, AuthRegisterPayload>({
+      query: (body) => ({
+        url: "/auth/register",
+        method: "POST",
+        body
+      })
+    }),
+    authVerifyEmail: builder.mutation<{ verified: true }, AuthVerifyEmailPayload>({
+      query: (body) => ({
+        url: "/auth/verify-email",
+        method: "POST",
+        body
+      })
+    }),
+    authResendVerification: builder.mutation<{ accepted: true }, AuthRequestResetPayload>({
+      query: (body) => ({
+        url: "/auth/resend-verification",
+        method: "POST",
+        body
+      })
+    }),
+    authLogin: builder.mutation<AuthLoginResult, AuthLoginPayload>({
+      async queryFn(body, _api, _extraOptions, baseQuery) {
+        const result = await baseQuery({
+          url: "/auth/login",
+          method: "POST",
+          body
+        });
+
+        if (result.error) {
+          return { error: result.error };
+        }
+
+        const data = result.data as AuthLoginResult;
+        setPlayerId(data.playerId);
+        return { data };
+      },
+      invalidatesTags: ["User"]
+    }),
+    authRequestPasswordReset: builder.mutation<{ accepted: true }, AuthRequestResetPayload>({
+      query: (body) => ({
+        url: "/auth/request-password-reset",
+        method: "POST",
+        body
+      })
+    }),
+    authResetPassword: builder.mutation<{ reset: true }, AuthResetPayload>({
+      query: (body) => ({
+        url: "/auth/reset-password",
+        method: "POST",
+        body
+      })
     })
   })
 });
@@ -131,7 +478,18 @@ export const {
   useMergeCellsMutation,
   useSpawnItemMutation,
   useClaimIncomeMutation,
+  useClaimDailyRewardMutation,
+  useClaimAdBoostMutation,
+  usePurchaseProductMutation,
   useUpgradeBaseMutation,
   useDeleteCellMutation,
-  useUpdateOnboardingMutation
+  useUpdateOnboardingMutation,
+  useRegisterCharacterMutation,
+  useUpdateCharacterProfileMutation,
+  useAuthRegisterMutation,
+  useAuthVerifyEmailMutation,
+  useAuthResendVerificationMutation,
+  useAuthLoginMutation,
+  useAuthRequestPasswordResetMutation,
+  useAuthResetPasswordMutation
 } = gameApi;

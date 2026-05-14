@@ -1,10 +1,15 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  type ClaimAdBoostPayload,
   type GridCell,
+  type PurchaseProductId,
+  useClaimAdBoostMutation,
+  useClaimDailyRewardMutation,
   useClaimIncomeMutation,
   useDeleteCellMutation,
   useGetUserQuery,
   useMergeCellsMutation,
+  usePurchaseProductMutation,
   useSpawnItemMutation,
   useUpdateOnboardingMutation,
   useUpgradeBaseMutation
@@ -30,6 +35,9 @@ export const GameBoard = () => {
   const [mergeCells, { isLoading: isMerging }] = useMergeCellsMutation();
   const [spawnItem, { isLoading: isSpawning }] = useSpawnItemMutation();
   const [claimIncome, { isLoading: isClaimingIncome }] = useClaimIncomeMutation();
+  const [claimDailyReward, { isLoading: isClaimingDailyReward }] = useClaimDailyRewardMutation();
+  const [claimAdBoost, { isLoading: isClaimingAdBoost }] = useClaimAdBoostMutation();
+  const [purchaseProduct] = usePurchaseProductMutation();
   const [upgradeBase, { isLoading: isUpgradingBase }] = useUpgradeBaseMutation();
   const [deleteCell, { isLoading: isDeletingCell }] = useDeleteCellMutation();
   const [updateOnboarding] = useUpdateOnboardingMutation();
@@ -39,6 +47,10 @@ export const GameBoard = () => {
   const [isCollectionOpen, setIsCollectionOpen] = useState(false);
   const [flashTone, setFlashTone] = useState<FlashTone>("neutral");
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isBonusesOpen, setIsBonusesOpen] = useState(false);
+  const [isPaymentsInfoOpen, setIsPaymentsInfoOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [isUtilityMenuOpen, setIsUtilityMenuOpen] = useState(false);
   const [catalogTab, setCatalogTab] = useState<CatalogTab>("items");
@@ -56,6 +68,8 @@ export const GameBoard = () => {
     nonce: number;
   } | null>(null);
   const [isSpawnCelebrating, setIsSpawnCelebrating] = useState(false);
+  const [claimingAdBoostType, setClaimingAdBoostType] = useState<ClaimAdBoostPayload["boostType"] | null>(null);
+  const [purchasingProductId, setPurchasingProductId] = useState<PurchaseProductId | null>(null);
   const mergeFeedbackTimeoutRef = useRef<number | null>(null);
   const spawnCelebrationTimeoutRef = useRef<number | null>(null);
   const previousGoalTargetIdRef = useRef<string | null>(null);
@@ -161,10 +175,10 @@ export const GameBoard = () => {
   }, [user?.lastActionMessage, user?.latestDiscovery]);
 
   useEffect(() => {
-    if (isHelpOpen || isCatalogOpen) {
+    if (isHelpOpen || isBonusesOpen || isPaymentsInfoOpen || isAuthOpen || isProfileOpen || isCatalogOpen) {
       setIsUtilityMenuOpen(false);
     }
-  }, [isCatalogOpen, isHelpOpen]);
+  }, [isAuthOpen, isBonusesOpen, isCatalogOpen, isHelpOpen, isPaymentsInfoOpen, isProfileOpen]);
 
   useEffect(() => {
     if (!user) {
@@ -423,10 +437,40 @@ export const GameBoard = () => {
             setSelectedCell(null);
           });
       }}
+      claimDailyRewardAction={() => {
+        void claimDailyReward();
+      }}
+      claimAdBoostAction={(boostType) => {
+        if (boostType === "rewarded_double_offline_income") {
+          return;
+        }
+
+        setClaimingAdBoostType(boostType);
+        void claimAdBoost({ boostType }).finally(() => {
+          setClaimingAdBoostType(null);
+        });
+      }}
+      purchaseProductAction={(productId) => {
+        setPurchasingProductId(productId);
+        void purchaseProduct({ productId }).finally(() => {
+          setPurchasingProductId(null);
+        });
+      }}
+      isClaimingDailyReward={isClaimingDailyReward}
+      claimingAdBoostType={isClaimingAdBoost ? claimingAdBoostType : null}
+      purchasingProductId={purchasingProductId}
       isCollectionOpen={isCollectionOpen}
       setIsCollectionOpen={setIsCollectionOpen}
       isHelpOpen={isHelpOpen}
       setIsHelpOpen={setIsHelpOpen}
+      isBonusesOpen={isBonusesOpen}
+      setIsBonusesOpen={setIsBonusesOpen}
+      isPaymentsInfoOpen={isPaymentsInfoOpen}
+      setIsPaymentsInfoOpen={setIsPaymentsInfoOpen}
+      isAuthOpen={isAuthOpen}
+      setIsAuthOpen={setIsAuthOpen}
+      isProfileOpen={isProfileOpen}
+      setIsProfileOpen={setIsProfileOpen}
       isCatalogOpen={isCatalogOpen}
       setIsCatalogOpen={setIsCatalogOpen}
       isUtilityMenuOpen={isUtilityMenuOpen}

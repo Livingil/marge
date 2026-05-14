@@ -1,4 +1,4 @@
-﻿import type { GridCell, GridItem, UserState } from "../../shared/api/gameApi";
+import type { GridCell, GridItem, PurchaseProductId, UserState } from "../../shared/api/gameApi";
 import type { CatalogTab, ChainFilter, ContextHint, FlashTone, TierFilter } from "./gameBoard.helpers";
 
 export type GameBoardViewProps = {
@@ -45,10 +45,26 @@ export type GameBoardViewProps = {
   claimIncomeAction: () => void;
   upgradeBaseAction: () => void;
   deleteCellAction: () => void;
+  claimDailyRewardAction: () => void;
+  claimAdBoostAction: (
+    boostType: "rewarded_free_spawn" | "rewarded_free_delete" | "rewarded_flow_boost" | "rewarded_double_offline_income"
+  ) => void;
+  purchaseProductAction: (productId: PurchaseProductId) => void;
+  isClaimingDailyReward: boolean;
+  claimingAdBoostType: "rewarded_free_spawn" | "rewarded_free_delete" | "rewarded_flow_boost" | "rewarded_double_offline_income" | null;
+  purchasingProductId: PurchaseProductId | null;
   isCollectionOpen: boolean;
   setIsCollectionOpen: (value: boolean) => void;
   isHelpOpen: boolean;
   setIsHelpOpen: (value: boolean) => void;
+  isBonusesOpen: boolean;
+  setIsBonusesOpen: (value: boolean) => void;
+  isPaymentsInfoOpen: boolean;
+  setIsPaymentsInfoOpen: (value: boolean) => void;
+  isAuthOpen: boolean;
+  setIsAuthOpen: (value: boolean) => void;
+  isProfileOpen: boolean;
+  setIsProfileOpen: (value: boolean) => void;
   isCatalogOpen: boolean;
   setIsCatalogOpen: (value: boolean) => void;
   isUtilityMenuOpen: boolean;

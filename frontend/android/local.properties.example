@@ -1,0 +1,3 @@
+## Copy to local.properties and adjust sdk.dir for your machine.
+## Do not commit the real local.properties file.
+sdk.dir=C\:\\Android\\Sdk

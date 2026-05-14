@@ -15,10 +15,10 @@ export type ActiveBoostsState = {
 };
 
 export const AD_BOOST_LIMITS = {
-  rewarded_free_spawn: 3,
-  rewarded_free_delete: 2,
-  rewarded_flow_boost: 2,
-  rewarded_double_offline_income: 1
+  rewarded_free_spawn: 30,
+  rewarded_free_delete: 20,
+  rewarded_flow_boost: 20,
+  rewarded_double_offline_income: 10
 } as const;
 
 export const AD_BOOST_FLOW_MULTIPLIER = 2;

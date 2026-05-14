@@ -14,6 +14,7 @@ import {
   useUpdateOnboardingMutation,
   useUpgradeBaseMutation
 } from "../../shared/api/gameApi";
+import { getMonetizationCapabilities, launchRewardedAdFlow } from "../../shared/monetization/monetizationBridge";
 import {
   type CatalogTab,
   type ChainFilter,
@@ -31,6 +32,7 @@ import {
 import { GameBoardView } from "./GameBoardView";
 
 export const GameBoard = () => {
+  const AUTO_AD_INTERVAL_MS = 10 * 60 * 1000;
   const { data: user, isLoading, isError } = useGetUserQuery();
   const [mergeCells, { isLoading: isMerging }] = useMergeCellsMutation();
   const [spawnItem, { isLoading: isSpawning }] = useSpawnItemMutation();
@@ -74,6 +76,7 @@ export const GameBoard = () => {
   const spawnCelebrationTimeoutRef = useRef<number | null>(null);
   const previousGoalTargetIdRef = useRef<string | null>(null);
   const hasSeenFirstUserRef = useRef(false);
+  const isAutoAdInFlightRef = useRef(false);
 
   const activeRows = useMemo(() => (user ? getActiveGridRows(user.baseLevel) : BASE_GRID_ROWS), [user]);
   const activeCellsCount = useMemo(
@@ -231,6 +234,50 @@ export const GameBoard = () => {
       }
       if (spawnCelebrationTimeoutRef.current !== null) {
         window.clearTimeout(spawnCelebrationTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    let isDisposed = false;
+    let timerId: number | null = null;
+
+    const schedule = () => {
+      timerId = window.setTimeout(async () => {
+        if (isDisposed) {
+          return;
+        }
+        if (document.visibilityState !== "visible" || isAutoAdInFlightRef.current) {
+          schedule();
+          return;
+        }
+
+        try {
+          const capabilities = await getMonetizationCapabilities();
+          if (capabilities.rewardedProvider !== "mock") {
+            isAutoAdInFlightRef.current = true;
+            await launchRewardedAdFlow({
+              sessionId: `auto-${Date.now()}`,
+              boostType: "rewarded_flow_boost",
+              provider: capabilities.rewardedProvider,
+              placement: "auto_10m"
+            });
+          }
+        } catch {
+          // Ignore auto-ad errors to keep gameplay uninterrupted.
+        } finally {
+          isAutoAdInFlightRef.current = false;
+          schedule();
+        }
+      }, AUTO_AD_INTERVAL_MS);
+    };
+
+    schedule();
+
+    return () => {
+      isDisposed = true;
+      if (timerId !== null) {
+        window.clearTimeout(timerId);
       }
     };
   }, []);

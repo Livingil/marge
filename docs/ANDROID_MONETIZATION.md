@@ -52,6 +52,12 @@ Flow per click:
 
 If ad flow is canceled/failed, step 3 is not called and no reward is granted.
 
+Additional auto-ad behavior:
+
+- App now attempts an automatic rewarded ad launch every 10 minutes (`placement=auto_10m`).
+- Auto launch works only on Android native and only when rewarded provider is non-`mock`.
+- Auto ads do not call reward session completion endpoint, so they do not grant gameplay bonuses.
+
 ## What is not connected yet
 
 - Real RuStore Billing SDK dependency

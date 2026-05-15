@@ -25,8 +25,8 @@ android {
         applicationId "ru.marge.game"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 10002
+        versionName "1.0.2"
         buildConfigField "boolean", "RUSTORE_BILLING_ENABLED", rustoreBillingEnabled.toString()
         buildConfigField "String", "RUSTORE_BILLING_ENVIRONMENT", "\"${rustoreBillingEnvironment}\""
         buildConfigField "String", "RUSTORE_PAYMENT_CALLBACK_HOST", "\"${rustorePaymentCallbackHost}\""
@@ -76,6 +76,7 @@ repositories {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "com.my.target:mytarget-sdk:5.45.2"
+    implementation "io.appmetrica.analytics:analytics:8.0.1"
     implementation platform("ru.rustore.sdk:bom:$ruStoreSdkBomVersion")
     implementation "ru.rustore.sdk:pay"
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"

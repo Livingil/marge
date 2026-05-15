@@ -12,8 +12,8 @@ services:
       CLIENT_ORIGINS: ${CLIENT_ORIGINS}
       AUTH_APP_URL: ${AUTH_APP_URL}
       BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL}
-    expose:
-      - "4000"
+    ports:
+      - "${BACKEND_PORT:-14000}:4000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]

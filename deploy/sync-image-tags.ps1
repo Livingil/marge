@@ -42,8 +42,37 @@ function Sync-EnvFile {
   Set-Content -Path $Path -Value $content -NoNewline
 }
 
+function Get-AndroidVersionCodeFromSemver {
+  param([string]$Version)
+  if ($Version -notmatch '^(\d+)\.(\d+)\.(\d+)') {
+    throw "Invalid semver for Android versionCode: $Version"
+  }
+  $major = [int]$Matches[1]
+  $minor = [int]$Matches[2]
+  $patch = [int]$Matches[3]
+  return ($major * 10000) + ($minor * 100) + $patch
+}
+
+function Sync-AndroidGradleVersion {
+  param(
+    [string]$GradlePath,
+    [string]$VersionName,
+    [int]$VersionCode
+  )
+
+  if (-not (Test-Path $GradlePath)) {
+    throw "Gradle file not found: $GradlePath"
+  }
+
+  $content = Get-Content -Path $GradlePath -Raw
+  $content = [regex]::Replace($content, '(?m)^\s*versionCode\s+\d+\s*$', "        versionCode $VersionCode")
+  $content = [regex]::Replace($content, '(?m)^\s*versionName\s+\"[^\"]*\"\s*$', "        versionName `"$VersionName`"")
+  Set-Content -Path $GradlePath -Value $content -NoNewline
+}
+
 $backendVersion = Read-PackageVersion -PackageJsonPath "backend/package.json"
 $frontendVersion = Read-PackageVersion -PackageJsonPath "frontend/package.json"
+$androidVersionCode = Get-AndroidVersionCodeFromSemver -Version $frontendVersion
 
 $values = @{
   "BACKEND_VERSION" = $backendVersion
@@ -53,3 +82,4 @@ $values = @{
 
 Sync-EnvFile -Path $EnvPath -Values $values
 if (-not $SkipExample) { Sync-EnvFile -Path $ExampleEnvPath -Values $values }
+Sync-AndroidGradleVersion -GradlePath "frontend/android/app/build.gradle" -VersionName $frontendVersion -VersionCode $androidVersionCode

@@ -1,27 +1,27 @@
 {
-    "name":  "frontend",
-    "private":  true,
-    "version":  "1.0.1",
-    "type":  "module",
-    "scripts":  {
-                    "dev":  "vite",
-                    "build":  "tsc -b \u0026\u0026 vite build",
-                    "preview":  "vite preview",
-                    "cap:sync":  "npx cap sync",
-                    "cap:android":  "npx cap open android",
-                    "android:init":  "npm run build \u0026\u0026 npm run cap:sync"
-                },
-    "dependencies":  {
-                         "@capacitor/android":  "^8.3.3",
-                         "@capacitor/cli":  "^8.3.3",
-                         "@capacitor/core":  "^8.3.3"
-                     },
-    "devDependencies":  {
-                            "@types/react":  "^19.2.14",
-                            "@types/react-dom":  "^19.2.3",
-                            "@vitejs/plugin-react":  "^5.1.0",
-                            "typescript":  "^6.0.3",
-                            "vite":  "^7.3.2",
-                            "vite-plugin-pwa":  "^1.2.0"
-                        }
+    "name": "frontend",
+    "private": true,
+    "version": "1.0.2",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc -b && vite build",
+        "preview": "vite preview",
+        "cap:sync": "npx cap sync",
+        "cap:android": "npx cap open android",
+        "android:init": "npm run build && npm run cap:sync"
+    },
+    "dependencies": {
+        "@capacitor/android": "^8.3.3",
+        "@capacitor/cli": "^8.3.3",
+        "@capacitor/core": "^8.3.3"
+    },
+    "devDependencies": {
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^5.1.0",
+        "typescript": "^6.0.3",
+        "vite": "^7.3.2",
+        "vite-plugin-pwa": "^1.2.0"
+    }
 }

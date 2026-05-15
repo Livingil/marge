@@ -7,7 +7,11 @@ import {
   launchRewardedAdFlow
 } from "../monetization/monetizationBridge";
 
-const apiBaseUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || "http://localhost:4000";
+const apiBaseUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+
+if (!apiBaseUrl) {
+  throw new Error("VITE_API_URL is required for frontend runtime");
+}
 
 export type GridItem = {
   id: string;

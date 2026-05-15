@@ -3,3 +3,6 @@ node_modules
 .env.*
 !.env.example
 .md
+.jks
+
+deploy/backend.env

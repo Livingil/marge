@@ -1,18 +1,23 @@
 {
-  "name": "marge",
-  "version": "1.0.0",
-  "private": true,
-  "workspaces": [
-    "backend",
-    "frontend"
-  ],
-  "scripts": {
-    "dev:backend": "npm run dev -w backend",
-    "dev:frontend": "npm run dev -w frontend",
-    "build": "npm run build -w backend && npm run build -w frontend"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "Marge game monorepo"
+    "name":  "marge",
+    "version":  "1.0.1",
+    "private":  true,
+    "workspaces":  [
+                       "backend",
+                       "frontend"
+                   ],
+    "scripts":  {
+                    "dev:backend":  "npm run dev -w backend",
+                    "dev:frontend":  "npm run dev -w frontend",
+                    "build":  "npm run build -w backend \u0026\u0026 npm run build -w frontend",
+                    "version:sync":  "powershell -ExecutionPolicy Bypass -File ./deploy/sync-image-tags.ps1",
+                    "images:publish":  "powershell -ExecutionPolicy Bypass -File ./deploy/publish-images.ps1",
+                    "deploy:remote":  "powershell -ExecutionPolicy Bypass -File ./deploy/deploy-remote.ps1"
+                },
+    "keywords":  [
+
+                 ],
+    "author":  "",
+    "license":  "ISC",
+    "description":  "Marge game monorepo"
 }

@@ -1,0 +1,38 @@
+﻿name: marge-prod
+
+services:
+  backend:
+    image: ${BACKEND_IMAGE}
+    env_file:
+      - ./deploy/backend.env
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      APP_VERSION: ${BACKEND_VERSION}
+      CLIENT_ORIGINS: ${CLIENT_ORIGINS}
+      AUTH_APP_URL: ${AUTH_APP_URL}
+      BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL}
+    expose:
+      - "4000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    image: ${FRONTEND_IMAGE}
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-18080}:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 20s

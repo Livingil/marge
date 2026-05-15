@@ -1,5 +1,8 @@
 ﻿import { Request, Response } from "express";
 
 export const healthController = (_req: Request, res: Response): void => {
-  res.status(200).json({ ok: true });
+  res.status(200).json({
+    ok: true,
+    version: process.env.APP_VERSION ?? "dev"
+  });
 };

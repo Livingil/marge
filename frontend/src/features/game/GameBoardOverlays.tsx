@@ -239,78 +239,75 @@ export const GameBoardOverlays = ({
               </button>
             </div>
             <div className="fullscreen-content">
-              <div className="meta-card payment-info-card">
-                <div className="payment-meta-block">
-                  <p className="meta-kicker">Гостевой режим</p>
-                  <p className="meta-text">Игра работает как сейчас: можно играть без регистрации.</p>
-                  <p className="meta-text">После входа можно переносить прогресс между устройствами и использовать покупки.</p>
-                </div>
-
-                <div className="payment-meta-block">
-                  <p className="meta-kicker">Email</p>
-                  <input
-                    className="catalog-search"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                  />
-                  <input
-                    className="catalog-search"
-                    placeholder="Пароль (минимум 8 символов)"
-                    type="password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                  />
-                  <div className="boost-options-list">
-                    <button
-                      type="button"
-                      className="collection-toggle"
-                      disabled={isRegistering}
-                      onClick={() => {
-                        setAuthNotice(null);
-                        void registerEmail({ email, password })
-                          .unwrap()
-                          .then((result) => {
-                            setPendingVerificationEmail(result.email);
-                            setIsVerificationModalOpen(true);
-                            setAuthNotice("Проверьте почту и подтвердите адрес.");
-                          })
-                          .catch((error: { data?: { message?: string } }) =>
-                            setAuthNotice(error?.data?.message ?? "Ошибка регистрации")
-                          );
-                      }}
-                    >
-                      {isRegistering ? "Регистрация..." : "Зарегистрироваться"}
-                    </button>
-                    <button
-                      type="button"
-                      className="collection-toggle"
-                      disabled={isLoggingIn}
-                      onClick={() => {
-                        setAuthNotice(null);
-                        void loginEmail({ email, password })
-                          .unwrap()
-                          .then(() => setAuthNotice("Вход выполнен. Прогресс синхронизирован."))
-                          .catch((error: { data?: { message?: string } }) => {
-                            const message = error?.data?.message ?? "Ошибка входа";
-                            if (message === "Email is not verified") {
-                              const targetEmail = email.trim().toLowerCase();
-                              setPendingVerificationEmail(targetEmail || null);
-                              setIsVerificationModalOpen(true);
-                              setAuthNotice("Подтвердите почту для входа.");
-                              return;
-                            }
-                            setAuthNotice(message);
-                          });
-                      }}
-                    >
-                      {isLoggingIn ? "Вход..." : "Войти"}
-                    </button>
-                  </div>
-                </div>
-
-                {authNotice ? <p className="meta-text">{authNotice}</p> : null}
+              <div className="payment-meta-block">
+                <p className="meta-kicker">Гостевой режим</p>
+                <p className="meta-text">Игра работает как сейчас: можно играть без регистрации.</p>
+                <p className="meta-text">После входа можно переносить прогресс между устройствами и использовать покупки.</p>
               </div>
+
+              <div className="payment-meta-block">
+                <p className="meta-kicker">Email</p>
+                <input
+                  className="catalog-search"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+                <input
+                  className="catalog-search"
+                  placeholder="Пароль (минимум 8 символов)"
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+                <div className="boost-options-list">
+                  <button
+                    type="button"
+                    className="collection-toggle"
+                    disabled={isRegistering}
+                    onClick={() => {
+                      setAuthNotice(null);
+                      void registerEmail({ email, password })
+                        .unwrap()
+                        .then((result) => {
+                          setPendingVerificationEmail(result.email);
+                          setIsVerificationModalOpen(true);
+                          setAuthNotice("Проверьте почту и подтвердите адрес.");
+                        })
+                        .catch((error: { data?: { message?: string } }) =>
+                          setAuthNotice(error?.data?.message ?? "Ошибка регистрации")
+                        );
+                    }}
+                  >
+                    {isRegistering ? "Регистрация..." : "Зарегистрироваться"}
+                  </button>
+                  <button
+                    type="button"
+                    className="collection-toggle"
+                    disabled={isLoggingIn}
+                    onClick={() => {
+                      setAuthNotice(null);
+                      void loginEmail({ email, password })
+                        .unwrap()
+                        .then(() => setAuthNotice("Вход выполнен. Прогресс синхронизирован."))
+                        .catch((error: { data?: { message?: string } }) => {
+                          const message = error?.data?.message ?? "Ошибка входа";
+                          if (message === "Email is not verified") {
+                            const targetEmail = email.trim().toLowerCase();
+                            setPendingVerificationEmail(targetEmail || null);
+                            setIsVerificationModalOpen(true);
+                            setAuthNotice("Подтвердите почту для входа.");
+                            return;
+                          }
+                          setAuthNotice(message);
+                        });
+                    }}
+                  >
+                    {isLoggingIn ? "Вход..." : "Войти"}
+                  </button>
+                </div>
+              </div>
+              {authNotice ? <p className="meta-text">{authNotice}</p> : null}
             </div>
           </div>
         </div>

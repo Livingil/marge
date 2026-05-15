@@ -8,6 +8,12 @@ import "./styles.css";
 
 registerSW({ immediate: true });
 
+const appVersion = import.meta.env.VITE_APP_VERSION ?? "dev";
+if (typeof window !== "undefined") {
+  (window as Window & { __APP_VERSION__?: string }).__APP_VERSION__ = appVersion;
+}
+console.info(`[marge] app version: ${appVersion}`);
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>

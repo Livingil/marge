@@ -80,6 +80,10 @@
     display: block;
   }
 
+  .fullscreen-overlay.mobile-only {
+    display: flex;
+  }
+
   .lab-sidepanel {
     display: none;
   }

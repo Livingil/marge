@@ -13,6 +13,8 @@ if (!apiBaseUrl) {
   throw new Error("VITE_API_URL is required for frontend runtime");
 }
 
+const allowMockRewardedInWeb = String(import.meta.env.VITE_ALLOW_MOCK_REWARDED ?? "false").toLowerCase() === "true";
+
 export type GridItem = {
   id: string;
   name: string;
@@ -300,6 +302,15 @@ export const gameApi = createApi({
     claimAdBoost: builder.mutation<UserState, ClaimAdBoostPayload>({
       async queryFn(body, _api, _extraOptions, baseQuery) {
         const capabilities = await getMonetizationCapabilities();
+        if (capabilities.rewardedProvider === "mock" && !allowMockRewardedInWeb) {
+          return {
+            error: {
+              status: "CUSTOM_ERROR",
+              error: "Реклама сейчас недоступна: бонус не выдан"
+            }
+          };
+        }
+
         const sessionResult = await baseQuery({
           url: "/ad-boosts/session",
           method: "POST",

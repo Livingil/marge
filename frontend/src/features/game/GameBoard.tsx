@@ -38,11 +38,11 @@ const extractMutationErrorMessage = (error: unknown, fallbackMessage: string): s
     }
 
     if (message.includes("hasnt banners error")) {
-      return "Реклама временно недоступна, но появится позже.";
+      return "Реклама временно недоступна. Повторите запрос позже.";
     }
 
     if (message.startsWith("VK rewarded ad not available:")) {
-      return `VK Ads недоступен: ${message.replace("VK rewarded ad not available:", "").trim()}`;
+      return "Реклама временно недоступна. Повторите запрос позже.";
     }
 
     if (message === "Rewarded ad timeout") {

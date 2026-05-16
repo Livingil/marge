@@ -126,7 +126,9 @@ export const GameBoardSidePanel = ({
           ))}
         </div>
         <div className="boost-options-list">
-          {user.adBoosts.options.map((option) => (
+          {user.adBoosts.options
+            .filter((option) => option.type !== "rewarded_double_offline_income")
+            .map((option) => (
             <div key={option.type} className="boost-option-row">
               <div className="boost-option-copy">
                 <p className="boost-option-title">{option.title}</p>

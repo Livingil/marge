@@ -239,6 +239,8 @@ export const GameBoardControlDeck = ({
   hasSelectedCellItem,
   canDeleteSelectedCell,
   selectedCellDeleteCost,
+  claimAdBoostAction,
+  claimingAdBoostType,
   spawnItemAction,
   claimIncomeAction,
   upgradeBaseAction,
@@ -257,6 +259,8 @@ export const GameBoardControlDeck = ({
   | "hasSelectedCellItem"
   | "canDeleteSelectedCell"
   | "selectedCellDeleteCost"
+  | "claimAdBoostAction"
+  | "claimingAdBoostType"
   | "spawnItemAction"
   | "claimIncomeAction"
   | "upgradeBaseAction"
@@ -286,29 +290,52 @@ export const GameBoardControlDeck = ({
   }, [nowMs, user.claimableIncome, user.incomePerMinute, user.lastIncomeClaimAt]);
 
   const isBoardFull = filledCellsCount >= cells.length;
+  const spawnBoostOption = user.adBoosts.options.find(
+    (option) => option.type === "rewarded_free_spawn",
+  );
+  const upgradeBoostOption = user.adBoosts.options.find(
+    (option) => option.type === "rewarded_flow_boost",
+  );
+  const deleteBoostOption = user.adBoosts.options.find(
+    (option) => option.type === "rewarded_free_delete",
+  );
+  const needsSpawnAd =
+    !isBoardFull && user.goalFreeSpawns <= 0 && user.gold < user.spawnCost;
+  const canUseSpawnAd = needsSpawnAd && Boolean(spawnBoostOption?.canClaim);
+  const needsUpgradeAd = user.gold < user.baseUpgradeCost;
+  const canUseUpgradeAd = needsUpgradeAd && Boolean(upgradeBoostOption?.canClaim);
+  const needsDeleteAd =
+    hasSelectedCellItem && user.goalFreeDeletes <= 0 && !canDeleteSelectedCell;
+  const canUseDeleteAd = needsDeleteAd && Boolean(deleteBoostOption?.canClaim);
 
   return (
     <div className="control-deck">
       <button
         type="button"
         className="action-button action-button-primary"
-        onClick={spawnItemAction}
-        disabled={
-          isSpawning ||
-          isBoardFull ||
-          (user.goalFreeSpawns <= 0 && user.gold < user.spawnCost)
+        onClick={
+          canUseSpawnAd
+            ? () => claimAdBoostAction("rewarded_free_spawn")
+            : spawnItemAction
         }
+        disabled={canUseSpawnAd ? claimingAdBoostType === "rewarded_free_spawn" : isSpawning || isBoardFull || needsSpawnAd}
       >
         <span className="action-button-label">
           <span className="desktop-label">
-            {isSpawning ? "Синтез..." : "Синтезировать ядро"}
+            {canUseSpawnAd
+              ? (claimingAdBoostType === "rewarded_free_spawn" ? "Реклама..." : "За рекламу")
+              : (isSpawning ? "Синтез..." : "Синтезировать ядро")}
           </span>
           <span className="mobile-label">
-            {isSpawning ? "Синтез..." : "Синтезировать ядро"}
+            {canUseSpawnAd
+              ? (claimingAdBoostType === "rewarded_free_spawn" ? "Реклама..." : "За рекламу")
+              : (isSpawning ? "Синтез..." : "Синтезировать ядро")}
           </span>
         </span>
         <span className="action-button-meta">
-          {isBoardFull
+          {canUseSpawnAd
+            ? "Не хватает энергии"
+            : isBoardFull
             ? "Нет свободных ячеек"
             : user.goalFreeSpawns > 0
               ? `Бесплатно: ${user.goalFreeSpawns}`
@@ -320,19 +347,29 @@ export const GameBoardControlDeck = ({
       <button
         type="button"
         className="action-button action-button-secondary"
-        onClick={upgradeBaseAction}
-        disabled={isUpgradingBase || user.gold < user.baseUpgradeCost}
+        onClick={
+          canUseUpgradeAd
+            ? () => claimAdBoostAction("rewarded_flow_boost")
+            : upgradeBaseAction
+        }
+        disabled={canUseUpgradeAd ? claimingAdBoostType === "rewarded_flow_boost" : isUpgradingBase || needsUpgradeAd}
       >
         <span className="action-button-label">
           <span className="desktop-label">
-            {isUpgradingBase ? "Усиление..." : "Усилить лабораторию"}
+            {canUseUpgradeAd
+              ? (claimingAdBoostType === "rewarded_flow_boost" ? "Реклама..." : "За рекламу")
+              : (isUpgradingBase ? "Усиление..." : "Усилить лабораторию")}
           </span>
           <span className="mobile-label">
-            {isUpgradingBase ? "Усиление..." : "Усилить"}
+            {canUseUpgradeAd
+              ? (claimingAdBoostType === "rewarded_flow_boost" ? "Реклама..." : "За рекламу")
+              : (isUpgradingBase ? "Усиление..." : "Усилить")}
           </span>
         </span>
         <span className="action-button-meta">
-          {canUpgradeBase
+          {canUseUpgradeAd
+            ? "Не хватает энергии"
+            : canUpgradeBase
             ? `Стоимость: ${user.baseUpgradeCost}`
             : `Нужно энергии: ${user.baseUpgradeCost}`}
         </span>
@@ -358,22 +395,32 @@ export const GameBoardControlDeck = ({
       <button
         type="button"
         className="action-button action-button-tertiary action-button-delete"
-        onClick={deleteCellAction}
+        onClick={
+          canUseDeleteAd
+            ? () => claimAdBoostAction("rewarded_free_delete")
+            : deleteCellAction
+        }
         disabled={
-          isDeletingCell ||
-          !hasSelectedCellItem ||
-          (user.goalFreeDeletes <= 0 && !canDeleteSelectedCell)
+          canUseDeleteAd
+            ? claimingAdBoostType === "rewarded_free_delete"
+            : isDeletingCell ||
+              !hasSelectedCellItem ||
+              (user.goalFreeDeletes <= 0 && !canDeleteSelectedCell)
         }
       >
         <span className="action-button-label">
-          {isDeletingCell
-            ? "Утилизация..."
-            : hasSelectedCellItem
-              ? "Утилизировать"
-              : "Выбери образец"}
+          {canUseDeleteAd
+            ? (claimingAdBoostType === "rewarded_free_delete" ? "Реклама..." : "За рекламу")
+            : isDeletingCell
+              ? "Утилизация..."
+              : hasSelectedCellItem
+                ? "Утилизировать"
+                : "Выбери образец"}
         </span>
         <span className="action-button-meta">
-          {hasSelectedCellItem && user.goalFreeDeletes > 0
+          {canUseDeleteAd
+            ? "Не хватает энергии"
+            : hasSelectedCellItem && user.goalFreeDeletes > 0
             ? `Бесплатно: ${user.goalFreeDeletes}`
             : selectedCellDeleteCost !== null
               ? `Стоимость: ${selectedCellDeleteCost}`

@@ -209,6 +209,8 @@ export const GameBoardView = (props: GameBoardViewProps) => {
         hasSelectedCellItem={props.hasSelectedCellItem}
         canDeleteSelectedCell={props.canDeleteSelectedCell}
         selectedCellDeleteCost={props.selectedCellDeleteCost}
+        claimAdBoostAction={props.claimAdBoostAction}
+        claimingAdBoostType={props.claimingAdBoostType}
         spawnItemAction={props.spawnItemAction}
         claimIncomeAction={props.claimIncomeAction}
         upgradeBaseAction={props.upgradeBaseAction}

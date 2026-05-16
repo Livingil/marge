@@ -9,7 +9,7 @@ import {
   markRewardedAdSessionGranted,
   trimRewardedAdSessions
 } from "./rewardedAds.js";
-import { createEmptyAdBoostClaims, setAdBoostUsage } from "./adBoosts.js";
+import { AD_BOOST_LIMITS, createEmptyAdBoostClaims, setAdBoostUsage } from "./adBoosts.js";
 
 test("rewardedAds creates started session with ttl", () => {
   const now = new Date("2026-05-09T10:00:00.000Z");
@@ -32,7 +32,11 @@ test("rewardedAds rejects unsupported offline income boost", () => {
 });
 
 test("rewardedAds enforces daily limit before starting", () => {
-  const claims = setAdBoostUsage(createEmptyAdBoostClaims("2026-05-09"), "rewarded_free_delete", 2);
+  const claims = setAdBoostUsage(
+    createEmptyAdBoostClaims("2026-05-09"),
+    "rewarded_free_delete",
+    AD_BOOST_LIMITS.rewarded_free_delete
+  );
 
   assert.throws(
     () => assertRewardedAdLimitAvailable(claims, "rewarded_free_delete"),

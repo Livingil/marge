@@ -14,6 +14,7 @@ if (!apiBaseUrl) {
 }
 
 const allowMockRewardedInWeb = String(import.meta.env.VITE_ALLOW_MOCK_REWARDED ?? "false").toLowerCase() === "true";
+const rewardedUnavailableMessage = "Реклама сейчас недоступна: бонус не выдан";
 
 export type GridItem = {
   id: string;
@@ -306,7 +307,7 @@ export const gameApi = createApi({
           return {
             error: {
               status: "CUSTOM_ERROR",
-              error: "Реклама сейчас недоступна: бонус не выдан"
+              error: rewardedUnavailableMessage
             }
           };
         }
@@ -386,17 +387,27 @@ export const gameApi = createApi({
         }
 
         const session = sessionResult.data as PurchaseSession;
-        const purchaseResult = await launchPurchaseFlow({
-          sessionId: session.sessionId,
-          productId: body.productId,
-          provider: session.provider
-        });
+        let purchaseResult;
+        try {
+          purchaseResult = await launchPurchaseFlow({
+            sessionId: session.sessionId,
+            productId: body.productId,
+            provider: session.provider
+          });
+        } catch (error) {
+          return {
+            error: {
+              status: "CUSTOM_ERROR",
+              error: error instanceof Error ? error.message : "Не удалось запустить покупку"
+            }
+          };
+        }
 
         if (!purchaseResult.completed) {
           return {
             error: {
               status: "CUSTOM_ERROR",
-              error: "Purchase flow was not completed"
+              error: "Покупка не была завершена"
             }
           };
         }

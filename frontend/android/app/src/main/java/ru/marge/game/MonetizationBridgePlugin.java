@@ -1,5 +1,8 @@
 package ru.marge.game;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -11,12 +14,16 @@ import com.my.target.common.models.IAdLoadingError;
 
 @CapacitorPlugin(name = "MonetizationBridge")
 public class MonetizationBridgePlugin extends Plugin implements RewardedAd.RewardedAdListener {
+    private static final String TAG = "MonetizationBridge";
     private static final String REWARDED_PROVIDER = "mock";
     private static final String PURCHASE_PROVIDER = "mock";
     private static final String REWARDED_PLACEMENT = "gameboard_utility";
+    private static final long REWARDED_TIMEOUT_MS = 20000L;
     private RewardedAd rewardedAd = null;
     private PluginCall pendingRewardedCall = null;
     private boolean rewardedGranted = false;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private Runnable rewardedTimeoutRunnable = null;
 
     @PluginMethod
     public void getCapabilities(PluginCall call) {
@@ -48,6 +55,7 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
 
         boolean rewardedReady = BuildConfig.VK_REWARDED_ENABLED && BuildConfig.VK_REWARDED_SLOT_ID > 0;
         if (!rewardedReady) {
+            Log.w(TAG, "launchRewardedAd: rewarded is not ready (disabled or slot id missing)");
             JSObject result = new JSObject();
             result.put("provider", REWARDED_PROVIDER);
             result.put("completed", true);
@@ -56,11 +64,13 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
             return;
         }
         if (pendingRewardedCall != null) {
+            Log.w(TAG, "launchRewardedAd: rejected because another flow is in progress");
             call.reject("Rewarded ad flow is already in progress");
             return;
         }
 
         try {
+            Log.i(TAG, "launchRewardedAd: start loading, slotId=" + BuildConfig.VK_REWARDED_SLOT_ID + ", placement=" + placement);
             pendingRewardedCall = call;
             rewardedGranted = false;
             if (rewardedAd != null) {
@@ -68,18 +78,42 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
                 rewardedAd.destroy();
                 rewardedAd = null;
             }
+            rewardedTimeoutRunnable = () -> {
+                if (pendingRewardedCall != null) {
+                    Log.e(TAG, "launchRewardedAd: timeout waiting for SDK callbacks");
+                    pendingRewardedCall.reject("VK rewarded ad timeout");
+                    pendingRewardedCall = null;
+                }
+                rewardedGranted = false;
+                if (rewardedAd != null) {
+                    rewardedAd.setListener(null);
+                    rewardedAd.destroy();
+                    rewardedAd = null;
+                }
+            };
+            mainHandler.postDelayed(rewardedTimeoutRunnable, REWARDED_TIMEOUT_MS);
             rewardedAd = new RewardedAd(BuildConfig.VK_REWARDED_SLOT_ID, getContext());
             rewardedAd.setListener(this);
             rewardedAd.load();
         } catch (Exception error) {
+            clearRewardedTimeout();
+            Log.e(TAG, "launchRewardedAd: failed to start", error);
             pendingRewardedCall = null;
             rewardedGranted = false;
             call.reject("Failed to start VK rewarded ad", error);
         }
     }
 
+    private void clearRewardedTimeout() {
+        if (rewardedTimeoutRunnable != null) {
+            mainHandler.removeCallbacks(rewardedTimeoutRunnable);
+            rewardedTimeoutRunnable = null;
+        }
+    }
+
     @Override
     protected void handleOnDestroy() {
+        clearRewardedTimeout();
         if (rewardedAd != null) {
             rewardedAd.setListener(null);
             rewardedAd.destroy();
@@ -95,13 +129,16 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
         if (rewardedAd == null) {
             return;
         }
+        Log.i(TAG, "onLoad: showing rewarded ad");
         rewardedAd.show();
     }
 
     @Override
     public void onNoAd(IAdLoadingError adLoadingError, RewardedAd ad) {
+        clearRewardedTimeout();
         if (pendingRewardedCall != null) {
             String errorMessage = adLoadingError != null ? adLoadingError.getMessage() : "no ad";
+            Log.w(TAG, "onNoAd: " + errorMessage);
             pendingRewardedCall.reject("VK rewarded ad not available: " + errorMessage);
             pendingRewardedCall = null;
         }
@@ -120,6 +157,8 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
 
     @Override
     public void onDismiss(RewardedAd ad) {
+        clearRewardedTimeout();
+        Log.i(TAG, "onDismiss: completed=" + rewardedGranted);
         if (pendingRewardedCall != null) {
             JSObject result = new JSObject();
             result.put("provider", "vkads");
@@ -138,6 +177,7 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
 
     @Override
     public void onReward(Reward reward, RewardedAd ad) {
+        Log.i(TAG, "onReward: reward granted");
         rewardedGranted = true;
     }
 
@@ -148,6 +188,8 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
 
     @Override
     public void onFailedToShow(RewardedAd ad) {
+        clearRewardedTimeout();
+        Log.e(TAG, "onFailedToShow");
         if (pendingRewardedCall != null) {
             pendingRewardedCall.reject("VK rewarded ad failed to show");
             pendingRewardedCall = null;

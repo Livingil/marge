@@ -36,7 +36,9 @@ export const GameBoardOverlays = ({
   claimDailyRewardAction,
   claimAdBoostAction,
   isClaimingDailyReward,
-  claimingAdBoostType
+  claimingAdBoostType,
+  adBoostNotice,
+  purchaseNotice
 }: Pick<GameBoardViewProps,
   | "isGuideDismissed"
   | "dismissGuide"
@@ -66,6 +68,8 @@ export const GameBoardOverlays = ({
   | "claimAdBoostAction"
   | "isClaimingDailyReward"
   | "claimingAdBoostType"
+  | "adBoostNotice"
+  | "purchaseNotice"
 >) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -172,7 +176,7 @@ export const GameBoardOverlays = ({
               </button>
             </div>
             <div className="fullscreen-content">
-              <div className="meta-card bonus-card">
+              <div className="bonus-card">
                 <div className="bonus-head">
                   <p className="meta-kicker">Бонусы</p>
                   <span className="bonus-streak">Серия: {user.dailyReward.streak}</span>
@@ -223,6 +227,7 @@ export const GameBoardOverlays = ({
                     </div>
                   ))}
                 </div>
+                {adBoostNotice ? <p className="meta-text">{adBoostNotice}</p> : null}
               </div>
             </div>
           </div>
@@ -348,6 +353,8 @@ export const GameBoardOverlays = ({
                   <p className="meta-text">Реакций: {user.discoveredRecipeDetails.length}</p>
                   <p className="meta-text">Серия Daily: {user.dailyReward.streak}</p>
                 </div>
+                {adBoostNotice ? <p className="meta-text">{adBoostNotice}</p> : null}
+                {purchaseNotice ? <p className="meta-text">{purchaseNotice}</p> : null}
               </div>
             </div>
           </div>

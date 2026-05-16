@@ -8,6 +8,8 @@ export const GameBoardSidePanel = ({
   purchaseProductAction,
   isClaimingDailyReward,
   claimingAdBoostType,
+  adBoostNotice,
+  purchaseNotice,
   purchasingProductId
 }: Pick<
   GameBoardViewProps,
@@ -18,6 +20,8 @@ export const GameBoardSidePanel = ({
   | "purchaseProductAction"
   | "isClaimingDailyReward"
   | "claimingAdBoostType"
+  | "adBoostNotice"
+  | "purchaseNotice"
   | "purchasingProductId"
 >) => {
   const discoveredIds = new Set(user.discoveredItems);
@@ -141,6 +145,7 @@ export const GameBoardSidePanel = ({
             </div>
           ))}
         </div>
+        {adBoostNotice ? <p className="meta-text">{adBoostNotice}</p> : null}
       </div>
 
       <div className="meta-card commerce-card desktop-only">
@@ -188,8 +193,9 @@ export const GameBoardSidePanel = ({
                   </button>
                 </div>
               );
-            })}
+          })}
         </div>
+        {purchaseNotice ? <p className="meta-text">{purchaseNotice}</p> : null}
       </div>
     </aside>
   );

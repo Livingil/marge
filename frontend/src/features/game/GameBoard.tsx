@@ -31,6 +31,53 @@ import {
 } from "./gameBoard.helpers";
 import { GameBoardView } from "./GameBoardView";
 
+const extractMutationErrorMessage = (error: unknown, fallbackMessage: string): string => {
+  const formatMessage = (message: string): string => {
+    if (message.includes("SSL handshake aborted") || message.includes("Connection reset by peer")) {
+      return "Реклама VK Ads не загрузилась из-за сетевой/TLS ошибки. Попробуйте другую сеть или отключите VPN.";
+    }
+
+    if (message.includes("hasnt banners error")) {
+      return "Реклама временно недоступна, но появится позже.";
+    }
+
+    if (message.startsWith("VK rewarded ad not available:")) {
+      return `VK Ads недоступен: ${message.replace("VK rewarded ad not available:", "").trim()}`;
+    }
+
+    if (message === "Rewarded ad timeout") {
+      return "Реклама не ответила вовремя. Попробуйте ещё раз.";
+    }
+
+    return message;
+  };
+
+  if (error instanceof Error && error.message) {
+    return formatMessage(error.message);
+  }
+
+  if (error && typeof error === "object") {
+    const mutationError = error as {
+      error?: string;
+      data?: { error?: string; message?: string };
+    };
+
+    if (typeof mutationError.error === "string" && mutationError.error.length > 0) {
+      return formatMessage(mutationError.error);
+    }
+
+    if (typeof mutationError.data?.error === "string" && mutationError.data.error.length > 0) {
+      return formatMessage(mutationError.data.error);
+    }
+
+    if (typeof mutationError.data?.message === "string" && mutationError.data.message.length > 0) {
+      return formatMessage(mutationError.data.message);
+    }
+  }
+
+  return fallbackMessage;
+};
+
 export const GameBoard = () => {
   const AUTO_AD_INTERVAL_MS = 10 * 60 * 1000;
   const { data: user, isLoading, isError } = useGetUserQuery();
@@ -71,6 +118,8 @@ export const GameBoard = () => {
   } | null>(null);
   const [isSpawnCelebrating, setIsSpawnCelebrating] = useState(false);
   const [claimingAdBoostType, setClaimingAdBoostType] = useState<ClaimAdBoostPayload["boostType"] | null>(null);
+  const [adBoostNotice, setAdBoostNotice] = useState<string | null>(null);
+  const [purchaseNotice, setPurchaseNotice] = useState<string | null>(null);
   const [purchasingProductId, setPurchasingProductId] = useState<PurchaseProductId | null>(null);
   const mergeFeedbackTimeoutRef = useRef<number | null>(null);
   const spawnCelebrationTimeoutRef = useRef<number | null>(null);
@@ -401,7 +450,7 @@ export const GameBoard = () => {
   };
 
   if (isLoading) {
-    return <p>Loading...</p>;
+    return <div className="screen-loading">Loading...</div>;
   }
 
   if (isError || !user) {
@@ -489,22 +538,43 @@ export const GameBoard = () => {
       }}
       claimAdBoostAction={(boostType) => {
         if (boostType === "rewarded_double_offline_income") {
+          setAdBoostNotice("Офлайн-буст ещё не подключён");
           return;
         }
 
         setClaimingAdBoostType(boostType);
-        void claimAdBoost({ boostType }).finally(() => {
-          setClaimingAdBoostType(null);
-        });
+        setAdBoostNotice("Запуск рекламы...");
+        void claimAdBoost({ boostType })
+          .unwrap()
+          .then(() => {
+            setAdBoostNotice("Награда получена");
+          })
+          .catch((error: unknown) => {
+            setAdBoostNotice(extractMutationErrorMessage(error, "Не удалось показать рекламу"));
+          })
+          .finally(() => {
+            setClaimingAdBoostType(null);
+          });
       }}
       purchaseProductAction={(productId) => {
         setPurchasingProductId(productId);
-        void purchaseProduct({ productId }).finally(() => {
-          setPurchasingProductId(null);
-        });
+        setPurchaseNotice("Запуск покупки...");
+        void purchaseProduct({ productId })
+          .unwrap()
+          .then(() => {
+            setPurchaseNotice("Покупка применена");
+          })
+          .catch((error: unknown) => {
+            setPurchaseNotice(extractMutationErrorMessage(error, "Не удалось выполнить покупку"));
+          })
+          .finally(() => {
+            setPurchasingProductId(null);
+          });
       }}
       isClaimingDailyReward={isClaimingDailyReward}
       claimingAdBoostType={isClaimingAdBoost ? claimingAdBoostType : null}
+      adBoostNotice={adBoostNotice}
+      purchaseNotice={purchaseNotice}
       purchasingProductId={purchasingProductId}
       isCollectionOpen={isCollectionOpen}
       setIsCollectionOpen={setIsCollectionOpen}

@@ -52,6 +52,8 @@ export type GameBoardViewProps = {
   purchaseProductAction: (productId: PurchaseProductId) => void;
   isClaimingDailyReward: boolean;
   claimingAdBoostType: "rewarded_free_spawn" | "rewarded_free_delete" | "rewarded_flow_boost" | "rewarded_double_offline_income" | null;
+  adBoostNotice: string | null;
+  purchaseNotice: string | null;
   purchasingProductId: PurchaseProductId | null;
   isCollectionOpen: boolean;
   setIsCollectionOpen: (value: boolean) => void;

@@ -41,6 +41,7 @@ type MonetizationBridgePlugin = {
 };
 
 const MonetizationBridge = registerPlugin<MonetizationBridgePlugin>("MonetizationBridge");
+const REWARDED_FLOW_TIMEOUT_MS = 25000;
 
 const WEB_CAPABILITIES: MonetizationCapabilities = {
   platform: Capacitor.getPlatform(),
@@ -82,7 +83,14 @@ export const launchRewardedAdFlow = async (options: {
     };
   }
 
-  return MonetizationBridge.launchRewardedAd(options);
+  const launchPromise = MonetizationBridge.launchRewardedAd(options);
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    window.setTimeout(() => {
+      reject(new Error("Rewarded ad timeout"));
+    }, REWARDED_FLOW_TIMEOUT_MS);
+  });
+
+  return Promise.race([launchPromise, timeoutPromise]);
 };
 
 export const launchPurchaseFlow = async (options: {

@@ -1,13 +1,13 @@
 {
     "name": "frontend",
     "private": true,
-    "version": "1.0.2",
+    "version": "1.0.4",
     "type": "module",
     "scripts": {
         "dev": "vite",
         "build": "tsc -b && vite build",
         "preview": "vite preview",
-        "cap:sync": "npx cap sync",
+        "cap:sync": "npx cap sync && node ./scripts/fix-capacitor-plugin-manifest.mjs",
         "cap:android": "npx cap open android",
         "android:init": "npm run build && npm run cap:sync"
     },

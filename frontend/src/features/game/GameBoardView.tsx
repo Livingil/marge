@@ -1,5 +1,5 @@
 import { GameBoardOverlays } from "./GameBoardOverlays";
-import { GameBoardPlaySection } from "./GameBoardPlaySection";
+import { GameBoardControlDeck, GameBoardPlaySection } from "./GameBoardPlaySection";
 import { GameBoardSidePanel } from "./GameBoardSidePanel";
 import { GameBoardTopSection } from "./GameBoardTopSection";
 import { getGoalRewardInlineText, getOnboardingHintCopy } from "./gameBoard.helpers";
@@ -140,6 +140,8 @@ export const GameBoardView = (props: GameBoardViewProps) => {
             purchaseProductAction={props.purchaseProductAction}
             isClaimingDailyReward={props.isClaimingDailyReward}
             claimingAdBoostType={props.claimingAdBoostType}
+            adBoostNotice={props.adBoostNotice}
+            purchaseNotice={props.purchaseNotice}
             purchasingProductId={props.purchasingProductId}
           />
           <div className="mission-panel desktop-only right-mission-panel">
@@ -194,6 +196,25 @@ export const GameBoardView = (props: GameBoardViewProps) => {
         </div>
       </div>
 
+      <GameBoardControlDeck
+        cells={props.cells}
+        filledCellsCount={props.filledCellsCount}
+        user={props.user}
+        isSpawning={props.isSpawning}
+        isClaimingIncome={props.isClaimingIncome}
+        isUpgradingBase={props.isUpgradingBase}
+        isDeletingCell={props.isDeletingCell}
+        canSpawn={props.canSpawn}
+        canUpgradeBase={props.canUpgradeBase}
+        hasSelectedCellItem={props.hasSelectedCellItem}
+        canDeleteSelectedCell={props.canDeleteSelectedCell}
+        selectedCellDeleteCost={props.selectedCellDeleteCost}
+        spawnItemAction={props.spawnItemAction}
+        claimIncomeAction={props.claimIncomeAction}
+        upgradeBaseAction={props.upgradeBaseAction}
+        deleteCellAction={props.deleteCellAction}
+      />
+
       <GameBoardOverlays
         isGuideDismissed={props.isGuideDismissed}
         dismissGuide={props.dismissGuide}
@@ -223,6 +244,8 @@ export const GameBoardView = (props: GameBoardViewProps) => {
         claimAdBoostAction={props.claimAdBoostAction}
         isClaimingDailyReward={props.isClaimingDailyReward}
         claimingAdBoostType={props.claimingAdBoostType}
+        adBoostNotice={props.adBoostNotice}
+        purchaseNotice={props.purchaseNotice}
       />
     </section>
   );

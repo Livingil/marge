@@ -13,10 +13,86 @@
 
 .screen-loading {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
   align-items: center;
   justify-content: center;
   width: 100%;
   min-height: 100dvh;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(88, 222, 255, 0.1), transparent 40%),
+    linear-gradient(180deg, rgba(7, 20, 34, 0.95), rgba(4, 16, 28, 0.98));
+}
+
+.screen-loading-core {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+}
+
+.screen-loading-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 2px solid rgba(88, 222, 255, 0.26);
+  border-top-color: rgba(97, 247, 190, 0.88);
+  border-right-color: rgba(88, 222, 255, 0.8);
+  box-shadow: 0 0 18px rgba(88, 222, 255, 0.22);
+  animation: loaderSpin 1000ms linear infinite;
+}
+
+.screen-loading-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 30%, #bff8ff, #58deff 60%, #32a9d0 100%);
+  box-shadow: 0 0 14px rgba(97, 247, 190, 0.45);
+  animation: loaderPulse 900ms ease-in-out infinite;
+}
+
+.screen-loading-text {
+  margin: 0;
+  color: #dff8ff;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.screen-loading-ellipsis {
+  display: inline-block;
+  width: 18px;
+  text-align: left;
+  animation: loaderDots 1200ms steps(4, end) infinite;
+}
+
+@keyframes loaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loaderPulse {
+  0%,
+  100% {
+    transform: scale(0.88);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes loaderDots {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 18px;
+  }
 }
 
 .mission-mainline {
@@ -950,8 +1026,8 @@
 
 @media (max-width: 640px) {
   :root {
-    --mobile-header-share: 6;
-    --mobile-content-share: 75;
+    --mobile-header-share: 7;
+    --mobile-content-share: 74;
     --mobile-footer-share: 19;
     --mobile-usable-height: calc(
       100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
@@ -980,8 +1056,8 @@
     right: auto;
     gap: 5px;
     height: 100%;
-    padding: calc(env(safe-area-inset-top, 0px) + 8px)
-      calc(10px + env(safe-area-inset-right, 0px)) 8px
+    padding: calc(env(safe-area-inset-top, 0px) + 13px)
+      calc(10px + env(safe-area-inset-right, 0px)) 3px
       calc(10px + env(safe-area-inset-left, 0px));
     align-content: start;
   }

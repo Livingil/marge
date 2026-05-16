@@ -450,7 +450,17 @@ export const GameBoard = () => {
   };
 
   if (isLoading) {
-    return <div className="screen-loading">Loading...</div>;
+    return (
+      <div className="screen-loading" role="status" aria-live="polite">
+        <div className="screen-loading-core" aria-hidden="true">
+          <span className="screen-loading-ring" />
+          <span className="screen-loading-dot" />
+        </div>
+        <p className="screen-loading-text">
+          Загрузка<span className="screen-loading-ellipsis">...</span>
+        </p>
+      </div>
+    );
   }
 
   if (isError || !user) {

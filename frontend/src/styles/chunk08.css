@@ -57,7 +57,7 @@
 
   .resource-bar {
     grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
-    padding: 12px 12px 0;
+    padding: 13px 12px 3px;
     gap: 6px;
     align-items: stretch;
   }

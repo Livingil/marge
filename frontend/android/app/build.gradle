@@ -1,10 +1,18 @@
 apply plugin: 'com.android.application'
+import groovy.json.JsonSlurper
 
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
+def frontendPackageJson = new JsonSlurper().parse(rootProject.file("../package.json"))
+def frontendVersionName = frontendPackageJson.version.toString()
+def frontendVersionParts = frontendVersionName.tokenize('.').collect { it.toInteger() }
+def frontendVersionCode =
+    frontendVersionParts[0] * 10000 +
+    frontendVersionParts[1] * 100 +
+    frontendVersionParts[2]
 
 def rustoreBillingEnabled = (project.findProperty("RUSTORE_BILLING_ENABLED") ?: "false").toBoolean()
 def rustoreBillingEnvironment = project.findProperty("RUSTORE_BILLING_ENVIRONMENT") ?: "sandbox"
@@ -25,8 +33,8 @@ android {
         applicationId "ru.marge.game"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 10002
-        versionName "1.0.2"
+        versionCode frontendVersionCode
+        versionName frontendVersionName
         buildConfigField "boolean", "RUSTORE_BILLING_ENABLED", rustoreBillingEnabled.toString()
         buildConfigField "String", "RUSTORE_BILLING_ENVIRONMENT", "\"${rustoreBillingEnvironment}\""
         buildConfigField "String", "RUSTORE_PAYMENT_CALLBACK_HOST", "\"${rustorePaymentCallbackHost}\""

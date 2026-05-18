@@ -185,7 +185,7 @@ export const getContextHint = (
 
   if (hasSelectedCell) {
     return {
-      title: "Выбери второй символ",
+      title: "Выбери\u00A0второй\u00A0символ",
       text: "Нажми на другой символ, чтобы проверить реакцию."
     };
   }
@@ -212,7 +212,7 @@ export const getContextHint = (
   }
 
   return {
-    title: "Продолжай исследование",
+    title: "Продолжай\u00A0исследование",
     text: "Следуй цели смены и открывай новые ветки каталога."
   };
 };

@@ -49,6 +49,7 @@ Frontend:
 - Деплоить только backend.
 - Не деплоить frontend как web/docker-сервис.
 - Frontend для релиза собирать только как Android-артефакты: APK/AAB.
+- Версия Android-релиза (`versionName`) всегда должна быть равна версии frontend из `frontend/package.json`.
 - Перед любым deploy всегда явно указывать сервис `backend` (например: `npm run deploy:remote -- -Services backend`).
 
 Формат ответа:

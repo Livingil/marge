@@ -34,7 +34,7 @@ import { GameBoardView } from "./GameBoardView";
 const extractMutationErrorMessage = (error: unknown, fallbackMessage: string): string => {
   const formatMessage = (message: string): string => {
     if (message.includes("SSL handshake aborted") || message.includes("Connection reset by peer")) {
-      return "Реклама VK Ads не загрузилась из-за сетевой/TLS ошибки. Попробуйте другую сеть или отключите VPN.";
+      return "Реклама временно недоступна. Повторите запрос позже.";
     }
 
     if (message.includes("hasnt banners error")) {
@@ -78,9 +78,32 @@ const extractMutationErrorMessage = (error: unknown, fallbackMessage: string): s
   return fallbackMessage;
 };
 
+const extractQueryErrorMessage = (error: unknown): string => {
+  if (!error || typeof error !== "object") {
+    return "Неизвестная ошибка";
+  }
+
+  const queryError = error as {
+    status?: string | number;
+    error?: string;
+    data?: { message?: string; error?: string };
+  };
+
+  const details = queryError.data?.message ?? queryError.data?.error ?? queryError.error ?? null;
+  if (queryError.status && details) {
+    return `${queryError.status}: ${details}`;
+  }
+
+  if (queryError.status) {
+    return `Статус: ${queryError.status}`;
+  }
+
+  return details ?? "Неизвестная ошибка";
+};
+
 export const GameBoard = () => {
   const AUTO_AD_INTERVAL_MS = 10 * 60 * 1000;
-  const { data: user, isLoading, isError } = useGetUserQuery();
+  const { data: user, isLoading, isError, error: userLoadError } = useGetUserQuery();
   const [mergeCells, { isLoading: isMerging }] = useMergeCellsMutation();
   const [spawnItem, { isLoading: isSpawning }] = useSpawnItemMutation();
   const [claimIncome, { isLoading: isClaimingIncome }] = useClaimIncomeMutation();
@@ -464,7 +487,12 @@ export const GameBoard = () => {
   }
 
   if (isError || !user) {
-    return <p>Failed to load user.</p>;
+    return (
+      <div className="screen-loading screen-error" role="alert">
+        <p className="screen-loading-text">Не удалось загрузить профиль</p>
+        <p className="screen-error-text">{extractQueryErrorMessage(userLoadError)}</p>
+      </div>
+    );
   }
 
   return (

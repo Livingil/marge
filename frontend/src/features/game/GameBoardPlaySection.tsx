@@ -57,6 +57,8 @@ export const GameBoardPlaySection = ({
     null;
   const discoveredCount = Array.isArray(user.discoveredItems) ? user.discoveredItems.length : 0;
   const catalogCount = Array.isArray(user.itemCatalog) ? user.itemCatalog.length : 0;
+  const discoveredIds = new Set(user.discoveredItems);
+  const discoveredCatalogItems = user.itemCatalog.filter((item) => discoveredIds.has(item.id));
   const progressPercent = catalogCount > 0 ? Math.round((discoveredCount / catalogCount) * 100) : 0;
   const remaining = Math.max(0, catalogCount - discoveredCount);
   const goalRewardInlineText = getGoalRewardInlineText(user.currentGoal.reward);
@@ -65,161 +67,222 @@ export const GameBoardPlaySection = ({
   return (
     <>
       <div className="play-scroll-content">
-        <section className="lab-expansion-preview lab-expansion-preview-flat">
-          <div className="expansion-header">
-            <span className="expansion-mobile-summary">
-              Следующая модернизация лаборатории:{" "}
-              {nextExpansionModule
-                ? `${nextExpansionModule.title} · Ур. ${nextExpansionModule.unlockLevel}`
-                : "все модули открыты"}
-            </span>
-          </div>
-        </section>
-        <section className="sector-progress-card" aria-label="Прогресс сектора">
-          <div className="sector-progress-head">
-            <p className="sector-progress-title">Сектор 1 · Открытия</p>
-            <p className="sector-progress-count">
-              {discoveredCount}/{catalogCount || "—"}
-            </p>
-          </div>
-          <div className="sector-progress-track" role="presentation">
-            <span className="sector-progress-fill" style={{ width: `${progressPercent}%` }} />
-          </div>
-          <p className="sector-progress-foot">
-            До стабилизации: {catalogCount > 0 ? remaining : "—"}
-          </p>
-        </section>
+        <div className="play-columns">
+          <div className="play-column play-column-left">
+            <div className="board-shell">
+              <div className="board-header">
+                <div className="board-header-copy">
+                  <p className="board-kicker">Реакторное поле</p>
+                  <h2>{`Камера слияния 5x${activeRows}`}</h2>
+                </div>
 
-        <div className="board-shell">
-          <div className="board-header">
-            <div className="board-header-copy">
-              <p className="board-kicker">Реакторное поле</p>
-              <h2>{`Камера слияния 5x${activeRows}`}</h2>
-            </div>
-
-            <div className="board-header-actions">
-              <button
-                type="button"
-                className="board-catalog-button"
-                onClick={() => setIsCatalogOpen(true)}
-                aria-label="Открыть каталог элементов"
-              >
-                <span className="board-catalog-button-title">📚 Каталог</span>
-                <span className="board-catalog-button-progress">
-                  Открыто: {user.discoveredItems.length}/{user.itemCatalog.length}
-                </span>
-                <span className="board-catalog-button-progress-mobile">
-                  📚 {user.discoveredItems.length}/{user.itemCatalog.length}
-                </span>
-              </button>
-            </div>
-          </div>
-          <div
-            className="grid"
-            style={{ gridTemplateColumns: `repeat(${GRID_COLUMNS}, 1fr)` }}
-          >
-            {cells.map((cell, index) => (
+                <div className="board-header-actions">
+                  <button
+                    type="button"
+                    className="board-catalog-button"
+                    onClick={() => setIsCatalogOpen(true)}
+                    aria-label="Открыть каталог элементов"
+                  >
+                    <span className="board-catalog-button-title">📚 Каталог</span>
+                    <span className="board-catalog-button-progress">
+                      Открыто: {user.discoveredItems.length}/{user.itemCatalog.length}
+                    </span>
+                    <span className="board-catalog-button-progress-mobile">
+                      📚 {user.discoveredItems.length}/{user.itemCatalog.length}
+                    </span>
+                  </button>
+                </div>
+              </div>
               <div
-                key={index}
-                className={[
-                  "cell",
-                  cell.itemId ? "filled" : "empty",
-                  mergeFeedback?.cellIndex === index ? "merge-feedback" : "",
-                  mergeFeedback?.cellIndex === index
-                    ? `merge-feedback-${mergeFeedback.tone}`
-                    : "",
-                  selectedCell === index ? "selected" : "",
-                  dragFrom === index ? "dragging" : "",
-                  getCellTierClassName(cell),
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                data-feedback-nonce={
-                  mergeFeedback?.cellIndex === index
-                    ? mergeFeedback.nonce
-                    : undefined
-                }
-                draggable={Boolean(cell.itemId) && !isMerging}
-                onDragStart={() => setDragFrom(index)}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={() => void onDropCell(index)}
-                onClick={() => void handleCellClick(index)}
+                className="grid"
+                style={{
+                  gridTemplateColumns: `repeat(${GRID_COLUMNS}, 1fr)`,
+                }}
               >
-                <div className="cell-frame" />
-                {cell.item ? (
-                  <>
-                    <div className="cell-level-badge">T{cell.item.tier}</div>
-                    <div className="cell-energy-lines" />
-                    <div className="cell-icon">{cell.item.icon}</div>
-                    <div className="cell-name">{cell.item.name}</div>
-                    <div className="cell-level">{cell.item.description}</div>
-                    {mergeFeedback?.cellIndex === index ? (
-                      <span
-                        className={`merge-floating-text merge-floating-text-${mergeFeedback.tone}`}
-                      >
-                        {mergeFeedback.message}
-                      </span>
-                    ) : null}
-                  </>
-                ) : (
-                  <div className="cell-placeholder">
-                    <span className="cell-placeholder-plus">+</span>
-                    <span className="cell-placeholder-text">Пусто</span>
+                {cells.map((cell, index) => (
+                  <div
+                    key={index}
+                    className={[
+                      "cell",
+                      cell.itemId ? "filled" : "empty",
+                      mergeFeedback?.cellIndex === index ? "merge-feedback" : "",
+                      mergeFeedback?.cellIndex === index
+                        ? `merge-feedback-${mergeFeedback.tone}`
+                        : "",
+                      selectedCell === index ? "selected" : "",
+                      dragFrom === index ? "dragging" : "",
+                      getCellTierClassName(cell),
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    data-feedback-nonce={
+                      mergeFeedback?.cellIndex === index
+                        ? mergeFeedback.nonce
+                        : undefined
+                    }
+                    draggable={Boolean(cell.itemId) && !isMerging}
+                    onDragStart={() => setDragFrom(index)}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={() => void onDropCell(index)}
+                    onClick={() => void handleCellClick(index)}
+                  >
+                    <div className="cell-frame" />
+                    {cell.item ? (
+                      <>
+                        <div className="cell-level-badge">T{cell.item.tier}</div>
+                        <div className="cell-energy-lines" />
+                        <div className="cell-icon">{cell.item.icon}</div>
+                        <div className="cell-name">{cell.item.name}</div>
+                        <div className="cell-level">{cell.item.description}</div>
+                        {mergeFeedback?.cellIndex === index ? (
+                          <span
+                            className={`merge-floating-text merge-floating-text-${mergeFeedback.tone}`}
+                          >
+                            {mergeFeedback.message}
+                          </span>
+                        ) : null}
+                      </>
+                    ) : (
+                      <div className="cell-placeholder">
+                        <span className="cell-placeholder-plus">+</span>
+                        <span className="cell-placeholder-text">Пусто</span>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
 
-        <div className="mission-panel play-main-mission">
-          <div className="mission-copy">
-            <p className="eyebrow mission-kicker">Текущая цель</p>
-            <div className="mission-mainline mission-mainline-stack">
-              <div className="mission-title-row">
-                <span className="mission-target-icon" aria-hidden="true">
-                  {targetItem?.icon ?? "🎯"}
+          <div className="play-column play-column-right">
+            <section className="lab-expansion-preview lab-expansion-preview-flat">
+              <div className="expansion-header">
+                <span className="expansion-mobile-summary">
+                  Следующая модернизация лаборатории:{" "}
+                  {nextExpansionModule
+                    ? `${nextExpansionModule.title} · Ур. ${nextExpansionModule.unlockLevel}`
+                    : "все модули открыты"}
                 </span>
-                <h1 className="mission-title mission-title-strong">
-                  {user.currentGoal.title}
-                </h1>
               </div>
-              <div className="mission-reward-group">
-                <p className="mission-reward-badge">{goalRewardInlineText}</p>
+            </section>
+            <section className="sector-progress-card" aria-label="Прогресс сектора">
+              <div className="sector-progress-head">
+                <p className="sector-progress-title">Сектор 1 · Открытия</p>
+                <p className="sector-progress-count">
+                  {discoveredCount}/{catalogCount || "—"}
+                </p>
               </div>
+              <div className="sector-progress-track" role="presentation">
+                <span className="sector-progress-fill" style={{ width: `${progressPercent}%` }} />
+              </div>
+              <p className="sector-progress-foot">
+                До стабилизации: {catalogCount > 0 ? remaining : "—"}
+              </p>
+            </section>
+
+            <div className="mission-panel play-main-mission">
+              <div className="mission-copy">
+                <p className="eyebrow mission-kicker">Текущая цель</p>
+                <div className="mission-mainline mission-mainline-stack">
+                  <div className="mission-title-row">
+                    <span className="mission-target-icon" aria-hidden="true">
+                      {targetItem?.icon ?? "🎯"}
+                    </span>
+                    <h1 className="mission-title mission-title-strong">
+                      {user.currentGoal.title}
+                    </h1>
+                  </div>
+                  <div className="mission-reward-group">
+                    <p className="mission-reward-badge">{goalRewardInlineText}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {!isHintDismissed ? (
+              <div className="onboarding-grid play-main-onboarding">
+                <div className="onboarding-card">
+                  <button
+                    type="button"
+                    className="onboarding-close"
+                    onClick={dismissHint}
+                  >
+                    ✕
+                  </button>
+                  <p className="eyebrow">Подсказка лаборатории</p>
+                  <p className="onboarding-title">{onboardingHint.title}</p>
+                  <p className="onboarding-text">{onboardingHint.text}</p>
+                  <p
+                    className={`onboarding-selected ${selectedCellItem ? "" : "empty"}`}
+                  >
+                    {selectedCellItem ? (
+                      <>
+                        Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
+                        <br />
+                        Теперь выбери второй символ для реакции.
+                      </>
+                    ) : (
+                      " "
+                    )}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="meta-card collection-list-card collection-list-card-inline">
+              <div className="progress-head">
+                <div>
+                  <p className="meta-kicker">Открытые элементы</p>
+                  <p className="meta-text">{discoveredCatalogItems.length} из {catalogCount || "—"}</p>
+                </div>
+              </div>
+              {discoveredCatalogItems.length === 0 ? (
+                <p className="meta-text">Пока нет открытых элементов.</p>
+              ) : (
+                <div className="tv-list-scroll tv-list-scroll-fill">
+                  <div className="open-elements-grid">
+                    {discoveredCatalogItems.slice(0, 36).map((item) => (
+                      <div key={item.id} className={`open-elements-tile tier-${item.tier}`}>
+                        <span className="open-elements-tier">T{item.tier}</span>
+                        <span className="open-elements-icon">{item.icon}</span>
+                        <span className="open-elements-name">{item.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="play-column play-column-collection">
+            <div className="meta-card recipes-list-card recipes-list-card-fill">
+              <div className="progress-head">
+                <div>
+                  <p className="meta-kicker">Рецепты</p>
+                  <p className="meta-text">{user.discoveredRecipeDetails.length} открыто</p>
+                </div>
+              </div>
+              {user.discoveredRecipeDetails.length === 0 ? (
+                <p className="meta-text">Рецепты появятся после первых слияний.</p>
+              ) : (
+                <div className="tv-list-scroll">
+                  <ul className="tv-simple-list">
+                    {user.discoveredRecipeDetails.slice(0, 24).map((reaction) => (
+                      <li key={reaction.key} className="tv-simple-list-row recipe-row">
+                        <span className="tv-simple-list-name">
+                          {reaction.left.icon} {reaction.left.name} + {reaction.right.icon} {reaction.right.name}
+                        </span>
+                        <span className="tv-simple-list-meta">
+                          {reaction.result.icon} {reaction.result.name}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {!isHintDismissed ? (
-          <div className="onboarding-grid play-main-onboarding">
-            <div className="onboarding-card">
-              <button
-                type="button"
-                className="onboarding-close"
-                onClick={dismissHint}
-              >
-                ✕
-              </button>
-              <p className="eyebrow">Подсказка лаборатории</p>
-              <p className="onboarding-title">{onboardingHint.title}</p>
-              <p className="onboarding-text">{onboardingHint.text}</p>
-              <p
-                className={`onboarding-selected ${selectedCellItem ? "" : "empty"}`}
-              >
-                {selectedCellItem ? (
-                  <>
-                    Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
-                    <br />
-                    Теперь выбери второй символ для реакции.
-                  </>
-                ) : (
-                  " "
-                )}
-              </p>
-            </div>
-          </div>
-        ) : null}
       </div>
 
     </>

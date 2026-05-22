@@ -116,9 +116,7 @@ export const GameBoard = () => {
 
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [selectedCell, setSelectedCell] = useState<number | null>(null);
-  const [isCollectionOpen, setIsCollectionOpen] = useState(false);
   const [flashTone, setFlashTone] = useState<FlashTone>("neutral");
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isBonusesOpen, setIsBonusesOpen] = useState(false);
   const [isPaymentsInfoOpen, setIsPaymentsInfoOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -250,10 +248,10 @@ export const GameBoard = () => {
   }, [user?.lastActionMessage, user?.latestDiscovery]);
 
   useEffect(() => {
-    if (isHelpOpen || isBonusesOpen || isPaymentsInfoOpen || isAuthOpen || isProfileOpen || isCatalogOpen) {
+    if (isBonusesOpen || isPaymentsInfoOpen || isAuthOpen || isProfileOpen || isCatalogOpen) {
       setIsUtilityMenuOpen(false);
     }
-  }, [isAuthOpen, isBonusesOpen, isCatalogOpen, isHelpOpen, isPaymentsInfoOpen, isProfileOpen]);
+  }, [isAuthOpen, isBonusesOpen, isCatalogOpen, isPaymentsInfoOpen, isProfileOpen]);
 
   useEffect(() => {
     if (!user) {
@@ -614,10 +612,6 @@ export const GameBoard = () => {
       adBoostNotice={adBoostNotice}
       purchaseNotice={purchaseNotice}
       purchasingProductId={purchasingProductId}
-      isCollectionOpen={isCollectionOpen}
-      setIsCollectionOpen={setIsCollectionOpen}
-      isHelpOpen={isHelpOpen}
-      setIsHelpOpen={setIsHelpOpen}
       isBonusesOpen={isBonusesOpen}
       setIsBonusesOpen={setIsBonusesOpen}
       isPaymentsInfoOpen={isPaymentsInfoOpen}

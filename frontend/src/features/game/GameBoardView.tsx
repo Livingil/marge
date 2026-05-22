@@ -1,18 +1,39 @@
+import { useEffect, useState } from "react";
 import { GameBoardOverlays } from "./GameBoardOverlays";
 import { GameBoardControlDeck, GameBoardPlaySection } from "./GameBoardPlaySection";
-import { GameBoardSidePanel } from "./GameBoardSidePanel";
 import { GameBoardTopSection } from "./GameBoardTopSection";
-import { getGoalRewardInlineText, getOnboardingHintCopy } from "./gameBoard.helpers";
 import type { GameBoardViewProps } from "./gameBoard.view.types";
+
+const getLayoutMode = (): "portrait" | "landscape" => {
+  if (typeof window === "undefined") {
+    return "portrait";
+  }
+
+  return window.innerHeight >= window.innerWidth ? "portrait" : "landscape";
+};
 
 export const GameBoardView = (props: GameBoardViewProps) => {
   const isShopMenuEnabled = false;
   const isPaymentsInfoMenuEnabled = false;
-  const goalRewardInlineText = getGoalRewardInlineText(props.user.currentGoal.reward);
-  const onboardingHint = getOnboardingHintCopy(props.user.currentGoal.targetItemId, props.contextHint);
+  const [layoutMode, setLayoutMode] = useState<"portrait" | "landscape">(() => getLayoutMode());
+
+  useEffect(() => {
+    const handleResize = () => {
+      setLayoutMode(getLayoutMode());
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("orientationchange", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("orientationchange", handleResize);
+    };
+  }, []);
 
   return (
-    <section className={`lab-screen flash-${props.flashTone}`}>
+    <section className={`lab-screen lab-screen--${layoutMode} flash-${props.flashTone}`}>
       <div className="lab-chrome" />
       {props.goalCompletionToast ? (
         <div className="goal-completion-toast" role="status" aria-live="polite">
@@ -26,7 +47,7 @@ export const GameBoardView = (props: GameBoardViewProps) => {
 
       <header className="resource-bar">
         <div className="resource-pill resource-pill-energy">
-          <span className="resource-icon">✨</span>
+          <span className="resource-icon">⚡</span>
           <span className="resource-copy">
             <span className="resource-label">Энергия</span>
             <span className="resource-value">{props.user.gold}</span>
@@ -110,16 +131,6 @@ export const GameBoardView = (props: GameBoardViewProps) => {
                   Оплата и документы
                 </button>
               ) : null}
-              <button
-                type="button"
-                className="utility-menu-item"
-                onClick={() => {
-                  props.setIsHelpOpen(true);
-                  props.setIsUtilityMenuOpen(false);
-                }}
-              >
-                Помощь
-              </button>
             </div>
           ) : null}
         </div>
@@ -129,70 +140,6 @@ export const GameBoardView = (props: GameBoardViewProps) => {
         <div className="lab-main">
           <GameBoardTopSection {...props} />
           <GameBoardPlaySection {...props} />
-        </div>
-
-        <div className="lab-right-column">
-          <GameBoardSidePanel
-            user={props.user}
-            setIsCatalogOpen={props.setIsCatalogOpen}
-            claimDailyRewardAction={props.claimDailyRewardAction}
-            claimAdBoostAction={props.claimAdBoostAction}
-            purchaseProductAction={props.purchaseProductAction}
-            isClaimingDailyReward={props.isClaimingDailyReward}
-            claimingAdBoostType={props.claimingAdBoostType}
-            adBoostNotice={props.adBoostNotice}
-            purchaseNotice={props.purchaseNotice}
-            purchasingProductId={props.purchasingProductId}
-          />
-          <div className="mission-panel desktop-only right-mission-panel">
-            <div className="mission-copy">
-              <p className="eyebrow mission-kicker">Текущая цель</p>
-              <div className="mission-mainline mission-mainline-stack">
-                <div className="mission-title-row">
-                  <span className="mission-target-icon" aria-hidden="true">
-                    {props.targetItem?.icon ?? "🎯"}
-                  </span>
-                  <h1 className="mission-title mission-title-strong">
-                    {props.user.currentGoal.title}
-                  </h1>
-                </div>
-                <div className="mission-reward-group">
-                  <p className="mission-reward-badge">{goalRewardInlineText}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          {!props.isHintDismissed ? (
-            <div className="onboarding-grid desktop-only right-onboarding-grid">
-              <div className="onboarding-card">
-                <button
-                  type="button"
-                  className="onboarding-close"
-                  onClick={props.dismissHint}
-                >
-                  ✕
-                </button>
-                <p className="eyebrow">Подсказка лаборатории</p>
-                <p className="onboarding-title">
-                  {onboardingHint.title}
-                </p>
-                <p className="onboarding-text">{onboardingHint.text}</p>
-                <p
-                  className={`onboarding-selected ${props.selectedCellItem ? "" : "empty"}`}
-                >
-                  {props.selectedCellItem ? (
-                    <>
-                      Выбран символ: {props.selectedCellItem.icon} {props.selectedCellItem.name}
-                      <br />
-                      Теперь выбери второй символ для реакции.
-                    </>
-                  ) : (
-                    " "
-                  )}
-                </p>
-              </div>
-            </div>
-          ) : null}
         </div>
       </div>
 
@@ -220,8 +167,6 @@ export const GameBoardView = (props: GameBoardViewProps) => {
       <GameBoardOverlays
         isGuideDismissed={props.isGuideDismissed}
         dismissGuide={props.dismissGuide}
-        isHelpOpen={props.isHelpOpen}
-        setIsHelpOpen={props.setIsHelpOpen}
         isBonusesOpen={props.isBonusesOpen}
         setIsBonusesOpen={props.setIsBonusesOpen}
         isPaymentsInfoOpen={props.isPaymentsInfoOpen}
@@ -230,8 +175,6 @@ export const GameBoardView = (props: GameBoardViewProps) => {
         setIsAuthOpen={props.setIsAuthOpen}
         isProfileOpen={props.isProfileOpen}
         setIsProfileOpen={props.setIsProfileOpen}
-        contextHint={props.contextHint}
-        selectedCellItem={props.selectedCellItem}
         isCatalogOpen={props.isCatalogOpen}
         setIsCatalogOpen={props.setIsCatalogOpen}
         catalogTab={props.catalogTab}

@@ -11,8 +11,6 @@ import type { GameBoardViewProps } from "./gameBoard.view.types";
 export const GameBoardOverlays = ({
   isGuideDismissed,
   dismissGuide,
-  isHelpOpen,
-  setIsHelpOpen,
   isBonusesOpen,
   setIsBonusesOpen,
   isPaymentsInfoOpen,
@@ -21,8 +19,6 @@ export const GameBoardOverlays = ({
   setIsAuthOpen,
   isProfileOpen,
   setIsProfileOpen,
-  contextHint,
-  selectedCellItem,
   isCatalogOpen,
   setIsCatalogOpen,
   catalogTab,
@@ -42,8 +38,6 @@ export const GameBoardOverlays = ({
 }: Pick<GameBoardViewProps,
   | "isGuideDismissed"
   | "dismissGuide"
-  | "isHelpOpen"
-  | "setIsHelpOpen"
   | "isBonusesOpen"
   | "setIsBonusesOpen"
   | "isPaymentsInfoOpen"
@@ -52,8 +46,6 @@ export const GameBoardOverlays = ({
   | "setIsAuthOpen"
   | "isProfileOpen"
   | "setIsProfileOpen"
-  | "contextHint"
-  | "selectedCellItem"
   | "isCatalogOpen"
   | "setIsCatalogOpen"
   | "catalogTab"
@@ -134,49 +126,17 @@ export const GameBoardOverlays = ({
         </div>
       ) : null}
 
-      {isHelpOpen ? (
-        <div className="fullscreen-overlay mobile-only" role="dialog" aria-modal="true">
-          <div className="fullscreen-sheet">
-            <div className="fullscreen-header">
-              <h3>Помощь</h3>
-              <button type="button" className="fullscreen-close" onClick={() => setIsHelpOpen(false)}>
-                Закрыть
-              </button>
-            </div>
-            <div className="fullscreen-content">
-              <p className="eyebrow">Подсказка лаборатории</p>
-              <p className="onboarding-title">{contextHint.title}</p>
-              <p className="onboarding-text">{contextHint.text}</p>
-              {selectedCellItem ? (
-                <p className="onboarding-selected">
-                  Выбран символ: {selectedCellItem.icon} {selectedCellItem.name}
-                  <br />
-                  Теперь выбери второй символ для реакции.
-                </p>
-              ) : null}
-              <p className="eyebrow">Как играть</p>
-              <ol className="onboarding-steps">
-                <li>Синтезируй ядро</li>
-                <li>Соедини два символа</li>
-                <li>Открой новый образец</li>
-                <li>Собери поток энергии</li>
-              </ol>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
       {isBonusesOpen ? (
         <div className="fullscreen-overlay mobile-only" role="dialog" aria-modal="true">
-          <div className="fullscreen-sheet">
+          <div className="fullscreen-sheet bonus-sheet">
             <div className="fullscreen-header">
               <h3>Бонусы</h3>
               <button type="button" className="fullscreen-close" onClick={() => setIsBonusesOpen(false)}>
                 Закрыть
               </button>
             </div>
-            <div className="fullscreen-content">
-              <div className="bonus-card">
+            <div className="fullscreen-content bonus-content">
+              <div className="bonus-card bonus-card-modal">
                 <div className="bonus-head">
                   <p className="meta-kicker">Бонусы</p>
                   <span className="bonus-streak">Серия: {user.dailyReward.streak}</span>
@@ -189,7 +149,7 @@ export const GameBoardOverlays = ({
                   </p>
                   <button
                     type="button"
-                    className="collection-toggle"
+                    className="collection-toggle bonus-main-action"
                     disabled={!user.dailyReward.canClaim || isClaimingDailyReward}
                     onClick={claimDailyRewardAction}
                   >
@@ -220,7 +180,7 @@ export const GameBoardOverlays = ({
                       </div>
                       <button
                         type="button"
-                        className="collection-toggle boost-claim-button"
+                        className="collection-toggle boost-claim-button bonus-claim-action"
                         disabled={!option.canClaim || claimingAdBoostType === option.type}
                         onClick={() => claimAdBoostAction(option.type)}
                       >
@@ -238,39 +198,39 @@ export const GameBoardOverlays = ({
 
       {isAuthOpen ? (
         <div className="fullscreen-overlay mobile-only" role="dialog" aria-modal="true">
-          <div className="fullscreen-sheet">
+          <div className="fullscreen-sheet auth-sheet">
             <div className="fullscreen-header">
               <h3>Вход / регистрация</h3>
               <button type="button" className="fullscreen-close" onClick={() => setIsAuthOpen(false)}>
                 Закрыть
               </button>
             </div>
-            <div className="fullscreen-content">
-              <div className="payment-meta-block">
+            <div className="fullscreen-content auth-content">
+              <div className="payment-meta-block auth-info-block">
                 <p className="meta-kicker">Гостевой режим</p>
                 <p className="meta-text">Игра работает как сейчас: можно играть без регистрации.</p>
                 <p className="meta-text">После входа можно переносить прогресс между устройствами и использовать покупки.</p>
               </div>
 
-              <div className="payment-meta-block">
+              <div className="payment-meta-block auth-form-block">
                 <p className="meta-kicker">Email</p>
                 <input
-                  className="catalog-search"
+                  className="catalog-search auth-input"
                   placeholder="Email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                 />
                 <input
-                  className="catalog-search"
+                  className="catalog-search auth-input"
                   placeholder="Пароль (минимум 8 символов)"
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                 />
-                <div className="boost-options-list">
+                <div className="boost-options-list auth-actions">
                   <button
                     type="button"
-                    className="collection-toggle"
+                    className="collection-toggle auth-action-button"
                     disabled={isRegistering}
                     onClick={() => {
                       setAuthNotice(null);
@@ -290,7 +250,7 @@ export const GameBoardOverlays = ({
                   </button>
                   <button
                     type="button"
-                    className="collection-toggle"
+                    className="collection-toggle auth-action-button"
                     disabled={isLoggingIn}
                     onClick={() => {
                       setAuthNotice(null);
@@ -314,7 +274,7 @@ export const GameBoardOverlays = ({
                   </button>
                 </div>
               </div>
-              {authNotice ? <p className="meta-text">{authNotice}</p> : null}
+              {authNotice ? <p className="meta-text auth-notice">{authNotice}</p> : null}
             </div>
           </div>
         </div>

@@ -18,12 +18,15 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
     private static final String REWARDED_PROVIDER = "mock";
     private static final String PURCHASE_PROVIDER = "mock";
     private static final String REWARDED_PLACEMENT = "gameboard_utility";
-    private static final long REWARDED_TIMEOUT_MS = 20000L;
+    private static final long REWARDED_LOAD_TIMEOUT_MS = 20000L;
+    private static final long REWARDED_DISMISS_GRACE_MS = 1000L;
     private RewardedAd rewardedAd = null;
     private PluginCall pendingRewardedCall = null;
     private boolean rewardedGranted = false;
+    private boolean rewardedDismissed = false;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private Runnable rewardedTimeoutRunnable = null;
+    private Runnable rewardedLoadTimeoutRunnable = null;
+    private Runnable rewardedDismissResolveRunnable = null;
 
     @PluginMethod
     public void getCapabilities(PluginCall call) {
@@ -33,6 +36,13 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
         String rewardedPlacement = BuildConfig.VK_REWARDED_PLACEMENT.isEmpty()
             ? REWARDED_PLACEMENT
             : BuildConfig.VK_REWARDED_PLACEMENT;
+        Log.i(
+            TAG,
+            "getCapabilities: rewardedEnabled=" + BuildConfig.VK_REWARDED_ENABLED
+                + ", rewardedSlotId=" + BuildConfig.VK_REWARDED_SLOT_ID
+                + ", rewardedReady=" + rewardedReady
+                + ", rewardedPlacement=" + rewardedPlacement
+        );
 
         JSObject result = new JSObject();
         result.put("platform", "android");
@@ -55,7 +65,11 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
 
         boolean rewardedReady = BuildConfig.VK_REWARDED_ENABLED && BuildConfig.VK_REWARDED_SLOT_ID > 0;
         if (!rewardedReady) {
-            Log.w(TAG, "launchRewardedAd: rewarded is not ready (disabled or slot id missing)");
+            Log.w(
+                TAG,
+                "launchRewardedAd: rewarded is not ready (enabled=" + BuildConfig.VK_REWARDED_ENABLED
+                    + ", slotId=" + BuildConfig.VK_REWARDED_SLOT_ID + ")"
+            );
             JSObject result = new JSObject();
             result.put("provider", REWARDED_PROVIDER);
             result.put("completed", true);
@@ -73,52 +87,71 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
             Log.i(TAG, "launchRewardedAd: start loading, slotId=" + BuildConfig.VK_REWARDED_SLOT_ID + ", placement=" + placement);
             pendingRewardedCall = call;
             rewardedGranted = false;
+            rewardedDismissed = false;
             if (rewardedAd != null) {
                 rewardedAd.setListener(null);
                 rewardedAd.destroy();
                 rewardedAd = null;
             }
-            rewardedTimeoutRunnable = () -> {
+            clearRewardedLoadTimeout();
+            clearRewardedDismissResolve();
+            rewardedLoadTimeoutRunnable = () -> {
                 if (pendingRewardedCall != null) {
-                    Log.e(TAG, "launchRewardedAd: timeout waiting for SDK callbacks");
+                    Log.e(TAG, "launchRewardedAd: timeout waiting for ad load callbacks");
                     pendingRewardedCall.reject("VK rewarded ad timeout");
                     pendingRewardedCall = null;
                 }
                 rewardedGranted = false;
+                rewardedDismissed = false;
                 if (rewardedAd != null) {
                     rewardedAd.setListener(null);
                     rewardedAd.destroy();
                     rewardedAd = null;
                 }
             };
-            mainHandler.postDelayed(rewardedTimeoutRunnable, REWARDED_TIMEOUT_MS);
+            mainHandler.postDelayed(rewardedLoadTimeoutRunnable, REWARDED_LOAD_TIMEOUT_MS);
             rewardedAd = new RewardedAd(BuildConfig.VK_REWARDED_SLOT_ID, getContext());
             rewardedAd.setListener(this);
             rewardedAd.load();
         } catch (Exception error) {
-            clearRewardedTimeout();
+            clearRewardedLoadTimeout();
+            clearRewardedDismissResolve();
             Log.e(TAG, "launchRewardedAd: failed to start", error);
             pendingRewardedCall = null;
             rewardedGranted = false;
+            rewardedDismissed = false;
             call.reject("Failed to start VK rewarded ad", error);
         }
     }
 
-    private void clearRewardedTimeout() {
-        if (rewardedTimeoutRunnable != null) {
-            mainHandler.removeCallbacks(rewardedTimeoutRunnable);
-            rewardedTimeoutRunnable = null;
+    private void clearRewardedLoadTimeout() {
+        if (rewardedLoadTimeoutRunnable != null) {
+            mainHandler.removeCallbacks(rewardedLoadTimeoutRunnable);
+            rewardedLoadTimeoutRunnable = null;
         }
     }
 
-    @Override
-    protected void handleOnDestroy() {
-        clearRewardedTimeout();
+    private void clearRewardedDismissResolve() {
+        if (rewardedDismissResolveRunnable != null) {
+            mainHandler.removeCallbacks(rewardedDismissResolveRunnable);
+            rewardedDismissResolveRunnable = null;
+        }
+    }
+
+    private void cleanupRewardedAd() {
+        clearRewardedLoadTimeout();
+        clearRewardedDismissResolve();
         if (rewardedAd != null) {
             rewardedAd.setListener(null);
             rewardedAd.destroy();
             rewardedAd = null;
         }
+        rewardedDismissed = false;
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        cleanupRewardedAd();
         pendingRewardedCall = null;
         rewardedGranted = false;
         super.handleOnDestroy();
@@ -127,27 +160,25 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
     @Override
     public void onLoad(RewardedAd ad) {
         if (rewardedAd == null) {
+            Log.w(TAG, "onLoad: callback received after ad instance was cleared");
             return;
         }
+        clearRewardedLoadTimeout();
         Log.i(TAG, "onLoad: showing rewarded ad");
         rewardedAd.show();
     }
 
     @Override
     public void onNoAd(IAdLoadingError adLoadingError, RewardedAd ad) {
-        clearRewardedTimeout();
+        clearRewardedLoadTimeout();
         if (pendingRewardedCall != null) {
             String errorMessage = adLoadingError != null ? adLoadingError.getMessage() : "no ad";
-            Log.w(TAG, "onNoAd: " + errorMessage);
+            Log.w(TAG, "onNoAd: slotId=" + BuildConfig.VK_REWARDED_SLOT_ID + ", message=" + errorMessage);
             pendingRewardedCall.reject("VK rewarded ad not available: " + errorMessage);
             pendingRewardedCall = null;
         }
         rewardedGranted = false;
-        if (rewardedAd != null) {
-            rewardedAd.setListener(null);
-            rewardedAd.destroy();
-            rewardedAd = null;
-        }
+        cleanupRewardedAd();
     }
 
     @Override
@@ -157,49 +188,59 @@ public class MonetizationBridgePlugin extends Plugin implements RewardedAd.Rewar
 
     @Override
     public void onDismiss(RewardedAd ad) {
-        clearRewardedTimeout();
-        Log.i(TAG, "onDismiss: completed=" + rewardedGranted);
-        if (pendingRewardedCall != null) {
-            JSObject result = new JSObject();
-            result.put("provider", "vkads");
-            result.put("completed", rewardedGranted);
-            result.put("placement", BuildConfig.VK_REWARDED_PLACEMENT.isEmpty() ? REWARDED_PLACEMENT : BuildConfig.VK_REWARDED_PLACEMENT);
-            pendingRewardedCall.resolve(result);
-            pendingRewardedCall = null;
-        }
-        rewardedGranted = false;
-        if (rewardedAd != null) {
-            rewardedAd.setListener(null);
-            rewardedAd.destroy();
-            rewardedAd = null;
-        }
+        clearRewardedLoadTimeout();
+        rewardedDismissed = true;
+        Log.i(TAG, "onDismiss: completed=" + rewardedGranted + ", waitingForLateReward=" + !rewardedGranted);
+        clearRewardedDismissResolve();
+        rewardedDismissResolveRunnable = () -> {
+            if (pendingRewardedCall != null) {
+                JSObject result = new JSObject();
+                result.put("provider", "vkads");
+                result.put("completed", rewardedGranted);
+                result.put("placement", BuildConfig.VK_REWARDED_PLACEMENT.isEmpty() ? REWARDED_PLACEMENT : BuildConfig.VK_REWARDED_PLACEMENT);
+                pendingRewardedCall.resolve(result);
+                pendingRewardedCall = null;
+            }
+            rewardedGranted = false;
+            cleanupRewardedAd();
+        };
+        mainHandler.postDelayed(rewardedDismissResolveRunnable, REWARDED_DISMISS_GRACE_MS);
     }
 
     @Override
     public void onReward(Reward reward, RewardedAd ad) {
         Log.i(TAG, "onReward: reward granted");
         rewardedGranted = true;
+        if (rewardedDismissed && pendingRewardedCall != null) {
+            clearRewardedDismissResolve();
+            JSObject result = new JSObject();
+            result.put("provider", "vkads");
+            result.put("completed", true);
+            result.put("placement", BuildConfig.VK_REWARDED_PLACEMENT.isEmpty() ? REWARDED_PLACEMENT : BuildConfig.VK_REWARDED_PLACEMENT);
+            pendingRewardedCall.resolve(result);
+            pendingRewardedCall = null;
+            rewardedGranted = false;
+            cleanupRewardedAd();
+        }
     }
 
     @Override
     public void onDisplay(RewardedAd ad) {
-        // no-op
+        clearRewardedLoadTimeout();
+        Log.i(TAG, "onDisplay");
     }
 
     @Override
     public void onFailedToShow(RewardedAd ad) {
-        clearRewardedTimeout();
+        clearRewardedLoadTimeout();
+        clearRewardedDismissResolve();
         Log.e(TAG, "onFailedToShow");
         if (pendingRewardedCall != null) {
             pendingRewardedCall.reject("VK rewarded ad failed to show");
             pendingRewardedCall = null;
         }
         rewardedGranted = false;
-        if (rewardedAd != null) {
-            rewardedAd.setListener(null);
-            rewardedAd.destroy();
-            rewardedAd = null;
-        }
+        cleanupRewardedAd();
     }
 
     @PluginMethod

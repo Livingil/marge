@@ -55,10 +55,6 @@ export type GameBoardViewProps = {
   adBoostNotice: string | null;
   purchaseNotice: string | null;
   purchasingProductId: PurchaseProductId | null;
-  isCollectionOpen: boolean;
-  setIsCollectionOpen: (value: boolean) => void;
-  isHelpOpen: boolean;
-  setIsHelpOpen: (value: boolean) => void;
   isBonusesOpen: boolean;
   setIsBonusesOpen: (value: boolean) => void;
   isPaymentsInfoOpen: boolean;

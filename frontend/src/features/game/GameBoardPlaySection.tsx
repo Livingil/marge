@@ -60,7 +60,6 @@ export const GameBoardPlaySection = ({
   const discoveredIds = new Set(user.discoveredItems);
   const discoveredCatalogItems = user.itemCatalog.filter((item) => discoveredIds.has(item.id));
   const progressPercent = catalogCount > 0 ? Math.round((discoveredCount / catalogCount) * 100) : 0;
-  const remaining = Math.max(0, catalogCount - discoveredCount);
   const goalRewardInlineText = getGoalRewardInlineText(user.currentGoal.reward);
   const onboardingHint = getOnboardingHintCopy(user.currentGoal.targetItemId, contextHint);
 
@@ -175,9 +174,6 @@ export const GameBoardPlaySection = ({
               <div className="sector-progress-track" role="presentation">
                 <span className="sector-progress-fill" style={{ width: `${progressPercent}%` }} />
               </div>
-              <p className="sector-progress-foot">
-                До стабилизации: {catalogCount > 0 ? remaining : "—"}
-              </p>
             </section>
 
             <div className="mission-panel play-main-mission">

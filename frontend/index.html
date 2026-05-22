@@ -7,6 +7,43 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/ios/180.png" />
     <link rel="apple-touch-icon" sizes="152x152" href="/ios/152.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/android/launchericon-192x192.png" />
+    <script>
+      (function () {
+        var ua = navigator.userAgent || "";
+        var isAndroidWebView = /\bwv\b/.test(ua) || /; wv\)/.test(ua);
+        var isNativeHost = !!window.Capacitor || (location.hostname === "localhost" && isAndroidWebView);
+        if (!isNativeHost || !("serviceWorker" in navigator)) {
+          return;
+        }
+
+        var resetKey = "__native_sw_reset_v2__";
+        if (sessionStorage.getItem(resetKey) === "done") {
+          return;
+        }
+
+        sessionStorage.setItem(resetKey, "pending");
+        window.__nativeSwResetPromise = (async function () {
+          try {
+            var registrations = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(registrations.map(function (registration) {
+              return registration.unregister();
+            }));
+
+            if ("caches" in window) {
+              var cacheKeys = await caches.keys();
+              await Promise.all(cacheKeys.map(function (cacheKey) {
+                return caches.delete(cacheKey);
+              }));
+            }
+          } catch (error) {
+            console.warn("[marge] native SW reset failed", error);
+          } finally {
+            sessionStorage.setItem(resetKey, "done");
+            location.reload();
+          }
+        })();
+      })();
+    </script>
     <title>Лаборатория Синтеза</title>
   </head>
   <body>
